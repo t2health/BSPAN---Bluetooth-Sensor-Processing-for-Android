@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.t2.biofeedback"
+	android:versionCode="1"
+	android:versionName="1.0">
+    <application 
+    	android:icon="@drawable/icon" 
+    	android:label="@string/app_name">
+    	
+    	<receiver
+        	android:name=".BioFeedbackServiceManagerReceiver">
+        	
+			<intent-filter>
+				<action	android:name="com.t2.biofeedback.service.START" />
+				<action	android:name="com.t2.biofeedback.service.STOP" />
+				<action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
+			</intent-filter>
+		</receiver>
+    
+       <service
+        	android:name=".BioFeedbackService">
+		</service>
+		
+        <activity 
+        	android:name=".activity.manager"
+            android:label="@string/app_name">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
+            <intent-filter>
+            	<action android:name="com.t2.biofeedback.MANAGER" />
+            	<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+    
+    <uses-sdk android:minSdkVersion="5" />
+	<uses-permission android:name="android.permission.BLUETOOTH"></uses-permission>
+</manifest> 

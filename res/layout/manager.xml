@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="vertical">
+
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/app_desc" />
+
+	<ListView
+		android:id="@+id/list"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="10dip"
+		android:layout_marginBottom="10dip"
+		android:layout_weight="1.0" />
+		
+	<Button
+		android:id="@+id/bluetoothSettingsButton"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="right"
+		android:text="@string/bluetooth_settings" />
+		
+	<ToggleButton
+		android:id="@+id/serviceToggleButton"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:textOn="Started"
+		android:textOff="Stopped"
+		android:visibility="gone" />
+</LinearLayout>
