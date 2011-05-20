@@ -11,6 +11,9 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
+import com.t2.biofeedback.device.Spine.SpineBH;
+import com.t2.biofeedback.device.Spine.SpineDevice;
+import com.t2.biofeedback.device.Spine.TestBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 public class DeviceManager {
@@ -28,6 +31,8 @@ public class DeviceManager {
 	
 	public static final BioFeedbackDevice[] devices = new BioFeedbackDevice[] {
 		new ZephyrBH(),
+		new SpineBH(),
+		new TestBH(),
 	};
 	
 	private DeviceManager(Context c) {

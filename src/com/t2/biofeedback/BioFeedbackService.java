@@ -2,15 +2,8 @@ package com.t2.biofeedback;
 
 import com.t2.biofeedback.device.AverageDeviceValue;
 import com.t2.biofeedback.device.BioFeedbackDevice;
-import com.t2.biofeedback.device.DeviceValue;
-import com.t2.biofeedback.device.HeartRate;
-import com.t2.biofeedback.device.RespirationRate;
 import com.t2.biofeedback.device.SerialBTDevice;
-import com.t2.biofeedback.device.SkinTemperature;
-import com.t2.biofeedback.device.BioFeedbackDevice.OnBatteryLevelListener;
-import com.t2.biofeedback.device.BioFeedbackDevice.OnHeartRateListener;
-import com.t2.biofeedback.device.BioFeedbackDevice.OnRespirationRateListener;
-import com.t2.biofeedback.device.BioFeedbackDevice.OnSkinTemperatureListener;
+
 import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
@@ -22,7 +15,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 
-public class BioFeedbackService extends Service implements OnHeartRateListener, OnRespirationRateListener, OnSkinTemperatureListener, DeviceConnectionListener, OnBatteryLevelListener {
+public class BioFeedbackService extends Service implements DeviceConnectionListener {
 	private static final String TAG = Constants.TAG;
 	
 	public static final class BroadcastMessage {
@@ -121,22 +114,6 @@ public class BioFeedbackService extends Service implements OnHeartRateListener, 
 	
 	
 	private void setListeners(BioFeedbackDevice device) {
-		try {
-			device.setOnBatteryLevelListener(this);
-		} catch (UnsupportedCapabilityException e) {}
-		
-		try {
-			device.setOnHeartRateListener(this);
-		} catch (UnsupportedCapabilityException e) {}
-		
-		try {
-			device.setOnRespirationRateListener(this);
-		} catch (UnsupportedCapabilityException e) {}
-		
-		try {
-			device.setOnSkinTemperatureListener(this);
-		} catch (UnsupportedCapabilityException e) {}
-		
 		device.setDeviceConnectionListener(this);
 	}
 	
@@ -216,36 +193,7 @@ public class BioFeedbackService extends Service implements OnHeartRateListener, 
 		);
 	}
 
-	@Override
-	public void onSkinTemperature(BioFeedbackDevice d,
-			SkinTemperature st) {
-		this.sendBroadcast(
-				getDeviceBroadcastIntent(d, BroadcastMessage.Type.DATA, BroadcastMessage.Id.DATA_SKIN_TEMPERATURE, st)
-		);
-	}
 
-	@Override
-	public void onRespirationRate(BioFeedbackDevice d,
-			RespirationRate rr) {
-		this.sendBroadcast(
-				getDeviceBroadcastIntent(d, BroadcastMessage.Type.DATA, BroadcastMessage.Id.DATA_RESPIRATION_RATE, rr)
-		);
-	}
-
-	@Override
-	public void onHeartRate(BioFeedbackDevice d, HeartRate hr) {
-		this.sendBroadcast(
-				getDeviceBroadcastIntent(d, BroadcastMessage.Type.DATA, BroadcastMessage.Id.DATA_HEART_RATE, hr)
-		);
-	}
-
-	@Override
-	public void onBatteryLevel(BioFeedbackDevice d,
-			DeviceValue dv) {
-		Intent i = getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.BATTERY_LEVEL, dv.currentValue);
-		i.setAction(ACTION_DATA_BROADCAST);
-		this.sendBroadcast(i);
-	}
 	
 	
 	private class ManageDeviceThread extends Thread {

@@ -56,6 +56,11 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 	
 	@Override
 	protected void onBytesReceived(byte[] bytes) {
+		StringBuffer hexString = new StringBuffer();
+		for (int i=0;i<bytes.length;i++) {
+		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
+		    }		
+		Log.i(TAG, new String(hexString));		
 		this.onMessageReceived(ZephyrMessage.parse(bytes));
 	}
 	
@@ -67,25 +72,25 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		if(msg.msgId == 0x20) {
 			BitSet bs = byteArrayToBitSet(new byte[] {msg.raw[53], msg.raw[54]});
 			
-			this.onBatteryLevel(
-					System.currentTimeMillis(),
-					bitSetToByteArray(bs.get(0, 7))[0]
-			);
-			
-			this.onHeartRate(
-					System.currentTimeMillis(), 
-					byteArrayToInt(new byte[] {msg.payload[9], msg.payload[10]})
-			);
-			
-			this.onRespirationRate(
-					System.currentTimeMillis(), 
-					byteArrayToInt(new byte[] {msg.payload[11], msg.payload[12]}) / 10.00
-			);
-			
-			this.onSkinTemperature(
-					System.currentTimeMillis(), 
-					byteArrayToInt(new byte[] {msg.payload[13], msg.payload[14]}) / 10.00
-			);
+//			this.onBatteryLevel(
+//					System.currentTimeMillis(),
+//					bitSetToByteArray(bs.get(0, 7))[0]
+//			);
+//			
+//			this.onHeartRate(
+//					System.currentTimeMillis(), 
+//					byteArrayToInt(new byte[] {msg.payload[9], msg.payload[10]})
+//			);
+//			
+//			this.onRespirationRate(
+//					System.currentTimeMillis(), 
+//					byteArrayToInt(new byte[] {msg.payload[11], msg.payload[12]}) / 10.00
+//			);
+//			
+//			this.onSkinTemperature(
+//					System.currentTimeMillis(), 
+//					byteArrayToInt(new byte[] {msg.payload[13], msg.payload[14]}) / 10.00
+//			);
 		}
 	}
 	
