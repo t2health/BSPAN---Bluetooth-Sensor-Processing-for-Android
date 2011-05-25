@@ -43,6 +43,7 @@ public class AndroidMessage extends com.tilab.gal.Message {
 		super();
 	}
 
+		
 	
 	public AndroidMessage(short dstAddr, short destEndpoint, short srcEndpoint,
 			short clusterId, short transId, short options, short radius,

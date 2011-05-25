@@ -88,6 +88,15 @@ public class Message {
 	  
 	  public Message(short dstAddr, short destEndpoint, short srcEndpoint, short clusterId, short transId, short options, short radius, short len, short[] data)
 	  {
+		  this.dstAddr = dstAddr;
+		  this.destEndpoint = destEndpoint;
+		  this.srcEndpoint = srcEndpoint;
+		  this.clusterId = clusterId;
+		  this.transSeqNumber = transId;
+		  this.options = options;
+		  this.radius = radius;
+		  this.len = len;
+		  this.data = data;
 		  
 	  }
 
