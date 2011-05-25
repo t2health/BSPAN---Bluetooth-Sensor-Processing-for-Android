@@ -2,6 +2,7 @@ package com.t2.biofeedback;
 
 import com.t2.biofeedback.device.AverageDeviceValue;
 import com.t2.biofeedback.device.BioFeedbackDevice;
+import com.t2.biofeedback.device.BioFeedbackDevice.OnSpineMessageListener;
 import com.t2.biofeedback.device.SerialBTDevice;
 
 import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
@@ -15,7 +16,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 
-public class BioFeedbackService extends Service implements DeviceConnectionListener {
+public class BioFeedbackService extends Service implements DeviceConnectionListener, OnSpineMessageListener {
 	private static final String TAG = Constants.TAG;
 	
 	public static final class BroadcastMessage {
@@ -114,7 +115,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	
 	private void setListeners(BioFeedbackDevice device) {
+		try {
+			device.setOnSpineMessageListener(this);
+		} catch (UnsupportedCapabilityException e) {}		
+		
 		device.setDeviceConnectionListener(this);
+		
+
 	}
 	
 	private Intent getStatusBroadcastIntent(SerialBTDevice d, String messageType, String messageId, Double value) {
@@ -216,5 +223,15 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		public void setRun(boolean b) {
 			this.run = false;
 		}
+	}
+
+
+
+
+	@Override
+	public void onSpineMessage(byte[] message) {
+		// TODO Auto-generated method stub
+		// Send message here
+		
 	}
 }

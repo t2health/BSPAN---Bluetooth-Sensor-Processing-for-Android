@@ -4,6 +4,15 @@ import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 public abstract class BioFeedbackDevice extends SerialBTDevice {
 	private long linkTimeout = 0;
+	private OnSpineMessageListener onSpineMessageListener;	
+	
+	private boolean onSpineMessageListenerIsSet = false;
+	private boolean onBatteryLevelListenerIsSet = false;
+	private boolean onHeartRateListenerIsSet = false;
+	private boolean onRespirationRateListenerIsSet = false;
+	private boolean onSkinTemperatureListenerIsSet = false;
+
+	
 	
 	private int[] capabilities;
 	
@@ -28,10 +37,34 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 		return linkTimeout;
 	}
 	
+	public boolean hasCapability(int cap) {
+		if(capabilities == null) {
+			this.capabilities = getCapabilities();
+		}
+		
+		for(int i = 0; i < this.capabilities.length; i++) {
+			if(this.capabilities[i] == cap) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	
+	public void setOnSpineMessageListener(OnSpineMessageListener l) throws UnsupportedCapabilityException {
+		if(!this.hasCapability(Capability.SPINE_MESSAGE)) {
+			throw new UnsupportedCapabilityException("Device doesn't support this capability.");
+		}
+		this.onSpineMessageListener = l;
+		this.onSpineMessageListenerIsSet= (l != null);
+	}
+		
 	
 	protected void onSetCollectData(int data, boolean canCollect) {}
 
 	protected abstract void onSetLinkTimeout(long linkTimeout);
+	public abstract int[] getCapabilities();	
 	public abstract ModelInfo getModelInfo();
 //	public abstract int getDeviceId();
 	
@@ -49,6 +82,17 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 		return null;
 	}*/
 	
+	protected void onSpineMessage(byte[] message) {
+		if(this.onSpineMessageListenerIsSet) {
+			
+			this.onSpineMessageListener.onSpineMessage(message);
+		}
+	}
+		
+	
+	public interface OnSpineMessageListener {
+		public void onSpineMessage(byte[] message);
+	}
 	
 
 	
@@ -75,7 +119,13 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	
 	public static class Capability {
 
+		public static final int SPINE_MESSAGE = 44;
+		public static final int BATTERY_LEVEL = 44;
+		public static final int HEART_RATE = 45;
+		public static final int RESPIRATION_RATE = 46;
+		public static final int SKIN_TEMP = 47;
 	}
+	
 	
 
 }

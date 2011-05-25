@@ -39,7 +39,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-public class manager extends Activity implements OnClickListener {
+public class BTServiceManager extends Activity implements OnClickListener {
 	private static final String TAG = Constants.TAG;
 
 	private static final int BLUETOOTH_SETTINGS = 987;
