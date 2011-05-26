@@ -5,6 +5,6 @@
     android:layout_height="fill_parent"
     >
 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/StatusLogLabel" android:text="@string/StatusLogLabelText"></TextView>
-<EditText android:layout_width="fill_parent" android:text="EditText" android:layout_height="wrap_content" android:id="@+id/editText1" android:gravity="fill"></EditText>
+<EditText android:layout_width="fill_parent" android:text="EditText" android:layout_height="wrap_content" android:gravity="fill" android:id="@+id/statusText"></EditText>
 <Button android:text="Button" android:layout_width="wrap_content" android:id="@+id/button1" android:layout_height="wrap_content"></Button>
 </LinearLayout>

@@ -1,5 +1,7 @@
 package com.t2;
 
+
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,7 +21,10 @@ public class SpineReceiver extends BroadcastReceiver {
 			if(messageRecievedListener != null) {
 				messageRecievedListener.onDataReceived(BioFeedbackData.factory(intent));
 			}
-			
+		} else if(intent.getAction().equals("com.t2.biofeedback.service.spinedata.BROADCAST")) {
+			if(messageRecievedListener != null) {
+				messageRecievedListener.onSpineDataReceived(BioFeedbackSpineData.factory(intent));
+			}
 		} else if(intent.getAction().equals("com.t2.biofeedback.service.status.BROADCAST")) {
 			if(messageRecievedListener != null) {
 				messageRecievedListener.onStatusReceived(BioFeedbackStatus.factory(intent));
@@ -33,6 +38,7 @@ public class SpineReceiver extends BroadcastReceiver {
 	
 	public interface OnBioFeedbackMessageRecievedListener {
 		public void onDataReceived(BioFeedbackData bfmd);
+		public void onSpineDataReceived(BioFeedbackSpineData bfmd);
 		public void onStatusReceived(BioFeedbackStatus bfs);
 	}
 	
@@ -61,6 +67,7 @@ public class SpineReceiver extends BroadcastReceiver {
 		}
 	}
 	
+	
 	public static class BioFeedbackData extends BioFeedbackMessage {
 		public double avgValue;
 		public double currentValue;
@@ -82,6 +89,23 @@ public class SpineReceiver extends BroadcastReceiver {
 			
 			m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
 			m.sampleTimestamps = i.getLongArrayExtra("sampleTimestamps");
+			
+			return m;
+		}
+	}	
+	
+	public static class BioFeedbackSpineData extends BioFeedbackMessage {
+		public byte[] msgBytes;
+		public long currentTimestamp;
+		
+		public static BioFeedbackSpineData factory(Intent i) {
+			BioFeedbackSpineData m = new BioFeedbackSpineData();
+			m.address = i.getStringExtra("address");
+			m.name = i.getStringExtra("name");
+			m.messageType = i.getStringExtra("messageType");
+			m.messageId = i.getStringExtra("messageId");
+			m.msgBytes = i.getByteArrayExtra("msgBytes");
+			m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
 			
 			return m;
 		}

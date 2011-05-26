@@ -5,6 +5,7 @@ package com.t2;
 
 
 import com.t2.SpineReceiver.BioFeedbackData;
+import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biofeedback.Constants;
@@ -27,13 +28,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener {
 	private static final String TAG = Constants.TAG;
     EditText mEditText;
     private static SPINEManager manager;
 	private SpineReceiver receiver;
-	private AlertDialog connectingDialog;	
+	private AlertDialog connectingDialog;
+	TextView statusText;
     
 	private void doThis()
 	{
@@ -96,6 +99,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
             }
         });        
         
+        statusText = (TextView) findViewById(R.id.statusText);
         
         
 		// Initialize SPINE by passing the fileName with the configuration properties
@@ -149,6 +153,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
 		IntentFilter filter = new IntentFilter();
+		filter.addAction("com.t2.biofeedback.service.spinedata.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.data.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
 		this.registerReceiver(
@@ -178,11 +183,43 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void onDataReceived(BioFeedbackData bfmd) {
 		// TODO Auto-generated method stub
-		Log.i(TAG, "Data Received" );		
+		Log.i(TAG, "Regular Data Received" );		
+
+        String messageId = bfmd.messageId;
+		if(messageId.equals("SPINE_MESSAGE")) {
+			double value = (bfmd.avgValue * 9 / 5) + 32;
+			String text = statusText.getText().toString();
+			text = value+"\n"+text;
+			statusText.setText(text);
+		}
+			
 		
 	}
 
+	@Override
+	public void onSpineDataReceived(BioFeedbackSpineData bfmd) {
 
+        String messageId = bfmd.messageId;
+		if(messageId.equals("SPINE_MESSAGE")) {
+			StringBuffer hexString = new StringBuffer();
+			
+			for (int i=0; i <bfmd.msgBytes.length; i++) 
+			{
+			    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
+			}		
+			String str = new String(hexString);
+			Log.i(TAG, "Spine Data Received: " + str );		
+			
+			
+			
+			String text = statusText.getText().toString();
+			text = str+ "\n" + text;
+			statusText.setText(text);
+		}
+		
+	}
+
+	
 	@Override
 	public void onStatusReceived(BioFeedbackStatus bfs) {
 		if(bfs.messageId.equals("CONN_CONNECTING")) {
@@ -194,5 +231,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			this.connectingDialog.hide();
 		}
 	}
+
 	
 }
