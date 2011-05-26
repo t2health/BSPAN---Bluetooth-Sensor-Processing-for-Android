@@ -53,6 +53,9 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
 	public static final String EXTRA_TIMESTAMP = "timestamp";
 	
+	public static final String EXTRA_MSG_BYTES = "msgBytes";
+
+	
 	public static final String EXTRA_AVERAGE_VALUE = "avgValue";
 	public static final String EXTRA_CURRENT_VALUE = "currentValue";
 	public static final String EXTRA_SAMPLE_VALUES = "sampleValue";
@@ -149,6 +152,18 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		i.putExtra(EXTRA_CURRENT_TIMESTAMP, dv.currentTimetamp);
 		i.putExtra(EXTRA_SAMPLE_TIMESTAMPS, dv.sampleTimestamps);
+		
+		return i;
+	}
+
+	private Intent getDeviceBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
+			byte[] msgBytes) {
+		
+		Intent i = getStatusBroadcastIntent(d, messageType, messageId, null);
+		i.setAction(ACTION_DATA_BROADCAST);
+		i.putExtra(EXTRA_MSG_BYTES, msgBytes);
+		
+		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
 		
 		return i;
 	}
