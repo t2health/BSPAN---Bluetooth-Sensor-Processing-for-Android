@@ -85,13 +85,13 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	protected void onSpineMessage(byte[] message) {
 		if(this.onSpineMessageListenerIsSet) {
 			
-			this.onSpineMessageListener.onSpineMessage(message);
+			this.onSpineMessageListener.onSpineMessage(this, message);
 		}
 	}
 		
 	
 	public interface OnSpineMessageListener {
-		public void onSpineMessage(byte[] message);
+		public void onSpineMessage(BioFeedbackDevice bioFeedbackDevice, byte[] message);
 	}
 	
 

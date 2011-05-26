@@ -38,6 +38,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			public static final String DATA_RESPIRATION_RATE = "DATA_RESPIRATION_RATE";
 			public static final String DATA_HEART_RATE = "DATA_HEART_RATE";
 			public static final String BATTERY_LEVEL = "BATTERY_LEVEL";
+			public static final String SPINE_MESSAGE = "SPINE_MESSAGE";
 		}
 	}
 	
@@ -155,14 +156,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		return i;
 	}
-
-	private Intent getDeviceBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
+	
+	private Intent getSpineBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
 			byte[] msgBytes) {
 		
 		Intent i = getStatusBroadcastIntent(d, messageType, messageId, null);
 		i.setAction(ACTION_DATA_BROADCAST);
 		i.putExtra(EXTRA_MSG_BYTES, msgBytes);
-		
 		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
 		
 		return i;
@@ -240,13 +240,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-
-
-
+	
 	@Override
-	public void onSpineMessage(byte[] message) {
-		// TODO Auto-generated method stub
-		// Send message here
+	public void onSpineMessage(BioFeedbackDevice d, byte[] message) {
+		this.sendBroadcast(
+		getSpineBroadcastIntent(d, BroadcastMessage.Type.DATA, BroadcastMessage.Id.SPINE_MESSAGE, message)
+		);
 		
 	}
 }
