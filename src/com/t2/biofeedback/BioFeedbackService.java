@@ -42,6 +42,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 	
+	public static final String ACTION_SPINE_DATA_BROADCAST = "com.t2.biofeedback.service.spinedata.BROADCAST";
 	public static final String ACTION_DATA_BROADCAST = "com.t2.biofeedback.service.data.BROADCAST";
 	public static final String ACTION_STATUS_BROADCAST = "com.t2.biofeedback.service.status.BROADCAST";
 	public static final String ACTION_SERVICE_START = "com.t2.biofeedback.service.START";
@@ -132,13 +133,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		Intent i = new Intent();
 		i.setAction(ACTION_STATUS_BROADCAST);
 		if(d != null) {
-			i.putExtra(EXTRA_ADDRESS, d.getAddress());
-			i.putExtra(EXTRA_NAME, d.getName());
-		}
-		i.putExtra(EXTRA_MESSAGE_TYPE, messageType);
-		i.putExtra(EXTRA_MESSAGE_ID, messageId);
-		i.putExtra(EXTRA_MESSAGE_VALUE, value);
-		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
+				i.putExtra(EXTRA_ADDRESS, d.getAddress());
+				i.putExtra(EXTRA_NAME, d.getName());
+			}
+			i.putExtra(EXTRA_MESSAGE_TYPE, messageType);
+			i.putExtra(EXTRA_MESSAGE_ID, messageId);
+			i.putExtra(EXTRA_MESSAGE_VALUE, value);
+			i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
 		return i;
 	}
 	
@@ -161,7 +162,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			byte[] msgBytes) {
 		
 		Intent i = getStatusBroadcastIntent(d, messageType, messageId, null);
-		i.setAction(ACTION_DATA_BROADCAST);
+		i.setAction(ACTION_SPINE_DATA_BROADCAST);
 		i.putExtra(EXTRA_MSG_BYTES, msgBytes);
 		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
 		

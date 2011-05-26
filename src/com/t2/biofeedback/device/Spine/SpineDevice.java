@@ -109,7 +109,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		{
 		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
 		}		
-		Log.i(TAG, "Received bytes: " + new String(hexString));
+//		Log.i(TAG, "Received bytes: " + new String(hexString));
 
 		// Transfer bytes to fifo one by one
 		// Each time updating the state machine
@@ -188,7 +188,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				currentMsgSeq = seq;
 				
 				
-				Log.i(TAG, "Found message: " + new String(hexString));    	
+//				Log.i(TAG, "Found message: " + new String(hexString));    	
 				
 				this.onMessageReceived(messageArray);
 				
