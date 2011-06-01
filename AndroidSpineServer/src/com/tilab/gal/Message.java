@@ -107,141 +107,139 @@ public class Message {
 
 	  public short getSrcAddr()
 	  {
-		  return 0;
+		  return this.srcAddr;
 	  }
 
 
 	  public short getSrcEndpoint()
 	  {
-		  return 0;
+		  return this.srcEndpoint;
 	  }
 
 	  public short getDstAddr()
 	  {
-		  return 0;
+		  return this.dstAddr;
 	  }
 
 	  public short getDestEndpoint()
 	  {
-		  return 0;
+		  return this.destEndpoint;
 	  }
 
 	  public java.lang.String getSourceURL()
 	  {
-		  return "";
+		  return this.sourceURL;
 	  }
 
 	  public java.lang.String getDestinationURL()
 	  {
-		  return "";
+		  return this.destinationURL;
 	  }
 
 	  
 	  public void setDestinationURL(java.lang.String destinationURL)
 	  {
-		  
+		  this.destinationURL = destinationURL;
 	  }
 
 	  public java.lang.String getConnectionURL()
 	  {
-		  return "";
+		  return this.connectionURL;
 	  }
 
 	  public boolean isBroadcast()
 	  {
-		  return false;
+		  return (wasBroadcast != 0) ? true:false;
 	  }
 
 	  public short getLinkQuality()
 	  {
-		  return 0;
+		  return this.linkQuality;
 	  }
 
 	  public void setLinkQuality(short linkQuality)
 	  {
-		  
+		  this.linkQuality = linkQuality;
 	  }
 
 	  public short getSecurityStatus()
 	  {
-		  return 0;
+		  return this.securityUse;
 	  }
 	  
 	  // Method descriptor #110 (S)V
 	  // Stack: 2, Locals: 2
 	  public void setSecurityStatus(short securityStatus)
 	  {
-		  
+		  this.securityUse = securityStatus;
 	  }
 
 	  public long getTimestamp()
 	  {
-		  return 0;
+		  return this.timestamp;
 	  }
 
 	  public short getTransNo()
 	  {
-		  return 0;
+		  return this.transSeqNumber;
 	  }
 
 	  public byte getTxSettings()
 	  {
-		  return 0;
+		  return this.txSettings;
 	  }
 
 	  public void setTxSettings(byte txSettings)
 	  {
-		  
+		  this.txSettings =  txSettings;
 	  }
 
 	  public short getOptions()
 	  {
-		  return 0;
+		  return this.options;
 	  }
 	  public short getRadius()
 	  {
-		  return 0;
+		  return this.radius;
 	  }
 	  public int getMaxHopsNumber()
 	  {
-		  return 0;
+		  return this.maxHopsNumber;
 	  }
 	  public void setMaxHopsNumber(int maxHopsNumber)
 	  {
-		  
+		  this.maxHopsNumber = maxHopsNumber;
 	  }
 	  public short getLen()
 	  {
-		  return 0;
+		  return this.len;
 	  }
 	  public short[] getPayload()
 	  {
-		  short[] f = {0};
-		  
-		  return f;
+		  return this.data;
 	  }
 	  public void setPayload(short[] payload)
 	  {
-		  
+		  this.data = payload;
 	  }
 	  public short getClusterId()
 	  {
-		  return 0;
+		  return this.clusterId;
 	  }
 	  public void setClusterId(short clusterId)
 	  {
-		  
+		  this.clusterId = clusterId;
 	  }
 	  public short getProfileId()
 	  {
-		  return 0;
+		  return this.profileId;
 	  }
 	  public void setProfileId(short profileId)
 	  {
-		  
+		  this.profileId = profileId;
 	  }
 	  public short getGroupId()
 	  {
-		  return 0;
+		  return this.groupId;
 	  }
 }

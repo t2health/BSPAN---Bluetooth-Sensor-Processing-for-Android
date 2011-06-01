@@ -86,7 +86,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
             public void onClick(View v) {
 
             	doThis();            	
-            	
+				manager.discoveryWsn();
             	
             	
             	
@@ -104,6 +104,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
+//			manager = SPINEFactory.createSPINEManager("resources/SPINETestApp.properties", resources);
 			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block

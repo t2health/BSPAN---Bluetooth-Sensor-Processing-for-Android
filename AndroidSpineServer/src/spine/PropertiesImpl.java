@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import android.content.res.AssetManager;
+
 /**
  * 
  * @see spine.Properties
@@ -82,7 +84,11 @@ public class PropertiesImpl extends spine.Properties {
 	private void loadPropFile() throws IOException {
 		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream(propertiesFileName); 
 		if (is == null)
-			is = new FileInputStream(propertiesFileName);
+		{
+		//	is = new FileInputStream(propertiesFileName);
+	        AssetManager assetManager = resources.getAssets();
+			is = assetManager.open(propertiesFileName);				
+		}
 		p.load(is);
 		loaded = true;
 	}

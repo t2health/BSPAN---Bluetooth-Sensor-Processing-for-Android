@@ -32,6 +32,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
+import com.t2.biofeedback.Constants;
+
+import android.util.Log;
+
 /*#MIDP_INCLUDE_BEGIN
 import javax.microedition.rms.RecordStore;
 #MIDP_INCLUDE_END*/
@@ -119,7 +123,9 @@ public class Logger
 //#J2ME_EXCLUDE_END
 		implements Serializable
 {
+	
 
+	private static final String TAG = Constants.TAG;
 	//#J2ME_EXCLUDE_BEGIN
 	/**
 	 * SEVERE is a message level indicating a serious failure.
@@ -166,7 +172,8 @@ public class Logger
      * @param name A name for the logger
      * @param resourceBundleName  Name of ResourceBundle to be used for localizing messages for this logger. May be null if none of the messages require localization.
     */
-	private Logger(String name,String resourceBundleName){
+//	private Logger(String name,String resourceBundleName){
+		public Logger(String name,String resourceBundleName){
 		super(name,resourceBundleName);
 	}
 
@@ -177,6 +184,7 @@ public class Logger
 		return new DummyLogger(getName());
 	}
 
+			
 	private static class DummyLogger implements Serializable {
 		private static final long serialVersionUID = 1L;
 		private String name;
@@ -221,7 +229,14 @@ public class Logger
 		return jadeLogger;
 	}
 	
-	
+	public void log(int level, String str)
+	{
+		Log.i(TAG, str);
+	}
+	public boolean isLoggable(int level)
+	{
+		return true;
+	}
 	/**
 	 * Inner class LoggerWrapper
 	 */

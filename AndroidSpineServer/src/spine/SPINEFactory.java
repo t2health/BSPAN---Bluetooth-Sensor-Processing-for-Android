@@ -27,7 +27,7 @@ package spine;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
+
 
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -66,45 +66,45 @@ public class SPINEFactory {
 			throw new InstantiationException("SPINEManager already initialized");
 		else {
 			
-	        AssetManager assetManager = resources.getAssets();
-
-	        // Read from the /assets directory
-	        try {
-	            InputStream inputStream = assetManager.open(appPropertiesFile);
-	            Properties properties = new Properties();
-	            properties.load(inputStream);
-
-				String MOTECOM = System.getProperty(SpineProperties.MOTECOM_KEY);
-				MOTECOM = (MOTECOM != null) ? MOTECOM : properties.getProperty(SpineProperties.MOTECOM_KEY);
-	            
-				String PLATFORM = System.getProperty(SpineProperties.PLATFORM_KEY);
-				PLATFORM = (PLATFORM != null) ? PLATFORM : properties.getProperty(SpineProperties.PLATFORM_KEY);
-				
-				if (MOTECOM == null || PLATFORM == null)
-					throw new InstantiationException(APP_PROP_MISSING_MSG);
-				
-				managerInstance = new SPINEManager(MOTECOM, PLATFORM, resources);	            
-	            
-	            
-	            
-	        } catch (IOException e) {
-	            System.err.println("Failed to open microlog property file");
-	            e.printStackTrace();
-	        }  			
+//	        AssetManager assetManager = resources.getAssets();
+//
+//	        // Read from the /assets directory
+//	        try {
+//	            InputStream inputStream = assetManager.open(appPropertiesFile);
+//	            Properties properties = new Properties();
+//	            properties.load(inputStream);
+//
+//				String MOTECOM = System.getProperty(SpineProperties.MOTECOM_KEY);
+//				MOTECOM = (MOTECOM != null) ? MOTECOM : properties.getProperty(SpineProperties.MOTECOM_KEY);
+//	            
+//				String PLATFORM = System.getProperty(SpineProperties.PLATFORM_KEY);
+//				PLATFORM = (PLATFORM != null) ? PLATFORM : properties.getProperty(SpineProperties.PLATFORM_KEY);
+//				
+//				if (MOTECOM == null || PLATFORM == null)
+//					throw new InstantiationException(APP_PROP_MISSING_MSG);
+//				
+//				managerInstance = new SPINEManager(MOTECOM, PLATFORM, resources);	            
+//	            
+//	            
+//	            
+//	        } catch (IOException e) {
+//	            System.err.println("Failed to open property file");
+//	            e.printStackTrace();
+//	        }  			
 			
-//			
-//			Properties appProp = Properties.getProperties(appPropertiesFile);
-//
-//			String MOTECOM = System.getProperty(Properties.MOTECOM_KEY);
-//			MOTECOM = (MOTECOM != null) ? MOTECOM : appProp.getProperty(Properties.MOTECOM_KEY);
-//
-//			String PLATFORM = System.getProperty(Properties.PLATFORM_KEY);
-//			PLATFORM = (PLATFORM != null) ? PLATFORM : appProp.getProperty(Properties.PLATFORM_KEY);
-//			
-//			if (MOTECOM == null || PLATFORM == null)
-//				throw new InstantiationException(APP_PROP_MISSING_MSG);
-//			
-//			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
+			Properties.setResources(resources);
+			Properties appProp = Properties.getProperties(appPropertiesFile);
+
+			String MOTECOM = System.getProperty(Properties.MOTECOM_KEY);
+			MOTECOM = (MOTECOM != null) ? MOTECOM : appProp.getProperty(Properties.MOTECOM_KEY);
+
+			String PLATFORM = System.getProperty(Properties.PLATFORM_KEY);
+			PLATFORM = (PLATFORM != null) ? PLATFORM : appProp.getProperty(Properties.PLATFORM_KEY);
+			
+			if (MOTECOM == null || PLATFORM == null)
+				throw new InstantiationException(APP_PROP_MISSING_MSG);
+			
+			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
 		}
 		return managerInstance;
 

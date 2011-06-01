@@ -36,9 +36,12 @@ package spine;
 
 import java.io.IOException;
 
+import android.content.res.Resources;
+
 public abstract class Properties {
 	
-	public final static String DEFAULT_PROPERTIES_FILE = "resources/defaults.properties";
+//	public final static String DEFAULT_PROPERTIES_FILE = "resources/defaults.properties";
+	public final static String DEFAULT_PROPERTIES_FILE = "defaults.properties";
 	
 	public static final String MOTECOM_KEY = "MOTECOM";
 	public static final String PLATFORM_KEY = "PLATFORM";
@@ -53,8 +56,13 @@ public abstract class Properties {
 	public static final String MESSAGE_CLASSNAME_KEY = "message_className";
 	
 	public static final String VIRTUAL_WSN_SIZE_KEY = "virtualWSNSize";
+	public static Resources resources;
 
 	
+	public static void setResources(Resources _resources)
+	{
+		resources = _resources;
+	}
 	/**
 	 * Returns an implementation of the Properties abstract class 
 	 * which is binded to the default properties file "default.properties"

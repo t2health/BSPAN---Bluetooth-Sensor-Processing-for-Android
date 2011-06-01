@@ -38,12 +38,14 @@ Boston, MA  02111-1307, USA.
 package spine;
 
 import jade.util.Logger;
+//import 	java.util.logging.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Properties;
+
 import java.util.Vector;
 
 import com.tilab.gal.LocalNodeAdapter;
@@ -73,7 +75,6 @@ import spine.exceptions.MethodNotSupportedException;
 
 
 
-
 public class SPINEManager {
 	
 	/** package scoped as they are used by EventDispatcher **/
@@ -91,6 +92,9 @@ public class SPINEManager {
 	
 	// private object to which SPINEMager delegates the event dispatching functionality
 	private EventDispatcher eventDispatcher = null; 
+	
+	private static Properties prop = Properties.getDefaultProperties();
+	
 	
 	private static final String DEF_PROP_MISSING_MSG = 
 		"ERROR: unable to load 'defaults.properties' file.";
@@ -133,17 +137,81 @@ public class SPINEManager {
 	
 	/** package-scoped method called by SPINEFactory.
 	 * The caller must guarantee that moteCom and platform are not null. **/
+	SPINEManager(String moteCom, String platform) {
+		try {
+			MOTECOM = moteCom;
+			PLATFORM = platform;			
+			
+			MY_GROUP_ID = (byte)Short.parseShort(prop.getProperty(Properties.GROUP_ID_KEY), 16);
+			LOCALNODEADAPTER_CLASSNAME = prop.getProperty(PLATFORM + "_" + Properties.LOCALNODEADAPTER_CLASSNAME_KEY);
+			URL_PREFIX = prop.getProperty(PLATFORM + "_" + Properties.URL_PREFIX_KEY);
+			SPINEDATACODEC_PACKAGE = SPINEDATACODEC_PACKAGE_PREFIX + 
+									prop.getProperty(PLATFORM + "_" + Properties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
+			MESSAGE_CLASSNAME = prop.getProperty(PLATFORM + "_" + Properties.MESSAGE_CLASSNAME_KEY);
+			SPINE_SERVICE_MESSAGE_CODEC_PACKAGE = SPINE_SERVICE_MESSAGE_CODEC_PACKAGE_PREFIX + 
+													prop.getProperty(PLATFORM + "_" + Properties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
+			
+			System.setProperty(Properties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
+			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter();	
+
+			Vector params = new Vector();
+			params.addElement(MOTECOM);
+			nodeAdapter.init(params);
+
+			java.util.logging.LogManager mng = java.util.logging.LogManager.getLogManager();
+			Enumeration e = mng.getLoggerNames();
+			
+			
+			// Test some logging levels
+			l.log(Logger.SEVERE,"Logger.SEVERE");
+			l.log(Logger.INFO,"Logger.INFO");
+			l.log(Logger.WARNING,"Logger.WARNING");
+			l.log(Logger.ALL,"Logger.ALL");
+			l.log(Logger.FINEST,"Logger.FINEST");
+			l.log(0,"hi");
+			l.log(0,Integer.toString(Logger.SEVERE.intValue()));
+			l.log(0,Integer.toString(Logger.FINEST.intValue()));
+			
+			
+			
+			
+			nodeAdapter.start();
+
+			connection = nodeAdapter.createAPSConnection();	
+			
+			baseStation = new Node(new Address(""+SPINEPacketsConstants.SPINE_BASE_STATION));
+			baseStation.setLogicalID(new Address(SPINEPacketsConstants.SPINE_BASE_STATION_LABEL));
+			
+			eventDispatcher = new EventDispatcher(this);
+
+		} catch (NumberFormatException e) {
+			exit(DEF_PROP_MISSING_MSG);
+		} 
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			if (l.isLoggable(Logger.SEVERE)) 
+				l.log(Logger.SEVERE, e.getMessage());
+		} 
+		catch (InstantiationException e) {
+			e.printStackTrace();
+			if (l.isLoggable(Logger.SEVERE)) 
+				l.log(Logger.SEVERE, e.getMessage());
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+			if (l.isLoggable(Logger.SEVERE)) 
+				l.log(Logger.SEVERE, e.getMessage());
+		} 
+	}
+	
+	
+	
+	/** package-scoped method called by SPINEFactory.
+	 * The caller must guarantee that moteCom and platform are not null. **/
 	SPINEManager(String moteCom, String platform, Resources resources) {
 		try {
 			MOTECOM = moteCom;
 			PLATFORM = platform;	
 			
-	        AssetManager assetManager = resources.getAssets();
-            InputStream inputStream = assetManager.open("defaults.properties");
-            Properties prop = new Properties();
-            prop.load(inputStream);
-	        
-
 			MY_GROUP_ID = (byte)Short.parseShort(prop.getProperty(SpineProperties.GROUP_ID_KEY), 16);
 			LOCALNODEADAPTER_CLASSNAME = prop.getProperty(PLATFORM + "_" + SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY);
 			URL_PREFIX = prop.getProperty(PLATFORM + "_" + SpineProperties.URL_PREFIX_KEY);
@@ -153,12 +221,15 @@ public class SPINEManager {
 			SPINE_SERVICE_MESSAGE_CODEC_PACKAGE = SPINE_SERVICE_MESSAGE_CODEC_PACKAGE_PREFIX + 
 													prop.getProperty(PLATFORM + "_" + SpineProperties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
 			
-			//System.setProperty(SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
-
-//			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter();	
+			System.setProperty(SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
+			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter();	
 			
 			
-			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter(LOCALNODEADAPTER_CLASSNAME);	
+			
+			
+			
+			
+//			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter(LOCALNODEADAPTER_CLASSNAME);	
 
 			Vector params = new Vector();
 			params.addElement(MOTECOM);
@@ -179,15 +250,16 @@ public class SPINEManager {
 
 		} catch (NumberFormatException e) {
 			exit(DEF_PROP_MISSING_MSG);
-		} catch (IOException e) {
-			exit(DEF_PROP_MISSING_MSG);
-		}  			
+		} 
+//		catch (IOException e) {
+//			exit(DEF_PROP_MISSING_MSG);
+//		}  			
 
-//		catch (ClassNotFoundException e) {
-//			e.printStackTrace();
-//			if (l.isLoggable(Logger.SEVERE)) 
-//				l.log(Logger.SEVERE, e.getMessage());
-//		} 
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			if (l.isLoggable(Logger.SEVERE)) 
+				l.log(Logger.SEVERE, e.getMessage());
+		} 
 		catch (InstantiationException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 

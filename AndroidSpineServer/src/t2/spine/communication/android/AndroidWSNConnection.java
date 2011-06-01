@@ -106,21 +106,21 @@ public class AndroidWSNConnection implements WSNConnection {
 
 			// sends the platform dependent message using the local node adapter
 			adapter.send(destNodeID, emumsg);
-			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE)) {
+			if (SPINEManager.getLogger().isLoggable(0)) {
 				StringBuffer str = new StringBuffer();
 				str.append("SENT -> ");
 				str.append(emumsg);
-				SPINEManager.getLogger().log(Logger.SEVERE, str.toString());
+				SPINEManager.getLogger().log(0, str.toString());
 			}
 
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
-				SPINEManager.getLogger().log(Logger.SEVERE, e.getMessage());
+			if (SPINEManager.getLogger().isLoggable(0))
+				SPINEManager.getLogger().log(0, e.getMessage());
 		} catch (IndexOutOfBoundsException e) {
 			e.printStackTrace();
-			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
-				SPINEManager.getLogger().log(Logger.SEVERE, e.getMessage());
+			if (SPINEManager.getLogger().isLoggable(0))
+				SPINEManager.getLogger().log(0, e.getMessage());
 		}
 	}
 
