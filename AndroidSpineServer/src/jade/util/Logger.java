@@ -125,7 +125,8 @@ public class Logger
 {
 	
 
-	private static final String TAG = Constants.TAG;
+//	private static final String TAG = Constants.TAG;
+	private static final String TAG = "AndroidSpineServer";
 	//#J2ME_EXCLUDE_BEGIN
 	/**
 	 * SEVERE is a message level indicating a serious failure.

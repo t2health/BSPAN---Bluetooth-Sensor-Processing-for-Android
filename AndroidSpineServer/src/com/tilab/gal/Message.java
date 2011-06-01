@@ -1,5 +1,7 @@
 package com.tilab.gal;
 
+import java.nio.ByteBuffer;
+
 public class Message {
 	
 	  // Field descriptor #8 S

@@ -14,5 +14,14 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name="t2.spine.communication.android.AndroidMessageServer">
+            <intent-filter>
+            <action android:name="com.t2.biofeedback.service.spinedata.BROADCAST" />
+            </intent-filter>
+        </receiver>
+        
+
+        
+
     </application>
 </manifest>

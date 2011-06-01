@@ -12,6 +12,7 @@ import com.t2.biofeedback.Constants;
 
 import spine.SPINEFactory;
 import spine.SPINEManager;
+import t2.spine.communication.android.AndroidSocketMessageListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -157,10 +158,20 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		filter.addAction("com.t2.biofeedback.service.spinedata.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.data.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
-		this.registerReceiver(
-				this.receiver, 
-        		filter
-		);
+		this.registerReceiver(this.receiver,filter);
+        		
+//        try {
+//			//startActivity(new Intent(this, AndroidSocketMessageListener.class));
+//			Intent myIntent = new Intent(getApplicationContext(), AndroidSocketMessageListener.class);
+////			Intent myIntent = new Intent("t2.spine.communication.android.AndroidSocketThrdServer");
+//			this.startActivity(myIntent);			
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			Log.i("*******", e.toString());
+//			//e.printStackTrace();
+//		}
+//        		
+		
 	}
     
 	@Override

@@ -51,6 +51,11 @@ import spine.SPINEManager;
 import spine.SPINEPacketsConstants;
 import spine.SPINESupportedPlatforms;
 
+import android.content.Intent;
+import android.util.Log;
+
+//import com.t2.AndroidSocketThrdServer;
+import com.t2.biofeedback.Constants;
 import com.tilab.gal.ConfigurationDescriptor;
 import com.tilab.gal.LocalNodeAdapter;
 import com.tilab.gal.Message;
@@ -69,7 +74,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 	int nodeConnected = 0;
 
 	/**
-	 * This method is called by the nodeCoordinator (AndroidSocketThrdServer) when a
+	 * This method is called by the nodeCoordinator (AndroidMessageServer) when a
 	 * new message is received by the nodeCoordinator.
 	 */
 	public void messageReceived(int srcID, Message msg) {
@@ -87,7 +92,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 		if ((msg.getProfileId() != 0)) {
 			// nodeId from sourceURL
 			sourceURL = msg.getSourceURL();
-			String urlPrefix = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.EMULATOR + "_" + Properties.URL_PREFIX_KEY);
+			String urlPrefix = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY);
 			nodeId = Integer.parseInt(sourceURL.substring(urlPrefix.length()));
 
 			// Add "nodeId"/"node info msg" to nodeInfo
@@ -127,9 +132,16 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 	public void reset() {
 	}
 
-	AndroidSocketThrdServer nodeCoordinator = new AndroidSocketThrdServer();
+//	AndroidSocketThrdServer nodeCoordinator;
+	AndroidMessageServer nodeCoordinator;
 
 	public void start() {
+		nodeCoordinator = new AndroidMessageServer();
+		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
+		SPINEManager.getLogger().log(Logger.INFO, "AndroidLLocalNodeAdapter in wainting ...");
+
+		nodeCoordinator.registerListener(this);
+		
 //		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
 //			SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.start()");
 //		nodeCoordinator.setTitle("WSN Emulator: Collector node");
@@ -140,13 +152,10 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 //		};
 //		nodeCoordinator.addWindowListener(l);
 //		// AndroidLocalNodeAdapter is a SocketMessage listener
-//		nodeCoordinator.registerListener(this);
 //		nodeCoordinator.pack();
 //		nodeCoordinator.setVisible(true);
 //		Thread t = new Thread(nodeCoordinator);
 //		t.start();
-//		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
-//			SPINEManager.getLogger().log(Logger.INFO, "AndroidLLocalNodeAdapter in wainting ...");
 	}
 
 	public void stop() {
@@ -179,7 +188,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 					}
 					
 					nodeId = key.intValue();
-					nodeCoordinator.sendCommand(key.intValue(), emumsg);
+//					nodeCoordinator.sendCommand(key.intValue(), emumsg);
 				}
 				break;
 			case SPINEPacketsConstants.RESET:
@@ -187,7 +196,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 					SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.resetWsn");				
 				// nodeCoordinator.sendCommand(destNodeID, "RESET");
 				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
+//				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
 				break;
 			case SPINEPacketsConstants.SYNCR:
 				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
@@ -214,10 +223,10 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 						str.append(nodeInfo.get(key));
 						str.append("\nCase SERVICE_DISCOVERY --> emumsg:");
 						str.append(emumsg.toString());
-						SPINEManager.getLogger().log(Logger.INFO, str.toString());
+						SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, str.toString());
 					}
 					nodeId = key.intValue();
-					nodeCoordinator.sendCommand(key.intValue(), emumsg);
+//					nodeCoordinator.sendCommand(key.intValue(), emumsg);
 				}
 				break;
 			case SPINEPacketsConstants.SETUP_SENSOR:
@@ -229,7 +238,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 				}
 				// nodeCoordinator.sendCommand(destNodeID, "SETUP_SENSOR");
 				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
+	//			nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
 				break;
 			case SPINEPacketsConstants.SETUP_FUNCTION:
 				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
@@ -240,7 +249,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 				}
 				// nodeCoordinator.sendCommand(destNodeID, "SETUP_FUNCTION");
 				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
+	//			nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
 				break;
 			case SPINEPacketsConstants.FUNCTION_REQ:
 				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
@@ -251,14 +260,15 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 				}
 				// nodeCoordinator.sendCommand(destNodeID, "FUNCTION_REQ");
 				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
+//				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
 				break;
 			default:
 				if (SPINEManager.getLogger().isLoggable(Logger.WARNING))
 					SPINEManager.getLogger().log(Logger.WARNING, "ERROR PktType");
 			}
-		} catch (IOException e1) {
-			nodeInfo.remove(new Integer(nodeId));
+//		} 
+//		catch (IOException e1) {
+//			nodeInfo.remove(new Integer(nodeId));
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
