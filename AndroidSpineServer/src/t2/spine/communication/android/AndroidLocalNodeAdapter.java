@@ -55,7 +55,6 @@ import android.content.Intent;
 import android.util.Log;
 
 //import com.t2.AndroidSocketThrdServer;
-import com.t2.biofeedback.Constants;
 import com.tilab.gal.ConfigurationDescriptor;
 import com.tilab.gal.LocalNodeAdapter;
 import com.tilab.gal.Message;
@@ -226,7 +225,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 						SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, str.toString());
 					}
 					nodeId = key.intValue();
-//					nodeCoordinator.sendCommand(key.intValue(), emumsg);
+					nodeCoordinator.sendCommand(key.intValue(), emumsg);
 				}
 				break;
 			case SPINEPacketsConstants.SETUP_SENSOR:

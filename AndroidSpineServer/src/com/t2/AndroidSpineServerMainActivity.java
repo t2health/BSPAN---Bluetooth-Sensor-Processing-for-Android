@@ -8,7 +8,6 @@ import com.t2.SpineReceiver.BioFeedbackData;
 import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biofeedback.Constants;
 
 import spine.SPINEFactory;
 import spine.SPINEManager;
@@ -38,7 +37,14 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private SpineReceiver receiver;
 	private AlertDialog connectingDialog;
 	TextView statusText;
+	private static AndroidSpineServerMainActivity instance;
     
+	
+	public static AndroidSpineServerMainActivity getInstance() 
+	{
+	   return instance;
+	}
+	
 	private void doThis()
 	{
 		
@@ -78,6 +84,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        instance = this;
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();

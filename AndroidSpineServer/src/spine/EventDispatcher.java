@@ -40,9 +40,11 @@ import spine.datamodel.serviceMessages.ServiceWarningMessage;
 import spine.exceptions.MethodNotSupportedException;
 import spine.exceptions.PacketDecodingException;
 import spine.exceptions.UnexpectedMessageException;
+import t2.spine.communication.android.Constants;
 
 
-import com.t2.biofeedback.Constants;
+
+
 import com.tilab.gal.WSNConnection;
 
 /**
@@ -178,8 +180,8 @@ class EventDispatcher {
 					case SPINEPacketsConstants.DATA: {
 						if(EventDispatcher.this.spineManager.getNodeByPhysicalID(nodeID) == null)
 						{
-							if (SPINEManager.getLogger().isLoggable(Logger.SEVERE)) 
-								SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, "Unexpected DATA message received " + "[from node:" + nodeID + "]");
+//							if (SPINEManager.getLogger().isLoggable(Logger.SEVERE)) 
+//								SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, "Unexpected DATA message received " + "[from node:" + nodeID + "]");
 							return;
 							 //throw new UnexpectedMessageException("Unexpected DATA message received " + "[from node:" + nodeID + "]");
 						}

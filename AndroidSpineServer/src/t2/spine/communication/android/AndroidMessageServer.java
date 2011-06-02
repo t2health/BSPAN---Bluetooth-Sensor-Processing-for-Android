@@ -3,9 +3,10 @@ package t2.spine.communication.android;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
+import com.t2.AndroidSpineServerMainActivity;
 import com.t2.SpineReceiver.BioFeedbackMessage;
 import com.t2.SpineReceiver.BioFeedbackSpineData;
-import com.t2.biofeedback.Constants;
+//import com.t2.biofeedback.BioFeedbackService;
 
 import jade.util.Logger;
 import spine.SPINEManager;
@@ -13,9 +14,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
 	public class AndroidMessageServer extends BroadcastReceiver {
 		static int msgCount = 0;
+
+		// TODO: should share these with service so we know we're using the same labels!
+		public static final String ACTION_STATUS_BROADCAST = "com.t2.biofeedback.service.status.BROADCAST";
+		public static final String EXTRA_ADDRESS = "address";
+		public static final String EXTRA_NAME = "name";
+		public static final String EXTRA_MESSAGE_TYPE = "messageType";
+		public static final String EXTRA_MESSAGE_ID = "messageId";
+		public static final String EXTRA_MESSAGE_VALUE = "messageValue";
+		public static final String EXTRA_TIMESTAMP = "timestamp";
+		
+		public static final String EXTRA_MSG_BYTES = "msgBytes";
+		
 		
 		private static AndroidSocketMessageListener androidLocalNodeAdapter;		
 
@@ -104,7 +118,6 @@ import android.os.Bundle;
 				return m;
 			}
 		}		
-
 		public void sendCommand(int destNodeID, AndroidMessage emumsg) {
 			if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
 				StringBuffer str = new StringBuffer();
@@ -114,7 +127,17 @@ import android.os.Bundle;
 				str.append(destNodeID);
 				SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, str.toString());
 			}
-			//this.
+
+			Intent intent = new Intent();
+			intent.setAction(ACTION_STATUS_BROADCAST);
+			intent.putExtra(EXTRA_MESSAGE_TYPE, emumsg.getClusterId());
+			AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
+			
+			
+			
+			//AndroidSpineServerMainActivity.getInstance().sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));			
+
+			
 			
 			
 		}		

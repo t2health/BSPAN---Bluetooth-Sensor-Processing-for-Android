@@ -32,7 +32,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-import com.t2.biofeedback.Constants;
 
 import android.util.Log;
 
