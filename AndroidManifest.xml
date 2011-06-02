@@ -15,6 +15,7 @@
 				<action	android:name="com.t2.biofeedback.service.START" />
 				<action	android:name="com.t2.biofeedback.service.STOP" />
 				<action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
+				<action android:name="com.t2.biofeedback.service.status.BROADCAST" />
 			</intent-filter>
 		</receiver>
     

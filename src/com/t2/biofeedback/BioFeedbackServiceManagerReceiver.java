@@ -1,5 +1,9 @@
 package com.t2.biofeedback;
 
+
+import com.t2.biofeedback.device.BioFeedbackDevice;
+
+//import t2.spine.communication.android.AndroidMessage;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,11 +13,31 @@ import android.util.Log;
 public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	private static final String TAG = Constants.TAG;
 	private static boolean startServiceOnBluetoothStarted = false;
+
+//	public static class BioFeedbackSpineData extends BioFeedbackMessage {
+//		public byte[] msgBytes;
+//		public long currentTimestamp;
+//		
+//		public static BioFeedbackSpineData factory(Intent i) {
+//			BioFeedbackSpineData m = new BioFeedbackSpineData();
+//			m.address = i.getStringExtra("address");
+//			m.name = i.getStringExtra("name");
+//			m.messageType = i.getStringExtra("messageType");
+//			m.messageId = i.getStringExtra("messageId");
+//			m.msgBytes = i.getByteArrayExtra("msgBytes");
+//			m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
+//			
+//			return m;
+//		}
+//	}	
 	
 	private Intent serviceIntent;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		
+		Log.v(TAG, "Got here 1");
+
 		String action = intent.getAction();
 		
 		if(serviceIntent == null) {
@@ -48,7 +72,37 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 					this.stopService(context);
 					break;
 			}
-		}
+		} 
+		else if (action.equals(BioFeedbackService.ACTION_STATUS_BROADCAST)) {
+			// SPINE Command message
+			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
+//			if (deviceManger != null) {
+//				
+//				Log.v(TAG, "*** Got here y");
+//				AndroidMessage msg = new AndroidMessage();
+//								
+//				msg.setClusterId(intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1)); 
+//
+//				// Real dumb here
+//				if (msg.getClusterId() == 1) {
+//					
+//					Log.v(TAG, "*** Got here y1");
+//					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
+//					for(BioFeedbackDevice d: enabledDevices) {
+//						if(d.isBonded() && d.isConencted() ) {
+//							Log.v(TAG, "*** Got here y2");
+//							d.setLinkTimeout(0);
+//							
+//						}
+//					}					
+//					
+//				}
+//
+//				
+//				
+//			}
+			
+	}
 	}
 	
 	private void startService(Context context) {

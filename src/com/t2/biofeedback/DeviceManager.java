@@ -60,6 +60,10 @@ public class DeviceManager {
 		return deviceManager;
 	}
 	
+	public static DeviceManager getInstanceNoCreate() {
+		return deviceManager;
+	}
+	
 	private void loadSettings() {
 		String val = this.sharedPref.getString("disabledAddresses", "");
 		String[] addresses = val.split(",");

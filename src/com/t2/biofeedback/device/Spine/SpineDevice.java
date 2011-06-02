@@ -2,14 +2,15 @@ package com.t2.biofeedback.device.Spine;
 
 import java.util.BitSet;
 
-import spine.SPINEPacketsConstants;
-import spine.SPINEFunctionConstants;
-import spine.SPINESensorConstants;
+//import t2.spine.communication.android.AndroidMessage;
+
+
 //import spine.communication.android.AndroidMessage;
 
 
 
 import android.util.Log;
+
 
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.device.BioFeedbackDevice;
@@ -181,8 +182,8 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				if (currentMsgSeq != 0 && seq != currentMsgSeq + 1)
 				{
 					numMessagesOutOfSequence++;
-					Log.i(TAG, "Message out of sequence! Expected seq=" + (currentMsgSeq + 1) +  ", Found " 
-							+ seq + ", Total out of seq = " + numMessagesOutOfSequence);    	
+//					Log.i(TAG, "Message out of sequence! Expected seq=" + (currentMsgSeq + 1) +  ", Found " 
+//							+ seq + ", Total out of seq = " + numMessagesOutOfSequence);    	
 					
 				}
 				currentMsgSeq = seq;
@@ -252,7 +253,11 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		this.onSpineMessage(message);
 	}			
 	
-//	private void write(ZephyrMessage msg) {
-//		this.write(msg.getBytes());
+//	private void write(AndroidMessage msg) {
+//		String str = new String("reset");
+//		byte[] strBytes = str.getBytes();
+//		Log.v(TAG, "*** Got here z: " + msg.toString());
+//		
+//		this.write(strBytes);
 //	}
 }
