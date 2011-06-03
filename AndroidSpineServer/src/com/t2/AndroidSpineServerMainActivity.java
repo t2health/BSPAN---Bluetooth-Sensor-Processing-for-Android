@@ -4,13 +4,19 @@ package com.t2;
 
 
 
+import java.util.Vector;
+
 import com.t2.SpineReceiver.BioFeedbackData;
 import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 
 import spine.SPINEFactory;
+import spine.SPINEListener;
 import spine.SPINEManager;
+import spine.datamodel.Data;
+import spine.datamodel.Node;
+import spine.datamodel.ServiceMessage;
 import t2.spine.communication.android.AndroidSocketMessageListener;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,7 +36,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener {
+public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = Constants.TAG;
     EditText mEditText;
     private static SPINEManager manager;
@@ -119,9 +125,12 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			e.printStackTrace();
 		}        
         
-        
+		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
+		// (I register myself since I'm a SPINEListener implementation!)
+		manager.addListener(this);	        
                 
-        // Create a broadcast receiver.
+        // This one will go away soon!
+		// Create a broadcast receiver.
         this.receiver = new SpineReceiver(this);
         
         // Create a connecting dialog.
@@ -218,23 +227,23 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void onSpineDataReceived(BioFeedbackSpineData bfmd) {
 
-        String messageId = bfmd.messageId;
-		if(messageId.equals("SPINE_MESSAGE")) {
-			StringBuffer hexString = new StringBuffer();
-			
-			for (int i=0; i <bfmd.msgBytes.length; i++) 
-			{
-			    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
-			}		
-			String str = new String(hexString);
-			Log.i(TAG, "Spine Data Received: " + str );		
-			
-			
-			
-			String text = statusText.getText().toString();
-			text = str+ "\n" + text;
-			statusText.setText(text);
-		}
+//        String messageId = bfmd.messageId;
+//		if(messageId.equals("SPINE_MESSAGE")) {
+//			StringBuffer hexString = new StringBuffer();
+//			
+//			for (int i=0; i <bfmd.msgBytes.length; i++) 
+//			{
+//			    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
+//			}		
+//			String str = new String(hexString);
+//			Log.i(TAG, "Spine Data Received: " + str );		
+//			
+//			
+//			
+//			String text = statusText.getText().toString();
+//			text = str+ "\n" + text;
+//			statusText.setText(text);
+//		}
 		
 	}
 
@@ -249,6 +258,41 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );		
 			this.connectingDialog.hide();
 		}
+	}
+
+	@Override
+	public void newNodeDiscovered(Node newNode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void received(ServiceMessage msg) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void received(Data data) {
+		
+		if (data != null)
+		{
+			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
+
+//			String text = statusText.getText().toString();
+//			text = data.toString() + "\n" + text;
+//			statusText.setText(text);		
+			statusText.setText(data.toString());		
+		}
+
+		
+	}
+
+	@Override
+	public void discoveryCompleted(Vector activeNodes) {
+		Log.i(TAG, "RealSpine: received service ADV: " );	
+
+		
 	}
 
 	

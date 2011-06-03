@@ -10,6 +10,7 @@ import com.t2.SpineReceiver.BioFeedbackSpineData;
 
 import jade.util.Logger;
 import spine.SPINEManager;
+import spine.SPINEPacketsConstants;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -50,7 +51,8 @@ import android.view.View;
 					// (right now we're getting only the payload).
 					// For now we'll poke in some dummy message data so the mesage get's to it's intended recipient.
 					msg.setSourceURL(sourceURL);
-					msg.setClusterId((short)4);
+//					msg.setClusterId((short)4);
+					
 					
 					// Real hack alert - fake a service discovery message so the stub messages coming in get registered as a node
 					if (msgCount++ == 0)
@@ -66,12 +68,21 @@ import android.view.View;
 					short[] shorts = new short[len];
 					
 					int i = 0;
+					int ignoreHeaderCount = SPINEPacketsConstants.SPINE_HEADER_SIZE;
 					for (Byte b : bytes)
 					{
-						shorts[i++] = b;
+						if (ignoreHeaderCount-- <= 0)
+							shorts[i++] = b;
 					}
 					msg.setPayload(shorts);
-	//				
+
+					// Grab the message type (cluster id) from the first byte of the header
+					byte msgType = bytes[0];
+					msgType &= 0x1f;
+					msg.setClusterId((short)msgType);
+
+					
+					//				
 	//				m.address = intent.getStringExtra("address");
 	//				m.name = intent.getStringExtra("name");
 	//				m.messageType =intent.getStringExtra("messageType");

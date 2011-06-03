@@ -45,6 +45,8 @@ import t2.spine.communication.android.Constants;
 
 
 
+import android.util.Log;
+
 import com.tilab.gal.WSNConnection;
 
 /**
@@ -141,6 +143,15 @@ class EventDispatcher {
 				byte[] payload = new byte[payloadShort.length];
 				for (int i = 0; i<payloadShort.length; i++)
 					payload[i] = (byte)payloadShort[i];
+				
+				StringBuffer hexString = new StringBuffer();
+				
+				for (int i=0; i <payload.length; i++) 
+				{
+				    hexString.append(Integer.toHexString(0xFF & payload[i]));
+				}		
+				String str = new String(hexString);
+				Log.i(TAG, "payload Data Received: " + str );					
 		
 				switch(pktType) {
 					case SPINEPacketsConstants.SERVICE_ADV: {
@@ -164,7 +175,9 @@ class EventDispatcher {
 							return;
 						} 
 											
-						if (!EventDispatcher.this.spineManager.discoveryCompleted) {
+// TODO: Not sure why they don't allow disvovery messages after the official
+//			discovery period. Anyway for testing right now I'm removing this requirement						
+	//						if (!EventDispatcher.this.spineManager.discoveryCompleted) {
 							boolean alreadyDiscovered = false;
 							for(int i = 0; i<EventDispatcher.this.spineManager.activeNodes.size(); i++) {
 								if(((Node)EventDispatcher.this.spineManager.activeNodes.elementAt(i)).getPhysicalID().equals(nodeID)) {
@@ -174,15 +187,16 @@ class EventDispatcher {
 							}
 							if (!alreadyDiscovered)
 								EventDispatcher.this.spineManager.activeNodes.addElement((Node)o);
-						}					
+//						}					
 						break;
 					}
 					case SPINEPacketsConstants.DATA: {
 						if(EventDispatcher.this.spineManager.getNodeByPhysicalID(nodeID) == null)
 						{
-//							if (SPINEManager.getLogger().isLoggable(Logger.SEVERE)) 
+// TODO: for now ignore this - it will be fixed when we get discovery working (I think)
+							//							if (SPINEManager.getLogger().isLoggable(Logger.SEVERE)) 
 //								SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, "Unexpected DATA message received " + "[from node:" + nodeID + "]");
-							return;
+//							return;
 							 //throw new UnexpectedMessageException("Unexpected DATA message received " + "[from node:" + nodeID + "]");
 						}
 						 
@@ -293,6 +307,7 @@ class EventDispatcher {
 				}
 				
 				// SPINEListeners are notified of the reception from the node 'nodeID' of some data  
+				// TODO: we should probably check for a null object here and NOT notify listeners if null
 				notifyListeners(pktType, o);
 				
 				//System.out.println("Memory available: " + Runtime.getRuntime().freeMemory() + " KB");
