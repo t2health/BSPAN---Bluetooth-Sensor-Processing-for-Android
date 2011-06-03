@@ -21,6 +21,7 @@ import android.view.View;
 
 		// TODO: should share these with service so we know we're using the same labels!
 		public static final String ACTION_STATUS_BROADCAST = "com.t2.biofeedback.service.status.BROADCAST";
+		public static final String ACTION_SERVER_DATA_BROADCAST = "com.t2.biofeedback.server.data.BROADCAST";
 		public static final String EXTRA_ADDRESS = "address";
 		public static final String EXTRA_NAME = "name";
 		public static final String EXTRA_MESSAGE_TYPE = "messageType";
@@ -129,7 +130,7 @@ import android.view.View;
 			}
 
 			Intent intent = new Intent();
-			intent.setAction(ACTION_STATUS_BROADCAST);
+			intent.setAction(ACTION_SERVER_DATA_BROADCAST);
 			intent.putExtra(EXTRA_MESSAGE_TYPE, emumsg.getClusterId());
 			AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
 			
