@@ -38,7 +38,6 @@
 
 package t2.spine.communication.android;
 
-import jade.util.Logger;
 
 import java.io.InterruptedIOException;
 

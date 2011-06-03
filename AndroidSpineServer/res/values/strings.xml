@@ -3,4 +3,5 @@
     <string name="hello">Hello World, AndroidSpineServerMainActivity!</string>
     <string name="app_name">AndroidSpineServer</string>
     <string name="StatusLogLabelText">Status/Log</string>
+    <string name="discoverbutton">DiscoverAndStart</string>
 </resources>

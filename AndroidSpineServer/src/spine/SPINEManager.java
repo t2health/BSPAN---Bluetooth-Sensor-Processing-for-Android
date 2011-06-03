@@ -40,8 +40,6 @@ package spine;
 import jade.util.Logger;
 //import 	java.util.logging.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -50,7 +48,6 @@ import java.util.Vector;
 
 import com.tilab.gal.LocalNodeAdapter;
 import com.tilab.gal.WSNConnection;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 

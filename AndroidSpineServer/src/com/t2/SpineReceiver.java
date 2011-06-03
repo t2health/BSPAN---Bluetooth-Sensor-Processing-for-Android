@@ -5,7 +5,6 @@ package com.t2;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 public class SpineReceiver extends BroadcastReceiver {
 	private static final String TAG = Constants.TAG;

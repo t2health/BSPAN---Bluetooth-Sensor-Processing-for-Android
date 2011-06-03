@@ -17,7 +17,6 @@ import spine.SPINEManager;
 import spine.datamodel.Data;
 import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
-import t2.spine.communication.android.AndroidSocketMessageListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;

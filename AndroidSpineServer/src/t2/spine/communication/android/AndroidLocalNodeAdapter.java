@@ -44,15 +44,12 @@ package t2.spine.communication.android;
 import jade.util.Logger;
 
 import java.util.Vector;
-import java.io.*;
 
 import spine.Properties;
 import spine.SPINEManager;
 import spine.SPINEPacketsConstants;
 import spine.SPINESupportedPlatforms;
 
-import android.content.Intent;
-import android.util.Log;
 
 //import com.t2.AndroidSocketThrdServer;
 import com.tilab.gal.ConfigurationDescriptor;

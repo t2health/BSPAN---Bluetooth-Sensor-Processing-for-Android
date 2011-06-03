@@ -25,11 +25,6 @@ Boston, MA  02111-1307, USA.
 package spine;
 
 
-import java.io.IOException;
-import java.io.InputStream;
-
-
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 
 

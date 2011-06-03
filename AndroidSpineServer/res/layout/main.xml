@@ -12,5 +12,5 @@
 	</TextView>
 	<EditText android:editable="false" android:layout_width="fill_parent" android:text="EditText" android:gravity="left" android:id="@+id/statusText" android:layout_gravity="top" android:layout_height="fill_parent" android:layout_weight="1"></EditText>
 	<EditText android:layout_width="fill_parent" android:text="EditText" android:id="@+id/editText1" android:layout_gravity="center_vertical" android:layout_height="fill_parent" android:layout_weight="1"></EditText>
-	<Button android:layout_width="wrap_content" android:id="@+id/button1" android:text="Button" android:layout_height="fill_parent" android:layout_weight="1.4"></Button>
+	<Button android:layout_width="wrap_content" android:id="@+id/button1" android:layout_height="fill_parent" android:layout_weight="1.4" android:text="@string/discoverbutton"></Button>
 </LinearLayout>

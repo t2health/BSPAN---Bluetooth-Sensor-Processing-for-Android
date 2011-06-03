@@ -1,6 +1,5 @@
 package com.tilab.gal;
 
-import java.util.Vector;
 
 import spine.Properties;
 

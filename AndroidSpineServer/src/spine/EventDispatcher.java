@@ -39,8 +39,6 @@ import spine.datamodel.functions.SpineObject;
 import spine.datamodel.serviceMessages.ServiceWarningMessage;
 import spine.exceptions.MethodNotSupportedException;
 import spine.exceptions.PacketDecodingException;
-import spine.exceptions.UnexpectedMessageException;
-import t2.spine.communication.android.Constants;
 
 
 

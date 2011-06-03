@@ -1,6 +1,5 @@
 package com.tilab.gal;
 
-import java.nio.ByteBuffer;
 
 public class Message {
 	

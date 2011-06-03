@@ -1,12 +1,7 @@
 package t2.spine.communication.android;
 
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 
 import com.t2.AndroidSpineServerMainActivity;
-import com.t2.SpineReceiver.BioFeedbackMessage;
-import com.t2.SpineReceiver.BioFeedbackSpineData;
-//import com.t2.biofeedback.BioFeedbackService;
 
 import jade.util.Logger;
 import spine.SPINEManager;
@@ -14,8 +9,6 @@ import spine.SPINEPacketsConstants;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
 
 	public class AndroidMessageServer extends BroadcastReceiver {
 		static int msgCount = 0;
