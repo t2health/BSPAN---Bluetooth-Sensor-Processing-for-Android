@@ -21,6 +21,11 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	}
 	
 	@Override
+	public void write(byte[] bytes) {
+		super.write(bytes);
+	}	
+	
+	@Override
 	protected void onDeviceConnected() {
 		this.setLinkTimeout(linkTimeout);
 	}

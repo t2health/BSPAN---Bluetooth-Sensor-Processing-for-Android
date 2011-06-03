@@ -45,6 +45,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	public static final String ACTION_SPINE_DATA_BROADCAST = "com.t2.biofeedback.service.spinedata.BROADCAST";
 	public static final String ACTION_DATA_BROADCAST = "com.t2.biofeedback.service.data.BROADCAST";
 	public static final String ACTION_STATUS_BROADCAST = "com.t2.biofeedback.service.status.BROADCAST";
+	public static final String ACTION_SERVER_DATA_BROADCAST = "com.t2.biofeedback.server.data.BROADCAST";
 	public static final String ACTION_SERVICE_START = "com.t2.biofeedback.service.START";
 	public static final String ACTION_SERVICE_STOP = "com.t2.biofeedback.service.STOP";
 	

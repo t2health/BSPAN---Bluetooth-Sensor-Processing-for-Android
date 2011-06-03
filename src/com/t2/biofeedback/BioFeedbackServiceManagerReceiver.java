@@ -13,6 +13,13 @@ import android.util.Log;
 public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	private static final String TAG = Constants.TAG;
 	private static boolean startServiceOnBluetoothStarted = false;
+	
+	public static final String EXTRA_ADDRESS = "address";
+	public static final String EXTRA_NAME = "name";
+	public static final String EXTRA_MESSAGE_TYPE = "messageType";
+	public static final String EXTRA_MESSAGE_ID = "messageId";
+	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
+	public static final String EXTRA_TIMESTAMP = "timestamp";	
 
 //	public static class BioFeedbackSpineData extends BioFeedbackMessage {
 //		public byte[] msgBytes;
@@ -73,34 +80,40 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 					break;
 			}
 		} 
-		else if (action.equals(BioFeedbackService.ACTION_STATUS_BROADCAST)) {
+		else if (action.equals(BioFeedbackService.ACTION_SERVER_DATA_BROADCAST)) {
 			// SPINE Command message
 			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
-//			if (deviceManger != null) {
-//				
-//				Log.v(TAG, "*** Got here y");
-//				AndroidMessage msg = new AndroidMessage();
+			if (deviceManger != null) {
+				
+			Log.v(TAG, "*** Got here y");
+			short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
+			
+			//				AndroidMessage msg = new AndroidMessage();
 //								
-//				msg.setClusterId(intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1)); 
+//				msg.setClusterId(; 
 //
 //				// Real dumb here
-//				if (msg.getClusterId() == 1) {
+				if (ClusterId == 1) {
 //					
-//					Log.v(TAG, "*** Got here y1");
-//					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
-//					for(BioFeedbackDevice d: enabledDevices) {
-//						if(d.isBonded() && d.isConencted() ) {
-//							Log.v(TAG, "*** Got here y2");
-//							d.setLinkTimeout(0);
-//							
-//						}
-//					}					
-//					
-//				}
+					Log.v(TAG, "*** Received a discovery msg  ***");
+					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
+					for(BioFeedbackDevice d: enabledDevices) {
+						if(d.isBonded() && d.isConencted() ) {
+							Log.v(TAG, "*** Got here y2");
+							String str = new String("Reset");
+							byte[] strBytes = str.getBytes();
+							
+	
+							d.write(strBytes);
+							
+						}
+					}					
+					
+				}
 //
 //				
 //				
-//			}
+			}
 			
 	}
 	}

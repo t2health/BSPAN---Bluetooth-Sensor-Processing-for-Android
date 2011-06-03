@@ -253,11 +253,9 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		this.onSpineMessage(message);
 	}			
 	
-//	private void write(AndroidMessage msg) {
-//		String str = new String("reset");
-//		byte[] strBytes = str.getBytes();
-//		Log.v(TAG, "*** Got here z: " + msg.toString());
-//		
-//		this.write(strBytes);
-//	}
+	public void write(byte[] bytes) {
+
+		Log.v(TAG, "*** Got here y3");		
+		super.write(bytes);
+	}
 }

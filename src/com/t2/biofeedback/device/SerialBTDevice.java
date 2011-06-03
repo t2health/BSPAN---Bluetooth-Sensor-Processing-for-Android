@@ -464,15 +464,26 @@ public abstract class SerialBTDevice {
 		
 		public void write(byte[] bytes) {
 			try {
-				/*Log.v(TAG, "Writing...");
+//				Log.i(TAG, "Writing...");
+//				
+//				for(int i = 0; i < bytes.length; i++) {
+//					Log.v(TAG, "\t"+bytes[i]);
+//				}
 				
-				for(int i = 0; i < bytes.length; i++) {
-					Log.v(TAG, "\t"+bytes[i]);
-				}*/
+				StringBuffer hexString = new StringBuffer();
+				
+				for (int i=0; i <bytes.length; i++) 
+				{
+				    hexString.append(Integer.toHexString(0xFF & bytes[i]));
+				}		
+				String str = new String(hexString);
+				Log.i(TAG, "Writing to BT: " + str );	
+				
+				
 				
 				this.outputStream.write(bytes);
 			} catch (IOException e) {
-//				Log.v(TAG, "Failed to write to device.");
+				Log.i(TAG, "**************Failed to write to device.");
 			}
 		}
     	
