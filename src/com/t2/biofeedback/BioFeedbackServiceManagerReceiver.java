@@ -43,8 +43,6 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		
-		Log.v(TAG, "Got here 1");
-
 		String action = intent.getAction();
 		
 		if(serviceIntent == null) {
@@ -85,7 +83,6 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
 			if (deviceManger != null) {
 				
-			Log.v(TAG, "*** Got here y");
 			short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
 			
 			//				AndroidMessage msg = new AndroidMessage();
@@ -99,7 +96,6 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
-							Log.v(TAG, "*** Got here y2");
 							String str = new String("Reset");
 							byte[] strBytes = str.getBytes();
 							

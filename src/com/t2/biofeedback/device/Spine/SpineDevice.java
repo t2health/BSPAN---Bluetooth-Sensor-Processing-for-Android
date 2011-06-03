@@ -232,7 +232,9 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	{
 		boolean result = true;
 		int[] headerTemplate = {0xC4, 0x00, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
+		int[] headerTemplate1 = {0xC2, 0x00, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
 		
+		// Check for a data packet
 		for (int i = 0 ; i < SPINEPacketsConstants.SPINE_HEADER_SIZE; i++)
 		{
 			mNewHeader[i] = mFifo[index + i];		
@@ -245,6 +247,27 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				}
 			}
 		}
+
+		if (result == true)
+			return result;
+		
+		result = true;
+		// Check for a service advertisement packet
+		for (int i = 0 ; i < SPINEPacketsConstants.SPINE_HEADER_SIZE; i++)
+		{
+			mNewHeader[i] = mFifo[index + i];		
+			if (headerTemplate1[i] != -1)
+			{
+				if(mFifo[index + i] != (byte) headerTemplate1[i])
+				{
+					result = false;
+					break;
+				}
+			}
+		}
+		if (result == true)
+			return result;
+
 		return result;
 	}
 
@@ -255,7 +278,6 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	
 	public void write(byte[] bytes) {
 
-		Log.v(TAG, "*** Got here y3");		
 		super.write(bytes);
 	}
 }
