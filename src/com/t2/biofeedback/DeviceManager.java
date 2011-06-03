@@ -8,11 +8,9 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Spine.SpineBH;
-import com.t2.biofeedback.device.Spine.SpineDevice;
 import com.t2.biofeedback.device.Spine.TestBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
 

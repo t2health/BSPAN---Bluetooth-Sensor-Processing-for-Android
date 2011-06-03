@@ -1,6 +1,5 @@
 package com.t2.biofeedback.device.Spine;
 
-import java.util.BitSet;
 
 //import t2.spine.communication.android.AndroidMessage;
 
@@ -14,7 +13,6 @@ import android.util.Log;
 
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.device.BioFeedbackDevice;
-import com.t2.biofeedback.device.zephyr.ZephyrMessage;
 
 public abstract class SpineDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
@@ -37,7 +35,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	protected int numMessagesOutOfSequence = 0;
 	protected int numMessagesFrameErrors = 0;
 	
-	void SpineDevice()
+	SpineDevice()
 	{
 		resetFifo();		
 	}

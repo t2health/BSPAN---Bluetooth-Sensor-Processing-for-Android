@@ -9,12 +9,10 @@ import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityExceptio
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
 public class BioFeedbackService extends Service implements DeviceConnectionListener, OnSpineMessageListener {
 	private static final String TAG = Constants.TAG;

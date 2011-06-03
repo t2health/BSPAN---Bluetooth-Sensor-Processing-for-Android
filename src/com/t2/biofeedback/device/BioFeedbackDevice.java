@@ -1,6 +1,5 @@
 package com.t2.biofeedback.device;
 
-import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 public abstract class BioFeedbackDevice extends SerialBTDevice {
 	private long linkTimeout = 0;

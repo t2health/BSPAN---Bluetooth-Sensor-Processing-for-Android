@@ -2,11 +2,6 @@ package com.t2.biofeedback.device.zephyr;
 
 
 import com.t2.biofeedback.Constants;
-import com.t2.biofeedback.device.BioFeedbackDevice;
-
-import com.t2.biofeedback.device.BioFeedbackDevice.Capability;
-
-import android.util.Log;
 
 
 public class ZephyrBH extends ZephyrDevice {
