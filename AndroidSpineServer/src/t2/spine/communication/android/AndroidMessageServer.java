@@ -130,7 +130,7 @@ import android.content.Intent;
 				str.append(emumsg.toString());
 				str.append(" to node: ");
 				str.append(destNodeID);
-				SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, str.toString());
+				SPINEManager.getLogger().log(Logger.INFO, str.toString());
 			}
 
 			Intent intent = new Intent();

@@ -158,20 +158,6 @@ public class SPINEManager {
 			java.util.logging.LogManager mng = java.util.logging.LogManager.getLogManager();
 			Enumeration e = mng.getLoggerNames();
 			
-			
-			// Test some logging levels
-			l.log(Logger.SEVERE,"Logger.SEVERE");
-			l.log(Logger.INFO,"Logger.INFO");
-			l.log(Logger.WARNING,"Logger.WARNING");
-			l.log(Logger.ALL,"Logger.ALL");
-			l.log(Logger.FINEST,"Logger.FINEST");
-			l.log(0,"hi");
-			l.log(0,Integer.toString(Logger.SEVERE.intValue()));
-			l.log(0,Integer.toString(Logger.FINEST.intValue()));
-			
-			
-			
-			
 			nodeAdapter.start();
 
 			connection = nodeAdapter.createAPSConnection();	

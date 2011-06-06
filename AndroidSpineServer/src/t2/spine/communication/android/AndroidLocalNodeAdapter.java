@@ -219,7 +219,7 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 						str.append(nodeInfo.get(key));
 						str.append("\nCase SERVICE_DISCOVERY --> emumsg:");
 						str.append(emumsg.toString());
-						SPINEManager.getLogger().log(Constants.ANDROIDLOGTEMP, str.toString());
+						SPINEManager.getLogger().log(Logger.INFO, str.toString());
 					}
 					nodeId = key.intValue();
 					nodeCoordinator.sendCommand(key.intValue(), emumsg);

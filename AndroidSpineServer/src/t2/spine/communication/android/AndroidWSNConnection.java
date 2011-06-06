@@ -39,6 +39,8 @@
 package t2.spine.communication.android;
 
 
+import jade.util.Logger;
+
 import java.io.InterruptedIOException;
 
 import com.tilab.gal.WSNConnection;
@@ -109,17 +111,17 @@ public class AndroidWSNConnection implements WSNConnection {
 				StringBuffer str = new StringBuffer();
 				str.append("SENT -> ");
 				str.append(emumsg);
-				SPINEManager.getLogger().log(0, str.toString());
+				SPINEManager.getLogger().log(Logger.INFO, str.toString());
 			}
 
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			if (SPINEManager.getLogger().isLoggable(0))
-				SPINEManager.getLogger().log(0, e.getMessage());
+				SPINEManager.getLogger().log(Logger.INFO, e.getMessage());
 		} catch (IndexOutOfBoundsException e) {
 			e.printStackTrace();
 			if (SPINEManager.getLogger().isLoggable(0))
-				SPINEManager.getLogger().log(0, e.getMessage());
+				SPINEManager.getLogger().log(Logger.INFO, e.getMessage());
 		}
 	}
 
