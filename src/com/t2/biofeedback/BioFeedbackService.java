@@ -74,6 +74,10 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	};
 
+	/**
+	 * We get here once every 10 seconds in order to scan for devices
+	 * connect/disconnect, etc.
+	 */
 	private void mangeDevices() {
 		deviceManager.manage();
 		

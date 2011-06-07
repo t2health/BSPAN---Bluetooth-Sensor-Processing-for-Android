@@ -18,7 +18,7 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	public BioFeedbackDevice() {
 		super();
 	}
-	
+
 	@Override
 	public void write(byte[] bytes) {
 		super.write(bytes);

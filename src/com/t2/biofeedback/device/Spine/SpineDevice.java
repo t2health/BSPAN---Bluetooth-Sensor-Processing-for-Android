@@ -39,10 +39,8 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	{
 		resetFifo();		
 	}
-	
-	
-	
-   	public class SpineHeader {
+
+	public class SpineHeader {
 		int version;		// Byte 0 bits 7:6
 		int extension;      // Byte 0 bits 5
 		int type;           // Byte 0 bits 4:0

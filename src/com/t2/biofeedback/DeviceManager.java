@@ -3,15 +3,18 @@ package com.t2.biofeedback;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Spine.SpineBH;
-import com.t2.biofeedback.device.Spine.TestBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 public class DeviceManager {
@@ -27,10 +30,11 @@ public class DeviceManager {
 	private SharedPreferences sharedPref;
 	private static DeviceManager deviceManager;
 	
+	// This array is used only when "Display option B" (see below) is chosen
 	public static final BioFeedbackDevice[] devices = new BioFeedbackDevice[] {
-		new ZephyrBH(),
-		new SpineBH(),
-		new TestBH(),
+//		new ZephyrBH(),
+//		new SpineBH(),
+//		new TestBH(),
 	};
 	
 	private DeviceManager(Context c) {
@@ -39,14 +43,35 @@ public class DeviceManager {
 		
 		this.loadSettings();
 		
-		for(int i = 0; i < devices.length; i++) {
-			BioFeedbackDevice d = devices[i];
-			
+		// Display option A
+		// Use this block if you want to list all bonded BT devices regardless of their BT Address
+		Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
+		Iterator bit = deviceBondedDevices.iterator();
+		while(bit.hasNext())
+		{
+			BluetoothDevice bt = (BluetoothDevice) bit.next();
+			SpineBH d = new SpineBH();
+			d.setDevice(bt.getAddress());
 			this.availableDevices.put(
-					d.getAddress(), 
-					d
-			);
+			d.getAddress(), 
+			d);			
 		}
+		
+
+		// Display option B
+ 		// Use this block if you want to list only devices that match the specific Addresses
+		// of devices in the static array "devices" (see above
+//		for(int i = 0; i < devices.length; i++) {
+//			BioFeedbackDevice d = devices[i];
+//			
+//			this.availableDevices.put(
+//					d.getAddress(), 
+//					d
+//			);
+//		}
+		
+		
+		
 		
 		manage();
 	}

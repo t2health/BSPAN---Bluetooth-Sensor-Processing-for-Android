@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Set;
 import java.util.UUID;
 
 import com.t2.biofeedback.Constants;
@@ -29,7 +30,8 @@ public abstract class SerialBTDevice {
 	public static final UUID UUID_RFCOMM_GENERIC = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	
 	private final BluetoothAdapter adapter;
-	private final BluetoothDevice device;
+//	private final BluetoothDevice device;
+	private BluetoothDevice device;
 	private BluetoothSocket socket;
 	private ConnectedThread connectedThread;
 	private DeviceConnectionListener connectionListener;
@@ -42,6 +44,19 @@ public abstract class SerialBTDevice {
 
 	private ConnectThread connectThread;
 	
+	public void setDevice(String BH_ADDRESS)
+	{
+		if(!BluetoothAdapter.checkBluetoothAddress(BH_ADDRESS)) {
+			this.device = null;
+			throw new InvalidBluetoothAddressException("\""+ this.getDeviceAddress() +"\" is an invalid bluetooth device address.");
+		}
+		
+		// Get an Android device based on the sub-class address
+		this.device = this.adapter.getRemoteDevice(BH_ADDRESS);
+		
+	}
+	
+	
 	public SerialBTDevice() {
 		this.adapter = BluetoothAdapter.getDefaultAdapter();
 		
@@ -50,7 +65,10 @@ public abstract class SerialBTDevice {
 			throw new InvalidBluetoothAddressException("\""+ this.getDeviceAddress() +"\" is an invalid bluetooth device address.");
 		}
 		
+		// Get an Android device based on the sub-class address
 		this.device = this.adapter.getRemoteDevice(this.getDeviceAddress());
+		Set t = this.adapter.getBondedDevices();
+		
 		
 		threadHandler = new Handler() {
 			@Override
