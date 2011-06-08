@@ -83,12 +83,9 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
 			if (deviceManger != null) {
 				
-			short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
-			
-			//				AndroidMessage msg = new AndroidMessage();
-//								
-//				msg.setClusterId(; 
-//
+				short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
+
+// TODO: Fix this so we actually look at the incoming packet and send the appropriate stuff to the device				
 //				// Real dumb here
 				if (ClusterId == 1) {
 //					

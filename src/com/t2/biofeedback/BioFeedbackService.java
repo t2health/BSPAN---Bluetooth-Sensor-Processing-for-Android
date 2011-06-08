@@ -247,9 +247,16 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	@Override
 	public void onSpineMessage(BioFeedbackDevice d, byte[] message) {
-		this.sendBroadcast(
-		getSpineBroadcastIntent(d, BroadcastMessage.Type.DATA, BroadcastMessage.Id.SPINE_MESSAGE, message)
-		);
+		
+		Intent i = getStatusBroadcastIntent(d, BroadcastMessage.Type.DATA,  BroadcastMessage.Id.SPINE_MESSAGE, null);
+		i.setAction(ACTION_SPINE_DATA_BROADCAST);
+		i.putExtra(EXTRA_MSG_BYTES, message);
+		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
+		
+		
+		this.sendBroadcast(i);
+//		getSpineBroadcastIntent(d, ,, message)
+//		);
 		
 	}
 }
