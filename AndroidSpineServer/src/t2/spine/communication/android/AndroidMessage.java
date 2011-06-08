@@ -266,9 +266,7 @@ class SPINEHeader {
 		byte e = (this.ext)? (byte)1: (byte)0;    	
 		headerBuf[0] = (byte)((this.vers<<6) | (e<<5) | this.pktT);
 		
-		// TODO: use real group id when we switch to shimmer hardware
-		headerBuf[1] = -85;
-//		headerBuf[1] = this.grpID;
+		headerBuf[1] = this.grpID;
 		
 		headerBuf[2] = (byte)(this.srcID>>8);
 		headerBuf[3] = (byte)this.srcID;
