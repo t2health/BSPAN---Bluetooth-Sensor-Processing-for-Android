@@ -129,6 +129,20 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	
 	protected void addByteCheckMsg(byte aByte) {
 		//AndroidMessage	msg = new AndroidMessage();
+		int ix = 0;
+		int jx = 0;
+		int r;
+		
+		if (aByte == -60)
+		{
+			ix++;
+		}
+			
+		if (aByte == -62)
+			jx++;
+			
+		r = ix + jx;
+		
 		switch (state)
 		{
 		case STATE_BUILDING_HEADER:
@@ -185,7 +199,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				currentMsgSeq = seq;
 				
 				
-//				Log.i(TAG, "Found message: " + new String(hexString));    	
+				Log.i(TAG, "Found message: " + new String(hexString));    	
 				
 				this.onMessageReceived(messageArray);
 				
@@ -227,8 +241,8 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	protected boolean isHeader(int index)
 	{
 		boolean result = true;
-		int[] headerTemplate = {0xC4, 0x00, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
-		int[] headerTemplate1 = {0xC2, 0x00, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
+		int[] headerTemplate = {0xC4, 0xab, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
+		int[] headerTemplate1 = {0xC2, 0xab, -1, -1, 0x00, 0x00, -1, -1, -1,0,0,0,0,0,0,0,0,0,0,0}; // Don't cares are -1
 		
 		// Check for a data packet
 		for (int i = 0 ; i < SPINEPacketsConstants.SPINE_HEADER_SIZE; i++)
