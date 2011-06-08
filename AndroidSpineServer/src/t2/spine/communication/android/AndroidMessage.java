@@ -37,48 +37,38 @@
 
 package t2.spine.communication.android;
 
+import net.tinyos.message.Message;
 import spine.Properties;
 import spine.SPINEPacketsConstants;
 import spine.SPINESupportedPlatforms;
 
-public class AndroidMessage extends com.tilab.gal.Message {
-
+public class AndroidMessage extends Message {
+	
 //	private static final String TINYOS_URL_PREFIX = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.TINYOS + "_" + Properties.URL_PREFIX_KEY);
 	private static final String TINYOS_URL_PREFIX = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY);
 	
 	private static final int DEFAULT_MESSAGE_SIZE = 0; 	// it represents a variable-size array and 
-	// does not check the corresponding array index
+														// does not check the corresponding array index
 
 	private static final int AM_TYPE = SPINEPacketsConstants.AM_SPINE;
-
-// TODO: When we switch to real shimmer hardware there will be a 8 byte AM header
+	
+	// TODO: This will change back to 8 when we switch to real shimmer hardware
 	protected static final int AM_HEADER_SIZE = 0;
 //	protected static final int AM_HEADER_SIZE = 8;
-
+	
 	protected SPINEHeader header = null;
-
-	protected byte[] payloadBuf = null;	
 	
-	public AndroidMessage() {
-		super();
-	}
-
-		
+	protected byte[] payloadBuf = null;
 	
-	public AndroidMessage(short dstAddr, short destEndpoint, short srcEndpoint,
-			short clusterId, short transId, short options, short radius,
-			short len, short[] data) {
-		super(dstAddr, destEndpoint, srcEndpoint, clusterId, transId, options, radius,
-				len, data);
-		// TODO Auto-generated constructor stub
-	}
 
+	protected AndroidMessage() {
+        super(DEFAULT_MESSAGE_SIZE);
+        this.amTypeSet(AM_TYPE);
+    }
+    
 	protected AndroidMessage(byte pktType, byte groupID, int sourceID, int destID, byte sequenceNumber, byte fragmentNr, byte totalFragments, byte[] payload) {
-
-		//    	super(SPINEPacketsConstants.SPINE_HEADER_SIZE + payload.length);
-    	// Since we're not actually iniheriting from tinyOS message we'll need create the backing data buffer 
-		
-		
+    	super(SPINEPacketsConstants.SPINE_HEADER_SIZE + payload.length);
+    	
     	this.amTypeSet(AM_TYPE); 
     	
     	this.header = new SPINEHeader(SPINEPacketsConstants.CURRENT_SPINE_VERSION, false, pktType, 
@@ -91,17 +81,14 @@ public class AndroidMessage extends com.tilab.gal.Message {
     	System.arraycopy(payload, 0, msgBuf, SPINEPacketsConstants.SPINE_HEADER_SIZE, payload.length);
     	
     	this.dataSet(msgBuf);        
-	}	
-	
-	
-	private static final long serialVersionUID = 1L;
-
-	public void setSourceURL(String sourceID) {
-		this.sourceURL = sourceID;
 	}
-
 	
-	
+	/**
+	 * Construct a SpineTOSMessage from a raw SERIAL ACTIVE MESSAGE from a
+	 * Serial Forwarder.
+	 *
+	 * @param	rawsfmessage raw message bytes from a serial forwarder
+	 */
 	public static AndroidMessage Construct(byte[] rawsfmessage) {
 		byte[] payload;
 		
@@ -122,10 +109,8 @@ public class AndroidMessage extends com.tilab.gal.Message {
 		
 		
 		return new AndroidMessage(h.getPktType(), h.getGroupID(), h.getSourceID(), h.getDestID(), h.getSequenceNumber(), h.getFragmentNumber(), h.getTotalFragments(), payload);
-	}	
-	
-	
-	
+	}
+    
 	protected SPINEHeader getHeader() throws IllegalSpineHeaderSizeException {
     	byte[] msgBuf = this.dataGet();
     	
@@ -136,9 +121,8 @@ public class AndroidMessage extends com.tilab.gal.Message {
 		System.arraycopy(msgBuf, 0, headerBuf, 0, SPINEPacketsConstants.SPINE_HEADER_SIZE);		
 		
 		return new SPINEHeader(headerBuf); 
-    }	
-	
-	
+    }
+    
 	protected byte[] getRawPayload() {
     	if (this.payloadBuf == null) {
 	    	this.payloadBuf = new byte[this.dataGet().length - SPINEPacketsConstants.SPINE_HEADER_SIZE];
@@ -149,9 +133,8 @@ public class AndroidMessage extends com.tilab.gal.Message {
     
 	protected void setRawPayload(byte[] payload) {
     	this.payloadBuf = payload;
-    }	
-	
-	
+    }
+
 	protected TOSMessage parse() throws IllegalSpineHeaderSizeException {
 		TOSMessage msg = new TOSMessage();
 		
@@ -180,25 +163,8 @@ public class AndroidMessage extends com.tilab.gal.Message {
 		msg.setPayload(payloadBufShort);
 		
 		return msg;
-	}	
-	
-	
-	
-//	public String toString() {
-//		short[] payload = this.getPayload();
-//		String valPayload = "";
-//		if (payload == null || payload.length == 0) {
-//			valPayload = "empty payload";
-//		} else {
-//			for (int i = 0; i < payload.length; i++) {
-//				short b = payload[i];
-//				if (b < 0)
-//					b += 256;
-//				valPayload = valPayload + Integer.toHexString(b) + " ";
-//			}
-//		}
-//		return "From node: " + this.getSourceURL() + " " + "pktType(clusterId)=" + this.clusterId + " - " + valPayload;
-//	}
+	}
+    
 	public String toString() {
 		String s = null;
 		
@@ -238,6 +204,165 @@ public class AndroidMessage extends com.tilab.gal.Message {
 		}
 		
 		return s;
-	}	
+	}
+
+}
+
+
+class SPINEHeader {
+	
+	private byte headerBuf[] = new byte[SPINEPacketsConstants.SPINE_HEADER_SIZE];
+	
+	private boolean canParse = false;
+	private boolean canBuild = false;
+	
+
+	private byte vers;      // 2 bits
+	private boolean ext;    // 1 bit
+	private byte pktT;      // 5 bits
+
+	private byte grpID;     // 8 bits
+
+	private int srcID;    	// 16 bits
+
+	private int dstID;    	// 16 bits
+
+	private byte seqNr;     // 8 bits
+
+	private byte fragNr;    // 8 bits
+	private byte totFrags;  // 8 bits
+	
+	protected SPINEHeader (byte version, boolean extension, byte pktType, byte groupID, int sourceID, int destID, 
+						byte sequenceNumber, byte fragmentNr, byte totalFragments) {
+		
+		this.vers = version;
+		this.ext = extension;       
+		this.pktT = pktType;      
+		this.grpID = groupID;
+		this.srcID = sourceID;
+		this.dstID = destID; 
+		this.seqNr = sequenceNumber; 
+		this.fragNr = fragmentNr;    
+		this.totFrags = totalFragments;
+		
+		this.canBuild = true;
+	}
+	
+	protected SPINEHeader(byte[] header) throws IllegalSpineHeaderSizeException {
+		if (header.length != SPINEPacketsConstants.SPINE_HEADER_SIZE) 
+			throw new IllegalSpineHeaderSizeException(SPINEPacketsConstants.SPINE_HEADER_SIZE, header.length);
+		else {
+			this.headerBuf = header;
+			this.canParse = true;
+			parse();
+		}
+	}
+	
+	protected byte[] build() {
+		
+		if (!canBuild)
+			return null;
+		
+		byte e = (this.ext)? (byte)1: (byte)0;    	
+		headerBuf[0] = (byte)((this.vers<<6) | (e<<5) | this.pktT);
+		
+		// TODO: use real group id when we switch to shimmer hardware
+		headerBuf[1] = -85;
+//		headerBuf[1] = this.grpID;
+		
+		headerBuf[2] = (byte)(this.srcID>>8);
+		headerBuf[3] = (byte)this.srcID;
+		
+		headerBuf[4] = (byte)(this.dstID>>8);
+		headerBuf[5] = (byte)this.dstID;
+		
+		headerBuf[6] = this.seqNr;
+		
+		headerBuf[7] = this.fragNr;
+		
+		headerBuf[8] = this.totFrags;
+		
+		return headerBuf;
+	}
+
+	private boolean parse() {       
+		if (!canParse)
+			return false;
+		
+		vers = (byte)((headerBuf[0] & 0xC0)>>6);    		//  0xC0 = 11000000 binary
+		ext = ((byte)((headerBuf[0] & 0x20)>>5) == 1);     	//  0x20 = 00100000 binary
+		pktT = (byte)(headerBuf[0] & 0x1F);       			//  0x1F = 00011111 binary
+		grpID = headerBuf[1];
+	   
+		srcID = headerBuf[2];                  // check
+		srcID = ((srcID<<8) | headerBuf[3]);
+
+		dstID = headerBuf[4];  	              // check
+		dstID = ((dstID<<8) | headerBuf[5]);
+
+		seqNr = headerBuf[6];
+	   
+		fragNr = headerBuf[7];
+
+		totFrags = headerBuf[8];
+
+		return true;
+	}
+
+	protected byte getVersion() {
+	   return vers;
+	}
+
+	protected boolean isExtended() {
+	   return ext;
+	}
+
+	protected byte getPktType() {
+	   return pktT;
+	}
+
+	protected byte getGroupID() {
+	   return grpID;
+	}
+
+	protected int getSourceID() {
+	   return srcID;
+	}
+
+	protected int getDestID() {
+	   return dstID;
+	}
+	
+	protected byte getSequenceNumber() {
+	  return seqNr;
+	}
+
+	protected byte getFragmentNumber() {
+	   return fragNr;
+	}
+
+	protected byte getTotalFragments() {
+	   return totFrags;
+	}
+	
+	protected byte[] getHeaderBuf() {
+		return headerBuf;
+	}
+	
+	public String toString() {
+		
+		String grp = (grpID<0)? Integer.toHexString(grpID+256): Integer.toHexString(grpID);		
+		String seq = (seqNr<0)? ""+(seqNr+256): ""+seqNr;
+		String dst = (dstID==-1)? "BROADCAST": (dstID==0)? "BASESTATION": ""+dstID;
+		
+		String s = "Spine Header {";
+		
+		s += "ver: 1." + vers + ", ext:" + ext + 
+			 ", pktType:" + SPINEPacketsConstants.packetTypeToString(pktT).toUpperCase() + 
+			 ", groupID:" + grp.toUpperCase() + ", srcID:" + srcID + ", dstID:" + dst + 
+			 ", seqNr:" + seq + ", fragNr:" + fragNr + ", totFrags:" + totFrags + "}";
+		
+		return s;
+	}
 	
 }

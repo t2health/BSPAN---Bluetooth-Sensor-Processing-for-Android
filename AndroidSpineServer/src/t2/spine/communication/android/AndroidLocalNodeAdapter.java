@@ -60,223 +60,218 @@ import com.tilab.gal.WSNConnection;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements AndroidSocketMessageListener {
+import net.tinyos.message.MessageListener;
 
-	// Node Information Hash Table
-	Hashtable nodeInfo = new Hashtable();
+public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements MessageListener {
+	
+	private Vector connections = new Vector(); // <values: WSNConnection>
+	
+	private String host = null;
+	private String port = null;
+	
+	private Vector partials = new Vector(); // <values: Partial>
+	
+	private Vector messagesQueue = new Vector(); // <values: Msg>
+	
+	private boolean sendImmediately = true;
 
-	int nodeId;
+	private AndroidMessageServer nodeCoordinator = null;	
+	
+	
+	public  void init (Vector parms) {
+//		String motecom = (String)parms.elementAt(0);
+//		
+//		this.host = "127.0.0.1";
+//		this.port = "9002";
+//		
+//		if (motecom.startsWith("sf@")) {
+//			String[] hostport = motecom.substring(3).split(":");
+//			if (hostport.length >= 2) {
+//				this.host = hostport[0];
+//				this.port = hostport[1];
+//			}
+//		}
+	}
+	
+	public void start () {
+		if (nodeCoordinator == null) {
+			nodeCoordinator = new AndroidMessageServer();
+			if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
+			SPINEManager.getLogger().log(Logger.INFO, "AndroidLLocalNodeAdapter in wainting ...");
 
-	int nodeConnected = 0;
+			nodeCoordinator.registerListener(this);			
 
-	/**
-	 * This method is called by the nodeCoordinator (AndroidMessageServer) when a
-	 * new message is received by the nodeCoordinator.
-	 */
-	public void messageReceived(int srcID, Message tosMsg) {
-
-		String sourceURL = "";
-		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-			StringBuffer str = new StringBuffer();
-			str.append("Msg Received from nodeCoordinator (AndroidSocketThrdServer) -> ");
-			str.append(tosMsg);
-			SPINEManager.getLogger().log(Logger.INFO, str.toString());
+			
 		}
+	}
 
-		// TODO: Fix message inheritance structure!!!
-		try {
-			com.tilab.gal.Message msg = ((AndroidMessage)tosMsg).parse();
-		
-			// Case "Service Advertisement Message" (ProfileId != 0) => set nodeInfo
-			// HashTable and pass - thru to connections
-			if ((msg.getProfileId() != 0)) {
-				// nodeId from sourceURL
-				sourceURL = msg.getSourceURL();
-				String urlPrefix = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY);
-				nodeId = Integer.parseInt(sourceURL.substring(urlPrefix.length()));
+	public void stop() {
+		nodeCoordinator = null;
+	}
 	
-				// Add "nodeId"/"node info msg" to nodeInfo
-				nodeInfo.put(new Integer(nodeId), msg);
+	public void reset() {
+		this.stop();
+		this.start();
+	}
 	
-				// pass - thru connections
-				for (int i = 0; i < connections.size(); i++)
-					((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
-			} else {
-				// Case "Data Message" (ProfileId = 0) => pass - thru to connections
-				for (int i = 0; i < connections.size(); i++)
-					((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
+	protected void sendMessages(int nodeID) {		
+		Msg curr = null;	
+		for (int i = 0; i<this.messagesQueue.size(); i++) {
+			curr = (Msg)this.messagesQueue.elementAt(i);
+			if (curr.destNodeID == nodeID || curr.destNodeID == SPINEPacketsConstants.SPINE_BROADCAST) {
+				nodeCoordinator.sendMessage(curr.destNodeID, curr.tosmsg);
+				this.messagesQueue.removeElementAt(i);
+				try { Thread.sleep(2); } catch (InterruptedException e) {}
 			}
-		} catch (IllegalSpineHeaderSizeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}		
 	}
 
-	private Vector connections = new Vector();
+	protected synchronized void send(int destNodeID, AndroidMessage tosmsg) {
+		if(this.sendImmediately) {
+			nodeCoordinator.sendMessage(destNodeID, tosmsg);
+			try {
+			 // check if the flag radioAlwaysOn flag is false
+				if(tosmsg.getHeader().getPktType() == SPINEPacketsConstants.START && tosmsg.getRawPayload()[2] == 0)
+					this.sendImmediately = false;
 
-	protected String motecom = null;
-
-	protected String port = null;
-
-	protected String speed = null;
-
+			}  catch (IllegalSpineHeaderSizeException e) {
+				e.printStackTrace();
+				if (SPINEManager.getLogger().isLoggable(Logger.WARNING)) 
+					SPINEManager.getLogger().log(Logger.WARNING, "[SPINE1.3-MALFORMED-HEADER]... discarded!");
+			}			
+		}
+		else 
+			this.messagesQueue.addElement(new Msg(destNodeID, tosmsg));
+	}
+	
+	
+	// BELOW FROM TOS MOTEIF VERSION
+	
+	public void messageReceived(int srcID, net.tinyos.message.Message tosmsg) {
+		if (tosmsg instanceof AndroidMessage) {			
+			try {
+				SPINEHeader h = ((AndroidMessage)tosmsg).getHeader();
+				int sourceNodeID = h.getSourceID();
+				
+				// some controls for reducing the risk of start elaborating erroneous received messages 
+				if(sourceNodeID == SPINEPacketsConstants.SPINE_BASE_STATION || 
+				   sourceNodeID == SPINEPacketsConstants.SPINE_BROADCAST || 
+				   h.getVersion() != SPINEPacketsConstants.CURRENT_SPINE_VERSION || 
+				   h.getDestID() != SPINEPacketsConstants.SPINE_BASE_STATION || 
+				   h.getGroupID() != SPINEManager.getMyGroupID()) 
+					return;
+				
+				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
+					StringBuffer str = new StringBuffer();
+					str.append("REC. -> ");
+					str.append(tosmsg);				
+					SPINEManager.getLogger().log(Logger.INFO, str.toString());
+				}	
+				
+				sendMessages(sourceNodeID);
+				
+				// re-assembly of fragments into complete messages 
+				if (h.getTotalFragments() != 1) {
+					int index = inPartials(sourceNodeID, h.getSequenceNumber());
+					if (index == -1) {
+						if (h.getFragmentNumber() != 1)
+							return;
+						else {
+							partials.addElement(new Partial(sourceNodeID, h.getSequenceNumber(), 
+															h.getTotalFragments(), 
+															((AndroidMessage)tosmsg).getRawPayload()));
+							return;
+						}
+					}
+					else {
+						if (h.getFragmentNumber() != ( ((Partial)partials.elementAt(index)).lastFragmentNr + 1 ) ) {
+							partials.removeElementAt(index); // no need to keep a partial if a fragment is lost
+							return;
+						}
+						else {
+							if (h.getFragmentNumber() < ((Partial)partials.elementAt(index)).totFragments) {
+								((Partial)partials.elementAt(index)).addToPayload( ((AndroidMessage)tosmsg).getRawPayload() );
+								return;
+							}
+							else {
+								Partial complete = ((Partial)partials.elementAt(index));
+								complete.addToPayload( ((AndroidMessage)tosmsg).getRawPayload() );
+								((AndroidMessage)tosmsg).setRawPayload(complete.partialPayload);
+								partials.removeElementAt(index);								
+							}
+						}
+					}
+				}
+				
+				// notification to upper layer of a message reception
+				com.tilab.gal.Message msg = ((AndroidMessage)tosmsg).parse();					
+				for (int i = 0; i<connections.size(); i++)
+					((AndroidWSNConnection)connections.elementAt(i)).messageReceived(msg);				
+				
+			} catch (IllegalSpineHeaderSizeException e) {
+				e.printStackTrace();
+				if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
+					SPINEManager.getLogger().log(Logger.SEVERE, e.getMessage());
+			}			
+		}
+	}
+	
+	private int inPartials(int sourceID, byte sequenceNumber) {
+		for (int i = 0; i<this.partials.size(); i++)
+			if (((Partial)partials.elementAt(i)).equal(sourceID, sequenceNumber)) return i;
+		return -1;
+	}
+	
 	public WSNConnection createAPSConnection() {
 		WSNConnection newConnection = new AndroidWSNConnection(this);
 		connections.add(newConnection);
 		return newConnection;
 	}
-
+	
 	public ConfigurationDescriptor getConfigurationDescriptor() {
 		return null;
 	}
-
-	public void init(Vector parms) {
-	}
-
-	public void reset() {
-	}
-
-//	AndroidSocketThrdServer nodeCoordinator;
-	AndroidMessageServer nodeCoordinator;
-
-	public void start() {
-		nodeCoordinator = new AndroidMessageServer();
-		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
-		SPINEManager.getLogger().log(Logger.INFO, "AndroidLLocalNodeAdapter in wainting ...");
-
-		nodeCoordinator.registerListener(this);
+			
+	private class Partial {
+		int nodeID;
+		byte seqNr;
+		byte lastFragmentNr;
+		byte totFragments;
+		byte[] partialPayload;
 		
-//		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
-//			SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.start()");
-//		nodeCoordinator.setTitle("WSN Emulator: Collector node");
-//		WindowListener l = new WindowAdapter() {
-//			public void windowClosing(WindowEvent e) {
-//				System.exit(0);
-//			}
-//		};
-//		nodeCoordinator.addWindowListener(l);
-//		// AndroidLocalNodeAdapter is a SocketMessage listener
-//		nodeCoordinator.pack();
-//		nodeCoordinator.setVisible(true);
-//		Thread t = new Thread(nodeCoordinator);
-//		t.start();
-	}
-
-	public void stop() {
-	}
-
-	// send from AndroidLocalNodeAdapter to AndroidSocketThrdServer .... from
-	// AndroidSocketThrdServer to Server Socket Node
-	protected synchronized void send(int destNodeID, AndroidMessage emumsg) {
-		int nodeId = -1;
-
-		try {
-			switch ((byte) emumsg.getClusterId()) {
-			case SPINEPacketsConstants.START:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
-					SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.start or manager.startWsn");
-				// nodeCoordinator.sendCommand(destNodeID,"START");
-				for (Enumeration e = nodeInfo.keys(); e.hasMoreElements();) {
-					Integer key = (Integer) e.nextElement();
-					
-					if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-						StringBuffer str = new StringBuffer();
-						str.append(key);
-						str.append(":");
-						str.append(nodeInfo.get(key));
-						str.append("\nCase START --> emumsg:");
-						str.append(emumsg.toString());
-						str.append(" pktType=");
-						str.append(emumsg.getClusterId());
-						SPINEManager.getLogger().log(Logger.INFO, str.toString());
-					}
-					
-					nodeId = key.intValue();
-//					nodeCoordinator.sendCommand(key.intValue(), emumsg);
-				}
-				break;
-			case SPINEPacketsConstants.RESET:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO))
-					SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.resetWsn");				
-				// nodeCoordinator.sendCommand(destNodeID, "RESET");
-				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-//				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
-				break;
-			case SPINEPacketsConstants.SYNCR:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-					StringBuffer str = new StringBuffer();
-					str.append("AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.syncWsn or manager.synchrWsn\nCase SYNCR --> emumsg:");
-					str.append(emumsg.toString());
-					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-				
-				}
-				// nodeCoordinator.sendCommand(destNodeID, "SYNCR");
-				break;
-			case SPINEPacketsConstants.SERVICE_DISCOVERY:
-				// Cmd discoveryWsn:execute from AndroidLocalNodeAdapter
-				// for each nodo in nodeInfo pass-thru to connections
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) 
-					SPINEManager.getLogger().log(Logger.INFO, "AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.discoveryWsn");
-				for (Enumeration e = nodeInfo.keys(); e.hasMoreElements();) {
-					Integer key = (Integer) e.nextElement();
-					
-					if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-						StringBuffer str = new StringBuffer();
-						str.append(key);
-						str.append(":");
-						str.append(nodeInfo.get(key));
-						str.append("\nCase SERVICE_DISCOVERY --> emumsg:");
-						str.append(emumsg.toString());
-						SPINEManager.getLogger().log(Logger.INFO, str.toString());
-					}
-					nodeId = key.intValue();
-					nodeCoordinator.sendCommand(key.intValue(), emumsg);
-				}
-				break;
-			case SPINEPacketsConstants.SETUP_SENSOR:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-					StringBuffer str = new StringBuffer();
-					str.append("AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.setupSensor() or manager.setup(..., SpineSetupSensor)\nCase SETUP_SENSOR --> emumsg:");
-					str.append(emumsg.toString());
-					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-				}
-				// nodeCoordinator.sendCommand(destNodeID, "SETUP_SENSOR");
-				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-	//			nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
-				break;
-			case SPINEPacketsConstants.SETUP_FUNCTION:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-					StringBuffer str = new StringBuffer();
-					str.append("AndroidLocalNodeAdapter nodeAdapter.send() --> Cmd manager.setupFunction() or manager.setup(..., SpineSetupFunction)\nCase SETUP_FUNCTION --> emumsg:");
-					str.append(emumsg.toString());
-					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-				}
-				// nodeCoordinator.sendCommand(destNodeID, "SETUP_FUNCTION");
-				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-	//			nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
-				break;
-			case SPINEPacketsConstants.FUNCTION_REQ:
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-					StringBuffer str = new StringBuffer();
-					str.append("AndroidLocalNodeAdapter nodeAdapter.send() --> FUNCTION_REQ\nCase FUNTION_REQ --> emumsg:");
-					str.append(emumsg.toString());
-					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-				}
-				// nodeCoordinator.sendCommand(destNodeID, "FUNCTION_REQ");
-				nodeId = Integer.parseInt(emumsg.getDestinationURL());
-//				nodeCoordinator.sendCommand(Integer.parseInt(emumsg.getDestinationURL()), emumsg);
-				break;
-			default:
-				if (SPINEManager.getLogger().isLoggable(Logger.WARNING))
-					SPINEManager.getLogger().log(Logger.WARNING, "ERROR PktType");
-			}
-//		} 
-//		catch (IOException e1) {
-//			nodeInfo.remove(new Integer(nodeId));
-		} catch (Exception e) {
-			e.printStackTrace();
-			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
-				SPINEManager.getLogger().log(Logger.SEVERE, e.getMessage());
+		private Partial(int nodeID, byte seqNr, byte totFragments, byte[] partialPayload) {
+			this.nodeID = nodeID;
+			this.seqNr = seqNr;
+			this.lastFragmentNr = 1;
+			this.totFragments = totFragments;
+			this.partialPayload = partialPayload;
 		}
+		
+		private void addToPayload(byte[] newPartial) {
+			byte[] newPartialPayload = new byte[partialPayload.length + newPartial.length];
+			System.arraycopy(partialPayload, 0, newPartialPayload, 0, partialPayload.length);
+			System.arraycopy(newPartial, 0, newPartialPayload, partialPayload.length, newPartial.length);
+			
+			partialPayload = newPartialPayload;
+			
+			lastFragmentNr++;
+		}
+		
+		private boolean equal(int nodeID, byte seqNr) {
+			return (this.nodeID == nodeID && this.seqNr == seqNr);
+		}
+		
 	}
+	
+	
+	private class Msg {
+		int destNodeID;
+		AndroidMessage tosmsg;
+		
+		private Msg(int destNodeID, AndroidMessage tosmsg) {
+			this.destNodeID = destNodeID;
+			this.tosmsg = tosmsg;
+		}
+	}	
+	
 }

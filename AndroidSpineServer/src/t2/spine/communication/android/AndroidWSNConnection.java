@@ -52,80 +52,87 @@ import spine.SPINESupportedPlatforms;
 
 public class AndroidWSNConnection implements WSNConnection {
 
-	private WSNConnection.Listener listener = null;
-
+	private byte sequenceNumber = 0; 
+	
+	private WSNConnection.Listener listener = null;	
+	
 	private AndroidLocalNodeAdapter adapter = null;
-
-	protected AndroidWSNConnection(AndroidLocalNodeAdapter adapter) {
+	
+	
+	protected AndroidWSNConnection (AndroidLocalNodeAdapter adapter) {
 		this.adapter = adapter;
 	}
-
+	
+	
 	public void messageReceived(com.tilab.gal.Message msg) {
 		// just a pass-thru
 		listener.messageReceived(msg);
 	}
-
+	
+	
 	public void close() {
+		// TODO 
 	}
 
+
 	public com.tilab.gal.Message poll() {
+		// TODO 
 		return null;
 	}
 
 	public com.tilab.gal.Message receive() {
+		// TODO 
 		return null;
 	}
 
 	public void send(com.tilab.gal.Message msg) throws InterruptedIOException, UnsupportedOperationException {
-
+		
+		byte fragmentNr = 1;
+		byte totalFragments = 1;
+		
+		byte[] compressedPayload = new byte[0];
 		try {
-			// create a SPINE AndroidMessage dependent message from a high level
-			// Message object
-			int destNodeID = Integer.parseInt(msg.getDestinationURL().substring(
-					Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY).length()));
-
-			byte[] compressedPayload = new byte[0];
+			// create a SPINE TinyOS dependent message from a high level Message object
+			int destNodeID = Integer.parseInt(msg.getDestinationURL().substring(Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY).length()));
+			
 			try {
 				short[] compressedPayloadShort = msg.getPayload();
 				compressedPayload = new byte[compressedPayloadShort.length];
-				for (int i = 0; i < compressedPayloadShort.length; i++)
-					compressedPayload[i] = (byte) compressedPayloadShort[i];
+				for (int i = 0; i<compressedPayloadShort.length; i++)
+					compressedPayload[i] = (byte)compressedPayloadShort[i];
 			} catch (Exception e) {}
-
-			AndroidMessage emumsg = new AndroidMessage();
-			// pktType
-			emumsg.setClusterId((byte) msg.getClusterId());
-			// destID
-			emumsg.setDestinationURL(Integer.toString(destNodeID));
-			// sourceID
-			emumsg.setSourceURL(Integer.toString(SPINEPacketsConstants.SPINE_BASE_STATION));
-			short[] payloadShort = new short[compressedPayload.length];
-			for (int h = 0; h < payloadShort.length; h++)
-				payloadShort[h] = compressedPayload[h];
-			// msg.setPayload(payloadShort);
-			emumsg.setPayload(payloadShort);
-
+			
+			AndroidMessage tosmsg = new AndroidMessage((byte)msg.getClusterId(), (byte)msg.getProfileId(),
+														 SPINEPacketsConstants.SPINE_BASE_STATION, destNodeID, 
+														 this.sequenceNumber++, fragmentNr, totalFragments, compressedPayload);
+			
 			// sends the platform dependent message using the local node adapter
-			adapter.send(destNodeID, emumsg);
-			if (SPINEManager.getLogger().isLoggable(0)) {
+			adapter.send(destNodeID, tosmsg);
+			
+			if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
 				StringBuffer str = new StringBuffer();
 				str.append("SENT -> ");
-				str.append(emumsg);
+				str.append(tosmsg);
 				SPINEManager.getLogger().log(Logger.INFO, str.toString());
-			}
-
+			}	
+			
+			if ((byte)msg.getClusterId() == SPINEPacketsConstants.RESET)
+				this.sequenceNumber = 0;
+			
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			if (SPINEManager.getLogger().isLoggable(0))
+			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
 				SPINEManager.getLogger().log(Logger.INFO, e.getMessage());
 		} catch (IndexOutOfBoundsException e) {
 			e.printStackTrace();
-			if (SPINEManager.getLogger().isLoggable(0))
+			if (SPINEManager.getLogger().isLoggable(Logger.SEVERE))
 				SPINEManager.getLogger().log(Logger.INFO, e.getMessage());
-		}
+		} 
+		
 	}
 
 	public void setListener(WSNConnection.Listener l) {
-		this.listener = l;
+		this.listener = l;		
 	}
+
 }
