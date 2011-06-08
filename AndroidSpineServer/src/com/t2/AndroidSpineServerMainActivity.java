@@ -223,6 +223,15 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onSpineDataReceived(com.t2.SpineReceiver.BioFeedbackSpineData)
+	 * 
+	 * This is now simply a deprecated placeholder.
+	 * Before the full SPINE data path was implemented we were
+	 * directing data directly from the SERVICE to here.
+	 * 
+	 * Now the full data path is used and data goes to received(Data data)
+	 */
 	@Override
 	public void onSpineDataReceived(BioFeedbackSpineData bfmd) {
 

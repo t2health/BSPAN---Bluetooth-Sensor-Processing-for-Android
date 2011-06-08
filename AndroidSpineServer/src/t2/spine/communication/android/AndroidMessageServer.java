@@ -38,52 +38,57 @@ import android.content.Intent;
 			if(intent.getAction().equals("com.t2.biofeedback.service.spinedata.BROADCAST")) {
 				if(androidLocalNodeAdapter != null) {
 	
-					AndroidMessage msg = new AndroidMessage();
-					
-					// TODO: Eventually we'll actually receive all of the message parameters in the intent'
-					// (right now we're getting only the payload).
-					// For now we'll poke in some dummy message data so the mesage get's to it's intended recipient.
-					msg.setSourceURL(sourceURL);
-//					msg.setClusterId((short)4);
-					
-					
-					// Real hack alert - fake a service discovery message so the stub messages coming in get registered as a node
-					if (msgCount++ == 0)
-					{
-						msg.setProfileId((short)1);
-					}
-					
-					
-					// TODO: Note: either find a better way to do this, or better yet,
-					// change the intent array to shorts
-					byte[] bytes = intent.getByteArrayExtra("msgBytes");
-					int len = bytes.length;
-					short[] shorts = new short[len];
-					
-					int i = 0;
-					int ignoreHeaderCount = SPINEPacketsConstants.SPINE_HEADER_SIZE;
-					for (Byte b : bytes)
-					{
-						if (ignoreHeaderCount-- <= 0)
-							shorts[i++] = b;
-					}
-					msg.setPayload(shorts);
+//					AndroidMessage msg = new AndroidMessage();
+//					
+//					// TODO: Eventually we'll actually receive all of the message parameters in the intent'
+//					// (right now we're getting only the payload).
+//					// For now we'll poke in some dummy message data so the mesage get's to it's intended recipient.
+//					msg.setSourceURL(sourceURL);
+////					msg.setClusterId((short)4);
+//					
+//					
+//					// Real hack alert - fake a service discovery message so the stub messages coming in get registered as a node
+//					if (msgCount++ == 0)
+//					{
+//						msg.setProfileId((short)1);
+//					}
+//					
+//					
+//					// TODO: Note: either find a better way to do this, or better yet,
+//					// change the intent array to shorts
+//					byte[] bytes = intent.getByteArrayExtra("msgBytes");
+//					int len = bytes.length;
+//					short[] shorts = new short[len];
+//					
+//					int i = 0;
+//					int ignoreHeaderCount = SPINEPacketsConstants.SPINE_HEADER_SIZE;
+//					for (Byte b : bytes)
+//					{
+//						if (ignoreHeaderCount-- <= 0)
+//							shorts[i++] = b;
+//					}
+//					msg.setPayload(shorts);
+//
+//					// Grab the message type (cluster id) from the first byte of the header
+//					byte msgType = bytes[0];
+//					msgType &= 0x1f;
+//					msg.setClusterId((short)msgType);
+//					androidLocalNodeAdapter.messageReceived(srcID, msg);
 
-					// Grab the message type (cluster id) from the first byte of the header
-					byte msgType = bytes[0];
-					msgType &= 0x1f;
-					msg.setClusterId((short)msgType);
-
 					
-					//				
+					//	For legacy devices only	
 	//				m.address = intent.getStringExtra("address");
 	//				m.name = intent.getStringExtra("name");
 	//				m.messageType =intent.getStringExtra("messageType");
 	//				m.messageId = intent.getStringExtra("messageId");
 	//				m.msgBytes = intent.getByteArrayExtra("msgBytes");
 	//				m.currentTimestamp = intent.getLongExtra("currentTimestamp", 0);				
-					
-					androidLocalNodeAdapter.messageReceived(srcID, msg);
+
+					AndroidMessage tosmsg = null;
+					// change the intent array to shorts
+					byte[] bytes = intent.getByteArrayExtra("msgBytes");
+					tosmsg = AndroidMessage.Construct(bytes);					
+					androidLocalNodeAdapter.messageReceived(srcID, tosmsg);
 				}
 			}
 		}

@@ -37,6 +37,9 @@ public class SpineReceiver extends BroadcastReceiver {
 	
 	public interface OnBioFeedbackMessageRecievedListener {
 		public void onDataReceived(BioFeedbackData bfmd);
+		/**
+		 * @param bfmd
+		 */
 		public void onSpineDataReceived(BioFeedbackSpineData bfmd);
 		public void onStatusReceived(BioFeedbackStatus bfs);
 	}

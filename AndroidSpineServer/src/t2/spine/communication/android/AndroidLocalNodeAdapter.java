@@ -73,35 +73,43 @@ public class AndroidLocalNodeAdapter extends LocalNodeAdapter implements Android
 	 * This method is called by the nodeCoordinator (AndroidMessageServer) when a
 	 * new message is received by the nodeCoordinator.
 	 */
-	public void messageReceived(int srcID, Message msg) {
+	public void messageReceived(int srcID, Message tosMsg) {
 
 		String sourceURL = "";
 		if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
 			StringBuffer str = new StringBuffer();
 			str.append("Msg Received from nodeCoordinator (AndroidSocketThrdServer) -> ");
-			str.append(msg);
+			str.append(tosMsg);
 			SPINEManager.getLogger().log(Logger.INFO, str.toString());
 		}
 
-		// Case "Service Advertisement Message" (ProfileId != 0) => set nodeInfo
-		// HashTable and pass - thru to connections
-		if ((msg.getProfileId() != 0)) {
-			// nodeId from sourceURL
-			sourceURL = msg.getSourceURL();
-			String urlPrefix = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY);
-			nodeId = Integer.parseInt(sourceURL.substring(urlPrefix.length()));
-
-			// Add "nodeId"/"node info msg" to nodeInfo
-			nodeInfo.put(new Integer(nodeId), msg);
-
-			// pass - thru connections
-			for (int i = 0; i < connections.size(); i++)
-				((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
-		} else {
-			// Case "Data Message" (ProfileId = 0) => pass - thru to connections
-			for (int i = 0; i < connections.size(); i++)
-				((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
-		}
+		// TODO: Fix message inheritance structure!!!
+		try {
+			com.tilab.gal.Message msg = ((AndroidMessage)tosMsg).parse();
+		
+			// Case "Service Advertisement Message" (ProfileId != 0) => set nodeInfo
+			// HashTable and pass - thru to connections
+			if ((msg.getProfileId() != 0)) {
+				// nodeId from sourceURL
+				sourceURL = msg.getSourceURL();
+				String urlPrefix = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.ANDROID + "_" + Properties.URL_PREFIX_KEY);
+				nodeId = Integer.parseInt(sourceURL.substring(urlPrefix.length()));
+	
+				// Add "nodeId"/"node info msg" to nodeInfo
+				nodeInfo.put(new Integer(nodeId), msg);
+	
+				// pass - thru connections
+				for (int i = 0; i < connections.size(); i++)
+					((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
+			} else {
+				// Case "Data Message" (ProfileId = 0) => pass - thru to connections
+				for (int i = 0; i < connections.size(); i++)
+					((AndroidWSNConnection) connections.elementAt(i)).messageReceived(msg);
+			}
+		} catch (IllegalSpineHeaderSizeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}
 
 	private Vector connections = new Vector();
