@@ -49,12 +49,21 @@ public class DeviceManager {
 		Iterator bit = deviceBondedDevices.iterator();
 		while(bit.hasNext())
 		{
+			BioFeedbackDevice d;
 			BluetoothDevice bt = (BluetoothDevice) bit.next();
-			SpineBH d = new SpineBH();
+			String name = bt.getName();
+			if (name.equalsIgnoreCase("BH ZBH002095"))
+			{
+				d = new ZephyrBH();
+				
+			}
+			else
+			{
+				d = new SpineBH();
+				
+			}
 			d.setDevice(bt.getAddress());
-			this.availableDevices.put(
-			d.getAddress(), 
-			d);			
+			this.availableDevices.put(d.getAddress(),d);			
 		}
 		
 

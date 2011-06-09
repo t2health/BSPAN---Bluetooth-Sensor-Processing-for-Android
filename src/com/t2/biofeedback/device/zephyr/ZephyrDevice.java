@@ -60,39 +60,18 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		for (int i=0;i<bytes.length;i++) {
 		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
 		    }		
-		Log.i(TAG, new String(hexString));		
-		this.onMessageReceived(ZephyrMessage.parse(bytes));
-	}
-	
-	private void onMessageReceived(ZephyrMessage msg) {
-		if(!msg.validPayload) {
-			return;
+		Log.i(TAG, new String(hexString));
+		ZephyrMessage msg = ZephyrMessage.parse(bytes);		
+		
+// TODO: See if we want to send Zephyr heartbeat messages
+		// we might want to send all messages, but for now, since there are a lot of heartbeat
+		// messages for now we'll only send data messages
+		if(msg.msgId == 0x20) {
+			this.onDeviceMessage(bytes);			
 		}
 		
-		if(msg.msgId == 0x20) {
-			BitSet bs = byteArrayToBitSet(new byte[] {msg.raw[53], msg.raw[54]});
-			
-//			this.onBatteryLevel(
-//					System.currentTimeMillis(),
-//					bitSetToByteArray(bs.get(0, 7))[0]
-//			);
-//			
-//			this.onHeartRate(
-//					System.currentTimeMillis(), 
-//					byteArrayToInt(new byte[] {msg.payload[9], msg.payload[10]})
-//			);
-//			
-//			this.onRespirationRate(
-//					System.currentTimeMillis(), 
-//					byteArrayToInt(new byte[] {msg.payload[11], msg.payload[12]}) / 10.00
-//			);
-//			
-//			this.onSkinTemperature(
-//					System.currentTimeMillis(), 
-//					byteArrayToInt(new byte[] {msg.payload[13], msg.payload[14]}) / 10.00
-//			);
-		}
 	}
+	
 	
 	private void write(ZephyrMessage msg) {
 		this.write(msg.getBytes());

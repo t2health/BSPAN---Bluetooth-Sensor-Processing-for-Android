@@ -1,15 +1,16 @@
 package com.t2.biofeedback.device;
 
+import com.t2.biofeedback.device.Spine.SpineDevice;
+
+
 
 public abstract class BioFeedbackDevice extends SerialBTDevice {
 	private long linkTimeout = 0;
-	private OnSpineMessageListener onSpineMessageListener;	
+	private OnDeviceDataMessageListener onSpineMessageListener;	
+	private OnDeviceDataMessageListener onDeviceDataMessageListener;	
 	
 	private boolean onSpineMessageListenerIsSet = false;
-	private boolean onBatteryLevelListenerIsSet = false;
-	private boolean onHeartRateListenerIsSet = false;
-	private boolean onRespirationRateListenerIsSet = false;
-	private boolean onSkinTemperatureListenerIsSet = false;
+	private boolean onDeviceDataMessageListenerIsSet = false;
 
 	
 	
@@ -56,14 +57,24 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	}
 	
 	
-	public void setOnSpineMessageListener(OnSpineMessageListener l) throws UnsupportedCapabilityException {
-		if(!this.hasCapability(Capability.SPINE_MESSAGE)) {
-			throw new UnsupportedCapabilityException("Device doesn't support this capability.");
+	public void setOnDeviceDataMessageListener(OnDeviceDataMessageListener l, BioFeedbackDevice device) throws UnsupportedCapabilityException {
+
+		if (device instanceof SpineDevice)
+		{
+			if(!this.hasCapability(Capability.SPINE_MESSAGE)) {
+				throw new UnsupportedCapabilityException("Device doesn't support this capability.");
+			}
+			this.onSpineMessageListener = l;
+			this.onSpineMessageListenerIsSet= (l != null);
 		}
-		this.onSpineMessageListener = l;
-		this.onSpineMessageListenerIsSet= (l != null);
+		else
+		{
+			this.onDeviceDataMessageListener = l;
+			this.onDeviceDataMessageListenerIsSet= (l != null);
+			
+		}
 	}
-		
+
 	
 	protected void onSetCollectData(int data, boolean canCollect) {}
 
@@ -73,29 +84,24 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 //	public abstract int getDeviceId();
 	
 	
-
-	
-	
-	/*public static final BioFeedbackDevice factory(int bioFeedbackDeviceId) {
-		BioFeedbackDevice d = null;
-		switch(bioFeedbackDeviceId) {
-			case Device.ZEPHYR_BIOHARNESS:
-				return new ZephyrBH();
-		}
-		
-		return null;
-	}*/
-	
 	protected void onSpineMessage(byte[] message) {
 		if(this.onSpineMessageListenerIsSet) {
 			
 			this.onSpineMessageListener.onSpineMessage(this, message);
 		}
 	}
+	
+	protected void onDeviceMessage(byte[] message) {
+		if(this.onDeviceDataMessageListenerIsSet) {
+			
+			this.onDeviceDataMessageListener.onDeviceMessage(this, message);
+		}
+	}
 		
 	
-	public interface OnSpineMessageListener {
+	public interface OnDeviceDataMessageListener {
 		public void onSpineMessage(BioFeedbackDevice bioFeedbackDevice, byte[] message);
+		public void onDeviceMessage(BioFeedbackDevice bioFeedbackDevice, byte[] message);
 	}
 	
 
