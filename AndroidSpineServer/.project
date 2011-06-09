@@ -30,4 +30,11 @@
 		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>Chart_src</name>
+			<type>2</type>
+			<locationURI>_android_Chart_3e0e7be/src</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

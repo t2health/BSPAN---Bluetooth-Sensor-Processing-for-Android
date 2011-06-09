@@ -11,6 +11,9 @@ import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 
+//import com.t2.biofeedback.demo.R;
+import com.t2.chart.widget.FlowingChart;
+
 import spine.SPINEFactory;
 import spine.SPINEListener;
 import spine.SPINEManager;
@@ -33,54 +36,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = Constants.TAG;
-    EditText mEditText;
     private static SPINEManager manager;
 	private SpineReceiver receiver;
 	private AlertDialog connectingDialog;
-	TextView statusText;
 	private static AndroidSpineServerMainActivity instance;
-    
+
+	
+	private EditText spineLog;
+	private FlowingChart spineChart;
+	
+	
 	
 	public static AndroidSpineServerMainActivity getInstance() 
 	{
 	   return instance;
-	}
-	
-	private void doThis()
-	{
-		
-//	       AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-//	          dialog.setTitle("");
-//	          dialog.setMessage("status  is on");
-//	          dialog.show();
-//
-//		       AlertDialog.Builder dialog1 = new AlertDialog.Builder(this);
-//		          dialog1.setTitle("");
-//		          dialog1.setMessage("status  is on");
-//		          dialog1.show();
-	          
-//      // Create a connecting dialog.
-//      this.connectingDialog = new AlertDialog.Builder(this)
-//      	// Close the app if connecting was not finished.
-//	        .setOnCancelListener(new OnCancelListener() {
-//				@Override
-//				public void onCancel(DialogInterface dialog) {
-//					finish();
-//				}
-//			})
-//			// Allow the biofeedback device settings to be used.
-//			.setPositiveButton("BioFeedback Settings", new OnClickListener() {
-//				@Override
-//				public void onClick(DialogInterface dialog, int which) {
-//					startActivity(new Intent("com.t2.biofeedback.MANAGER"));
-//				}
-//			})
-//			.setMessage("Connecting...")
-//			.create();		
 	}
     
     /** Called when the activity is first created. */
@@ -97,27 +69,19 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         final Button button = (Button) findViewById(R.id.button1);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-            	doThis();            	
 				manager.discoveryWsn();
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
             }
         });        
         
-        statusText = (TextView) findViewById(R.id.statusText);
+        spineLog = (EditText) findViewById(R.id.spineLog);
+        spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
+//        this.respirationRateChart = (FlowingChart)this.findViewById(R.id.respirationRateChart);
+//        spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
+        
         
         
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
-//			manager = SPINEFactory.createSPINEManager("resources/SPINETestApp.properties", resources);
 			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
@@ -150,11 +114,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			})
 			.setMessage("Connecting...")
 			.create();
-        
-        
-        
-        
-        
     }
 
     @Override
@@ -175,18 +134,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
 		this.registerReceiver(this.receiver,filter);
         		
-//        try {
-//			//startActivity(new Intent(this, AndroidSocketMessageListener.class));
-//			Intent myIntent = new Intent(getApplicationContext(), AndroidSocketMessageListener.class);
-////			Intent myIntent = new Intent("t2.spine.communication.android.AndroidSocketThrdServer");
-//			this.startActivity(myIntent);			
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			Log.i("*******", e.toString());
-//			//e.printStackTrace();
-//		}
-//        		
-		
 	}
     
 	@Override
@@ -215,9 +162,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         String messageId = bfmd.messageId;
 		if(messageId.equals("SPINE_MESSAGE")) {
 			double value = (bfmd.avgValue * 9 / 5) + 32;
-			String text = statusText.getText().toString();
+			String text = spineLog.getText().toString();
 			text = value+"\n"+text;
-			statusText.setText(text);
+			spineLog.setText(text);
 		}
 			
 		
@@ -287,10 +234,12 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		{
 			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
 
-//			String text = statusText.getText().toString();
-//			text = data.toString() + "\n" + text;
-//			statusText.setText(text);		
-			statusText.setText(data.toString());		
+			String text = spineLog.getText().toString();
+			text = data.toString() + "\n" + text;
+			spineLog.setText(text);		
+//			statusText.setText(data.toString());
+			spineChart.addValue(new Float(10));
+			
 		}
 
 		
@@ -299,9 +248,5 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void discoveryCompleted(Vector activeNodes) {
 		Log.i(TAG, "RealSpine: received service ADV: " );	
-
-		
 	}
-
-	
 }

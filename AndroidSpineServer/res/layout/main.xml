@@ -10,7 +10,28 @@
 		android:id="@+id/StatusLogLabel" 
 		android:text="@string/StatusLogLabelText">
 	</TextView>
-	<EditText android:editable="false" android:layout_width="fill_parent" android:text="EditText" android:gravity="left" android:id="@+id/statusText" android:layout_gravity="top" android:layout_height="fill_parent" android:layout_weight="1"></EditText>
-	<EditText android:layout_width="fill_parent" android:text="EditText" android:id="@+id/editText1" android:layout_gravity="center_vertical" android:layout_height="fill_parent" android:layout_weight="1"></EditText>
+	
+	<FrameLayout 
+		android:id="@+id/frameLayout1"
+		android:layout_width="fill_parent"
+		android:layout_height="150dip">	
+	
+		<view 
+	    	class="com.t2.chart.widget.FlowingChart"
+	    	android:id="@+id/spineChart"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="fill_parent"		/>
+		
+		<EditText 
+			android:id="@+id/spineLog" android:layout_gravity="top"
+			android:layout_width="160dip"
+			android:layout_height="fill_parent"
+			android:background="#00FFFFFF"
+			android:textColor="#FFFFFFFF"
+			android:gravity="left"
+			android:editable="false" >
+		</EditText>
+	</FrameLayout>	
+	
 	<Button android:layout_width="wrap_content" android:id="@+id/button1" android:layout_height="fill_parent" android:layout_weight="1.4" android:text="@string/discoverbutton"></Button>
 </LinearLayout>
