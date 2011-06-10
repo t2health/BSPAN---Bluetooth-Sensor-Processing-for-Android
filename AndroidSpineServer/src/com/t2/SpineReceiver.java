@@ -28,6 +28,10 @@ public class SpineReceiver extends BroadcastReceiver {
 			if(messageRecievedListener != null) {
 				messageRecievedListener.onStatusReceived(BioFeedbackStatus.factory(intent));
 			}
+		} else if(intent.getAction().equals("com.t2.biofeedback.service.zephyrdata.BROADCAST")) {
+			if(messageRecievedListener != null) {
+				messageRecievedListener.onZephyrDataReceived(ZephyrData.factory(intent));
+			}
 		}
 	}
 
@@ -37,10 +41,8 @@ public class SpineReceiver extends BroadcastReceiver {
 	
 	public interface OnBioFeedbackMessageRecievedListener {
 		public void onDataReceived(BioFeedbackData bfmd);
-		/**
-		 * @param bfmd
-		 */
 		public void onSpineDataReceived(BioFeedbackSpineData bfmd);
+		public void onZephyrDataReceived(ZephyrData bfmd);
 		public void onStatusReceived(BioFeedbackStatus bfs);
 	}
 	
@@ -69,6 +71,24 @@ public class SpineReceiver extends BroadcastReceiver {
 		}
 	}
 	
+	
+	public static class ZephyrData extends BioFeedbackMessage {
+		public byte[] msgBytes;
+		public long currentTimestamp;
+		
+		public static ZephyrData factory(Intent i) {
+			ZephyrData m = new ZephyrData();
+			m.address = i.getStringExtra("address");
+			m.name = i.getStringExtra("name");
+			m.messageType = i.getStringExtra("messageType");
+			m.messageId = i.getStringExtra("messageId");
+			m.msgBytes = i.getByteArrayExtra("msgBytes");
+			m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);			
+			
+			return m;
+		}
+	}	
+		
 	
 	public static class BioFeedbackData extends BioFeedbackMessage {
 		public double avgValue;

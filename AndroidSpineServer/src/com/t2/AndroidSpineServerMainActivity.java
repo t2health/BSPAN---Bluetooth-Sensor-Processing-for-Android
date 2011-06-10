@@ -10,14 +10,18 @@ import com.t2.SpineReceiver.BioFeedbackData;
 import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.SpineReceiver.ZephyrData;
 
 //import com.t2.biofeedback.demo.R;
 import com.t2.chart.widget.FlowingChart;
 
 import spine.SPINEFactory;
+import spine.SPINEFunctionConstants;
 import spine.SPINEListener;
 import spine.SPINEManager;
 import spine.datamodel.Data;
+import spine.datamodel.Feature;
+import spine.datamodel.FeatureData;
 import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
@@ -37,6 +41,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+
+import spine.datamodel.functions.*;
+
+
 public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = Constants.TAG;
     private static SPINEManager manager;
@@ -47,6 +55,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	
 	private EditText spineLog;
 	private FlowingChart spineChart;
+	private EditText deviceLog;
+	private FlowingChart deviceChart;
 	
 	
 	
@@ -75,16 +85,14 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         
         spineLog = (EditText) findViewById(R.id.spineLog);
         spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
-//        this.respirationRateChart = (FlowingChart)this.findViewById(R.id.respirationRateChart);
-//        spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
-        
-        
+        deviceLog = (EditText) findViewById(R.id.deviceLog);
+        deviceChart = (FlowingChart)this.findViewById(R.id.deviceChart);
         
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
 			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
+			Log.e(TAG, "Exception creating SPINE manager: " + e.toString());
 			e.printStackTrace();
 		}        
         
@@ -132,6 +140,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		filter.addAction("com.t2.biofeedback.service.spinedata.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.data.BROADCAST");
 		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
+		filter.addAction("com.t2.biofeedback.service.zephyrdata.BROADCAST");
+		
 		this.registerReceiver(this.receiver,filter);
         		
 	}
@@ -154,6 +164,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	}
 
 
+	/* (non-Javadoc)
+	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onDataReceived(com.t2.SpineReceiver.BioFeedbackData)
+	 * This is where we receive data directly from a bluetooth device
+	 * (as opposed to receiving through Spine)
+	 */
 	@Override
 	public void onDataReceived(BioFeedbackData bfmd) {
 		// TODO Auto-generated method stub
@@ -181,25 +196,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	 */
 	@Override
 	public void onSpineDataReceived(BioFeedbackSpineData bfmd) {
-
-//        String messageId = bfmd.messageId;
-//		if(messageId.equals("SPINE_MESSAGE")) {
-//			StringBuffer hexString = new StringBuffer();
-//			
-//			for (int i=0; i <bfmd.msgBytes.length; i++) 
-//			{
-//			    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
-//			}		
-//			String str = new String(hexString);
-//			Log.i(TAG, "Spine Data Received: " + str );		
-//			
-//			
-//			
-//			String text = statusText.getText().toString();
-//			text = str+ "\n" + text;
-//			statusText.setText(text);
-//		}
-		
 	}
 
 	
@@ -227,18 +223,45 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see spine.SPINEListener#received(spine.datamodel.Data)
+	 * This is where we receive data that comes through the actual
+	 * Spine channel
+	 */
 	@Override
 	public void received(Data data) {
+		int ch1Value;
 		
 		if (data != null)
 		{
+			
+			switch (data.getFunctionCode()) {
+				case SPINEFunctionConstants.FEATURE: {
+					Node source = data.getNode();
+					Feature[] feats = ((FeatureData)data).getFeatures();
+					Feature firsFeat = feats[0];
+					byte sensor = firsFeat.getSensorCode();
+					byte featCode = firsFeat.getFeatureCode();
+					ch1Value = firsFeat.getCh1Value();
+					String text = spineLog.getText().toString();
+					text = ch1Value + "\n" + text;
+					spineLog.setText(text);		
+					spineChart.addValue(new Float(ch1Value));
+					break;
+				}
+				case SPINEFunctionConstants.ONE_SHOT:
+					Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
+					break;
+					
+				case SPINEFunctionConstants.ALARM:
+					Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
+					break;
+			}
+			
+			
+			
 			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
 
-			String text = spineLog.getText().toString();
-			text = data.toString() + "\n" + text;
-			spineLog.setText(text);		
-//			statusText.setText(data.toString());
-			spineChart.addValue(new Float(10));
 			
 		}
 
@@ -249,4 +272,36 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	public void discoveryCompleted(Vector activeNodes) {
 		Log.i(TAG, "RealSpine: received service ADV: " );	
 	}
+
+	@Override
+	public void onZephyrDataReceived(ZephyrData bfmd) {
+		StringBuffer hexString = new StringBuffer();
+		for (int i=0;i<10;i++) 
+		{
+		    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
+		}			
+//		Log.i(TAG, "onZephyrDataReceived"  );
+		Log.i(TAG, "Zephyr bytes: " + new String(hexString));	
+		
+		// TODO: do a real decode here
+		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;		
+		String text = deviceLog.getText().toString();
+		text = data + "\n" + text;
+		deviceLog.setText(text);		
+		deviceChart.addValue(new Float(data));
+
+		
+	}
+	public static int byteArrayToInt(byte[] bytes) {
+		int val = 0;
+		
+		for(int i = 0; i < bytes.length; i++) {
+			int n = (bytes[i] < 0 ? (int)bytes[i] + 256 : (int)bytes[i]) << (8 * i);
+			val += n;
+		}
+		
+		return val;
+	}
+	
+	
 }

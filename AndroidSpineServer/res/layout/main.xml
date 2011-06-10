@@ -8,7 +8,7 @@
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:id="@+id/StatusLogLabel" 
-		android:text="@string/StatusLogLabelText">
+		android:text="Spine Device">
 	</TextView>
 	
 	<FrameLayout 
@@ -24,6 +24,34 @@
 		
 		<EditText 
 			android:id="@+id/spineLog" android:layout_gravity="top"
+			android:layout_width="160dip"
+			android:layout_height="fill_parent"
+			android:background="#00FFFFFF"
+			android:textColor="#FFFFFFFF"
+			android:gravity="left"
+			android:editable="false" >
+		</EditText>
+	</FrameLayout>	
+	<TextView 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/StatusLogLabel" 
+		android:text="Zephyr Device">
+	</TextView>
+	
+	<FrameLayout 
+		android:id="@+id/frameLayout2"
+		android:layout_width="fill_parent"
+		android:layout_height="150dip">	
+	
+		<view 
+	    	class="com.t2.chart.widget.FlowingChart"
+	    	android:id="@+id/deviceChart"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="fill_parent"		/>
+		
+		<EditText 
+			android:id="@+id/deviceLog" android:layout_gravity="top"
 			android:layout_width="160dip"
 			android:layout_height="fill_parent"
 			android:background="#00FFFFFF"
