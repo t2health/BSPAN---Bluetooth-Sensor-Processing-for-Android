@@ -37,10 +37,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			public static final String DATA_HEART_RATE = "DATA_HEART_RATE";
 			public static final String BATTERY_LEVEL = "BATTERY_LEVEL";
 			public static final String SPINE_MESSAGE = "SPINE_MESSAGE";
+			public static final String DATA_MESSAGE = "DATA_MESSAGE";
 		}
 	}
 	
-	public static final String ACTION_SPINE_DATA_BROADCAST = "com.t2.biofeedback.service.spinedata.BROADCAST";
+	public static final String ACTION_SPINE_DATA_BROADCAST =  "com.t2.biofeedback.service.spinedata.BROADCAST";
+	public static final String ACTION_ZEPHYR_DATA_BROADCAST = "com.t2.biofeedback.service.zephyrdata.BROADCAST";
 	public static final String ACTION_DATA_BROADCAST = "com.t2.biofeedback.service.data.BROADCAST";
 	public static final String ACTION_STATUS_BROADCAST = "com.t2.biofeedback.service.status.BROADCAST";
 	public static final String ACTION_SERVER_DATA_BROADCAST = "com.t2.biofeedback.server.data.BROADCAST";
@@ -255,15 +257,19 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		
 		this.sendBroadcast(i);
-//		getSpineBroadcastIntent(d, ,, message)
-//		);
 		
 	}
 
 	@Override
 	public void onDeviceMessage(BioFeedbackDevice bioFeedbackDevice,
 			byte[] message) {
-		// TODO Auto-generated method stub
+
+		Intent i = getStatusBroadcastIntent(bioFeedbackDevice, BroadcastMessage.Type.DATA,  BroadcastMessage.Id.DATA_MESSAGE, null);
+		i.setAction(ACTION_ZEPHYR_DATA_BROADCAST);
+		i.putExtra(EXTRA_MSG_BYTES, message);
+		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
 		
+		this.sendBroadcast(i);
+
 	}
 }
