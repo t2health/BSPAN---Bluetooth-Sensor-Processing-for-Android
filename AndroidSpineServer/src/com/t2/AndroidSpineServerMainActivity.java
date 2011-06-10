@@ -4,7 +4,15 @@ package com.t2;
 
 
 
+import java.util.Queue;
 import java.util.Vector;
+
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.model.XYSeries;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
 import com.t2.SpineReceiver.BioFeedbackData;
 import com.t2.SpineReceiver.BioFeedbackSpineData;
@@ -12,8 +20,7 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.SpineReceiver.ZephyrData;
 
-//import com.t2.biofeedback.demo.R;
-import com.t2.chart.widget.FlowingChart;
+//import com.t2.chart.widget.FlowingChart;
 
 import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
@@ -38,8 +45,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 
 import spine.datamodel.functions.*;
@@ -52,13 +61,24 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private AlertDialog connectingDialog;
 	private static AndroidSpineServerMainActivity instance;
 
+	  private GraphicalView mChartView;
+	  private XYMultipleSeriesDataset mDataset = new XYMultipleSeriesDataset();
+
+	  private XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
+
+	  private XYSeries mCurrentSeries;
+
+	  private XYSeriesRenderer mCurrentRenderer;
+	  private final static int SPINE_CHART_SIZE = 20;
+	  
+	
 	
 	private EditText spineLog;
-	private FlowingChart spineChart;
+//	private FlowingChart spineChart;
 	private EditText deviceLog;
-	private FlowingChart deviceChart;
+//	private FlowingChart deviceChart;
 	
-	
+	int chartX = 0;
 	
 	public static AndroidSpineServerMainActivity getInstance() 
 	{
@@ -84,9 +104,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         });        
         
         spineLog = (EditText) findViewById(R.id.spineLog);
-        spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
-        deviceLog = (EditText) findViewById(R.id.deviceLog);
-        deviceChart = (FlowingChart)this.findViewById(R.id.deviceChart);
+//        spineChart = (FlowingChart)this.findViewById(R.id.spineChart);
+//        deviceLog = (EditText) findViewById(R.id.deviceLog);
+//        deviceChart = (FlowingChart)this.findViewById(R.id.deviceChart);
         
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
@@ -122,8 +142,32 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			})
 			.setMessage("Connecting...")
 			.create();
+
+        if (mChartView == null) {
+          LinearLayout layout = (LinearLayout) findViewById(R.id.spineChart);
+          mChartView = ChartFactory.getLineChartView(this, mDataset, mRenderer);
+
+          layout.addView(mChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        }    
+        mRenderer.setShowLabels(false);
+        // mRenderer.setMargins(new int[] {20, 30, 15, 0});
+        mRenderer.setMargins(new int[] {0,0,0,0});
+        mRenderer.setShowAxes(false);
+        mRenderer.setZoomEnabled(false, false);
+        mRenderer.setYAxisMin(0);
+        mRenderer.setYAxisMax(255);
+        
+        String seriesTitle = "Series " + (mDataset.getSeriesCount() + 1);
+        XYSeries series = new XYSeries(seriesTitle);
+        mDataset.addSeries(series);
+        mCurrentSeries = series;
+        XYSeriesRenderer renderer = new XYSeriesRenderer();
+        mRenderer.addSeriesRenderer(renderer);
+        mCurrentRenderer = renderer;
+        
     }
 
+    
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
@@ -231,6 +275,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void received(Data data) {
 		int ch1Value;
+
 		
 		if (data != null)
 		{
@@ -246,7 +291,17 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					String text = spineLog.getText().toString();
 					text = ch1Value + "\n" + text;
 					spineLog.setText(text);		
-					spineChart.addValue(new Float(ch1Value));
+//					spineChart.addValue(new Float(ch1Value));
+
+					if (mCurrentSeries.getItemCount() > SPINE_CHART_SIZE)
+					{
+						mCurrentSeries.remove(0);
+					}
+					mCurrentSeries.add(chartX++, ch1Value);
+			        if (mChartView != null) {
+			            mChartView.repaint();
+			        }        
+					
 					break;
 				}
 				case SPINEFunctionConstants.ONE_SHOT:
@@ -285,10 +340,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		// TODO: do a real decode here
 		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;		
-		String text = deviceLog.getText().toString();
-		text = data + "\n" + text;
-		deviceLog.setText(text);		
-		deviceChart.addValue(new Float(data));
+//		String text = deviceLog.getText().toString();
+//		text = data + "\n" + text;
+//		deviceLog.setText(text);		
+//		deviceChart.addValue(new Float(data));
 
 		
 	}
