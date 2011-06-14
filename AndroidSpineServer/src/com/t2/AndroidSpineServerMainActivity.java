@@ -315,6 +315,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				ch1Value = firsFeat.getCh1Value();
 				String text = spineLog.getText().toString();
 				text = ch1Value + "\n" + text;
+				Log.i(TAG,"ch1Value= " + ch1Value);
+				
 				spineLog.setText(text);		
 				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
 				{
