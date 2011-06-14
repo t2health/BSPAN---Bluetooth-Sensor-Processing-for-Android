@@ -100,13 +100,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	
 	protected void onBytesReceived(byte[] bytes) 
 	{
-		// Log bytes received so we can see them for debugging
-		StringBuffer hexString = new StringBuffer();
-		for (int i=0;i<bytes.length;i++) 
-		{
-		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
-		}		
-//		Log.i(TAG, "Received bytes: " + new String(hexString));
+		//logHexByteString(bytes);
 
 		// Transfer bytes to fifo one by one
 		// Each time updating the state machine
@@ -290,4 +284,12 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 
 		super.write(bytes);
 	}
+	
+	protected void logHexByteString(byte[] bytes) {
+		StringBuffer hexString = new StringBuffer();
+		for (int i=0;i<bytes.length;i++) {
+		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
+		    }		
+		Log.i(TAG, new String(hexString));
+	}	
 }

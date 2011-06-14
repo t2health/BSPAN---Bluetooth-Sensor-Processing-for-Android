@@ -1,6 +1,7 @@
 package com.t2.biofeedback.device;
 
 import com.t2.biofeedback.device.Spine.SpineDevice;
+import com.t2.biofeedback.device.zephyr.ZephyrDevice;
 
 
 
@@ -67,10 +68,17 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 			this.onSpineMessageListener = l;
 			this.onSpineMessageListenerIsSet= (l != null);
 		}
-		else
+		else if (device instanceof ZephyrDevice)
 		{
+
 			this.onDeviceDataMessageListener = l;
 			this.onDeviceDataMessageListenerIsSet= (l != null);
+
+			// We also need to do this since device messages are now treated as Spine messages
+			this.onSpineMessageListener = l;
+			this.onSpineMessageListenerIsSet= (l != null);
+
+			
 			
 		}
 	}
