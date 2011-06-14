@@ -47,6 +47,7 @@ public class SPINEFunctionConstants {
 	public static final byte BUFFERED_RAW_DATA = 0x06;
 	public static final byte HMM = 0x07;
 	public static final byte HEARTBEAT = 0x08;
+	public static final byte ZEPHYR = 0x09;
 	
 	//alarm types
 	public static final byte BELOW_THRESHOLD = 0x01;
@@ -81,6 +82,7 @@ public class SPINEFunctionConstants {
 	public static final String BUFFERED_RAW_DATA_LABEL = "BufferedRawData";
 	public static final String HMM_LABEL = "Hmm";
 	public static final String HEARTBEAT_LABEL = "HeartBeat";
+	public static final String ZEPHYR_LABEL = "Zephyr";
 	
 	// if new function libraries are added, declare their labels down here
 	public static final String RAW_DATA_LABEL = "Raw Data";
@@ -116,6 +118,7 @@ public class SPINEFunctionConstants {
 			case BUFFERED_RAW_DATA: return BUFFERED_RAW_DATA_LABEL;
 			case HMM: return HMM_LABEL;
 			case HEARTBEAT: return HEARTBEAT_LABEL;
+			case ZEPHYR: return ZEPHYR_LABEL;
 			default: return "?";
 		}
 	}
@@ -180,6 +183,8 @@ public class SPINEFunctionConstants {
 			case HMM: return HMM_LABEL;
 			case HEARTBEAT: return HEARTBEAT_LABEL;
 			case SIGNAL_PROCESSING:	return "?"; 
+			case ZEPHYR: return ZEPHYR_LABEL;
+			
 			default: return "?";
 		}
 	}

@@ -37,7 +37,7 @@
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:id="@+id/StatusLogLabel" 
-		android:text="Zephyr Device">
+		android:text="Zephyr Device (Heart Rate)">
 	</TextView>
 	<FrameLayout 
 		android:id="@+id/frameLayout1"

@@ -22,10 +22,13 @@ import com.t2.SpineReceiver.ZephyrData;
 
 //import com.t2.chart.widget.FlowingChart;
 
+import spine.datamodel.Node;
 import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
 import spine.SPINEListener;
 import spine.SPINEManager;
+import spine.SPINEPacketsConstants;
+import spine.datamodel.Address;
 import spine.datamodel.Data;
 import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
@@ -157,6 +160,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mSpineRenderer.setMargins(new int[] {0,0,0,0});
         mSpineRenderer.setShowAxes(false);
         mSpineRenderer.setZoomEnabled(false, false);
+        mSpineRenderer.setPanEnabled(false, false);
         mSpineRenderer.setYAxisMin(0);
         mSpineRenderer.setYAxisMax(255);
         
@@ -178,6 +182,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceRenderer.setMargins(new int[] {0,0,0,0});
         mDeviceRenderer.setShowAxes(false);
         mDeviceRenderer.setZoomEnabled(false, false);
+        mDeviceRenderer.setPanEnabled(false, false);
         mDeviceRenderer.setYAxisMin(0);
         mDeviceRenderer.setYAxisMax(255);
         
@@ -301,27 +306,55 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		{
 			
 			switch (data.getFunctionCode()) {
-				case SPINEFunctionConstants.FEATURE: {
-					Node source = data.getNode();
-					Feature[] feats = ((FeatureData)data).getFeatures();
-					Feature firsFeat = feats[0];
-					byte sensor = firsFeat.getSensorCode();
-					byte featCode = firsFeat.getFeatureCode();
-					ch1Value = firsFeat.getCh1Value();
-					String text = spineLog.getText().toString();
-					text = ch1Value + "\n" + text;
-					spineLog.setText(text);		
-					if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
-					{
-						mCurrentSpineSeries.remove(0);
-					}
-					mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
-			        if (mSpineChartView != null) {
-			            mSpineChartView.repaint();
-			        }        
-					
-					break;
+			case SPINEFunctionConstants.FEATURE: {
+				Node source = data.getNode();
+				Feature[] feats = ((FeatureData)data).getFeatures();
+				Feature firsFeat = feats[0];
+				byte sensor = firsFeat.getSensorCode();
+				byte featCode = firsFeat.getFeatureCode();
+				ch1Value = firsFeat.getCh1Value();
+				String text = spineLog.getText().toString();
+				text = ch1Value + "\n" + text;
+				spineLog.setText(text);		
+				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
+				{
+					mCurrentSpineSeries.remove(0);
 				}
+				mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
+		        if (mSpineChartView != null) {
+		            mSpineChartView.repaint();
+		        }        
+				
+				break;
+			}				
+			case SPINEFunctionConstants.ZEPHYR: {
+				Node source = data.getNode();
+				Feature[] feats = ((FeatureData)data).getFeatures();
+				Feature firsFeat = feats[0];
+				
+				byte sensor = firsFeat.getSensorCode();
+				byte featCode = firsFeat.getFeatureCode();
+				int batLevel = firsFeat.getCh1Value();
+				int heartRate = firsFeat.getCh2Value();
+				double respRate = firsFeat.getCh3Value() / 10;
+				int skinTemp = firsFeat.getCh4Value() / 10;
+				double skinTempF = (skinTemp * 9 / 5) + 32;				
+				Log.i(TAG,"heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+				
+				String text = deviceLog.getText().toString();
+				text = heartRate + "\n" + text;
+				deviceLog.setText(text);		
+				if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+				{
+					mCurrentDeviceSeries.remove(0);
+				}
+				mCurrentDeviceSeries.add(mSpineChartX++, heartRate);
+		        if (mDeviceChartView != null) {
+		            mDeviceChartView.repaint();
+		        }        
+				
+				break;
+			}
 				case SPINEFunctionConstants.ONE_SHOT:
 					Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
 					break;
@@ -333,7 +366,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			
 			
 			
-			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
+//			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
 
 			
 		}
@@ -343,36 +376,42 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 	@Override
 	public void discoveryCompleted(Vector activeNodes) {
-		Log.i(TAG, "RealSpine: received service ADV: " );	
+		Log.i(TAG, "discovery completed" );	
+
+		// Since zepher is a static node we have to manually put it in the active node list
+		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
+		Node zepherNode = null;
+		zepherNode = new Node(new Address("" + -15));
+		activeNodes.add(zepherNode);
+		
 	}
 
 	@Override
+	// This is only used when the message server sends data directly to the application.
+	// (It should only send via Spine path)
 	public void onZephyrDataReceived(ZephyrData bfmd) {
-		StringBuffer hexString = new StringBuffer();
-		for (int i=0;i<10;i++) 
-		{
-		    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
-		}			
-		Log.i(TAG, "Zephyr bytes: " + new String(hexString));	
-		
-		// TODO: do a real decode here
-		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
-		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
-		String text = deviceLog.getText().toString();
-		text = data + "\n" + text;
-		deviceLog.setText(text);		
-		
-		if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
-		{
-			mCurrentDeviceSeries.remove(0);
-		}
-		mCurrentDeviceSeries.add(mDeviceChartX++, data);
-        if (mDeviceChartView != null) {
-            mDeviceChartView.repaint();
-        }        
-		
-
-		
+//		StringBuffer hexString = new StringBuffer();
+//		for (int i=0;i<10;i++) 
+//		{
+//		    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
+//		}			
+//		Log.i(TAG, "Zephyr bytes: " + new String(hexString));	
+//		
+//		// TODO: do a real decode here
+//		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
+//		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
+//		String text = deviceLog.getText().toString();
+//		text = data + "\n" + text;
+//		deviceLog.setText(text);		
+//		
+//		if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+//		{
+//			mCurrentDeviceSeries.remove(0);
+//		}
+//		mCurrentDeviceSeries.add(mDeviceChartX++, data);
+//        if (mDeviceChartView != null) {
+//            mDeviceChartView.repaint();
+//        }        
 	}
 	public static int byteArrayToInt(byte[] bytes) {
 		int val = 0;

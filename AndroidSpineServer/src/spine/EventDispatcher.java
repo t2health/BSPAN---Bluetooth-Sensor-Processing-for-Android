@@ -305,8 +305,10 @@ class EventDispatcher {
 				}
 				
 				// SPINEListeners are notified of the reception from the node 'nodeID' of some data  
-				// TODO: we should probably check for a null object here and NOT notify listeners if null
-				notifyListeners(pktType, o);
+				if (o != null)
+				{
+					notifyListeners(pktType, o);
+				}
 				
 				//System.out.println("Memory available: " + Runtime.getRuntime().freeMemory() + " KB");
 				// call to the garbage collector to favour the recycling of unused memory
