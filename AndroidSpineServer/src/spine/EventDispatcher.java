@@ -45,6 +45,7 @@ import spine.exceptions.PacketDecodingException;
 
 import android.util.Log;
 
+import com.t2.Util;
 import com.tilab.gal.WSNConnection;
 
 /**
@@ -142,14 +143,9 @@ class EventDispatcher {
 				for (int i = 0; i<payloadShort.length; i++)
 					payload[i] = (byte)payloadShort[i];
 				
-				StringBuffer hexString = new StringBuffer();
 				
-				for (int i=0; i <payload.length; i++) 
-				{
-				    hexString.append(Integer.toHexString(0xFF & payload[i]));
-				}		
-				String str = new String(hexString);
-				Log.i(TAG, "payload Data Received: " + str );					
+//				Util.logHexByteString(TAG, "payload Data Received:", payload);
+				
 		
 				switch(pktType) {
 					case SPINEPacketsConstants.SERVICE_ADV: {

@@ -54,6 +54,15 @@ import spine.exceptions.*;
 
 import spine.datamodel.*;
 
+
+// Note that we did a little shortcut here. Technically
+// the Zephyr device should define it's own Feature type\
+// and store batt level, heart rate, resp. rate and skin temp.
+// in their own fields. Instead I'm re-using the regular Feature
+// class and storing the data in fields chxValue.
+
+// Also, instead of using channels, we probably  want to use
+// seperate features instead
 public class ZephyrSpineData extends SpineCodec {
 
 	public byte[] encode(SpineObject payload) throws MethodNotSupportedException {

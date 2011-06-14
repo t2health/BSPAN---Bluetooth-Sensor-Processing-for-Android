@@ -390,14 +390,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	// This is only used when the message server sends data directly to the application.
 	// (It should only send via Spine path)
 	public void onZephyrDataReceived(ZephyrData bfmd) {
-//		StringBuffer hexString = new StringBuffer();
-//		for (int i=0;i<10;i++) 
-//		{
-//		    hexString.append(Integer.toHexString(0xFF & bfmd.msgBytes[i]));
-//		}			
-//		Log.i(TAG, "Zephyr bytes: " + new String(hexString));	
-//		
-//		// TODO: do a real decode here
 //		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
 //		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
 //		String text = deviceLog.getText().toString();

@@ -70,6 +70,9 @@ public class FeatureSpineData extends SpineCodec {
 		short dtIndex = 0;
 		short pldIndex = 0;
 
+		if (node == null)
+			return null;
+		
 		// functionCode = payload[0];
 		byte functionCode = payload[pldIndex++];
 		dataTmp[dtIndex++] = functionCode;
