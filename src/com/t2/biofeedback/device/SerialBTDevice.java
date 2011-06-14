@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -482,26 +483,13 @@ public abstract class SerialBTDevice {
 		
 		public void write(byte[] bytes) {
 			try {
-//				Log.i(TAG, "Writing...");
-//				
-//				for(int i = 0; i < bytes.length; i++) {
-//					Log.v(TAG, "\t"+bytes[i]);
-//				}
-				
-				StringBuffer hexString = new StringBuffer();
-				
-				for (int i=0; i <bytes.length; i++) 
-				{
-				    hexString.append(Integer.toHexString(0xFF & bytes[i]));
-				}		
-				String str = new String(hexString);
-				Log.i(TAG, "Writing to BT: " + str );	
+				Util.logHexByteString(TAG, "Writing to BT:", bytes);
 				
 				
 				
 				this.outputStream.write(bytes);
 			} catch (IOException e) {
-				Log.i(TAG, "**************Failed to write to device.");
+				Log.e(TAG, "**************Failed to write to device.");
 			}
 		}
     	

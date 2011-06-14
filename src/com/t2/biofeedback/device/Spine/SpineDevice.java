@@ -12,6 +12,7 @@ import android.util.Log;
 
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 public abstract class SpineDevice extends BioFeedbackDevice {
@@ -100,7 +101,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	
 	protected void onBytesReceived(byte[] bytes) 
 	{
-		//logHexByteString(bytes);
+//		Util.logHexByteString(TAG, bytes);		
 
 		// Transfer bytes to fifo one by one
 		// Each time updating the state machine
@@ -173,13 +174,11 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				
 				byte[] messageArray = new byte[messageSize];
 				
-				StringBuffer hexString = new StringBuffer();
 				int j = 0;
 				for (int i = mFifoHeader1; i < mFifoTail - SPINEPacketsConstants.SPINE_HEADER_SIZE; i++)
 				{
 					byte b = mFifo[i];
 					messageArray[j++] = b;
-				    hexString.append(Integer.toHexString(0xFF & b));
 				}    				
 				
 				int seq = messageArray[6];
@@ -192,8 +191,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				}
 				currentMsgSeq = seq;
 				
-				
-				Log.i(TAG, "Found message: " + new String(hexString));    	
+//				Util.logHexByteString(TAG, "Found message:", messageArray);
 				
 				this.onMessageReceived(messageArray);
 				
@@ -285,11 +283,5 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		super.write(bytes);
 	}
 	
-	protected void logHexByteString(byte[] bytes) {
-		StringBuffer hexString = new StringBuffer();
-		for (int i=0;i<bytes.length;i++) {
-		    hexString.append(Integer.toHexString(0xFF & bytes[i]));
-		    }		
-		Log.i(TAG, new String(hexString));
-	}	
+
 }

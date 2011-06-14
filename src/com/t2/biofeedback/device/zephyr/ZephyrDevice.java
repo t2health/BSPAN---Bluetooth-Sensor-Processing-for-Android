@@ -5,6 +5,7 @@ import java.util.BitSet;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 public abstract class ZephyrDevice extends BioFeedbackDevice {
@@ -73,7 +74,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		// messages for now we'll only send data messages
 		if(msg.msgId == 0x20) {
 
-			logHexByteString(msg.payload);
+//			Util.logHexByteString(TAG, msg.payload);
 			
 			// Use this to send the message directly to the main aplication
 			//this.onDeviceMessage(msg.payload);			
@@ -186,19 +187,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		this.write(msg.getBytes());
 	}
 	
-	protected void logHexByteString(byte[] bytes) {
-		StringBuffer hexString = new StringBuffer();
-		for (int i=0;i<bytes.length;i++) {
-			String s = Integer.toHexString(0xFF & bytes[i]);
-			if (s.length() < 2)
-			{
-				s = "0" + s;
-			}
-			
-		    hexString.append(s);
-		    }		
-		Log.i(TAG, new String(hexString));
-	}
+
 	
 	public static byte[] bitSetToByteArray(BitSet bs) {
 		byte[] bytes = new byte[(int) Math.ceil(bs.size() / 8)];
