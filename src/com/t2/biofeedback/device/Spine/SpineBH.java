@@ -1,10 +1,21 @@
 package com.t2.biofeedback.device.Spine;
 
 
+import java.util.ArrayList;
+
+import android.os.Messenger;
+
+import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 
 
 public class SpineBH extends SpineDevice {
+
+	public SpineBH(BioFeedbackService biofeedbackService) {
+		super(biofeedbackService);
+		
+	}
+
 	private static final String TAG = Constants.TAG;
 	
 	// Note that this address is only used 

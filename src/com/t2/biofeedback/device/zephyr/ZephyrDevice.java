@@ -1,15 +1,24 @@
 package com.t2.biofeedback.device.zephyr;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 
+import android.os.Messenger;
 import android.util.Log;
 
+import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
+	
+	
+	ZephyrDevice(BioFeedbackService biofeedbackService)
+	{
+		this.mBiofeedbackService = biofeedbackService;
+	}
 	
 	@Override
 	protected void onSetLinkTimeout(long linkTimeout) {

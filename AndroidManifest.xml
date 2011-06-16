@@ -12,6 +12,7 @@
         	android:name=".BioFeedbackServiceManagerReceiver">
         	
 			<intent-filter>
+				<action android:name="com.t2.biofeedback.BioFeedbackService"/>
 				<action	android:name="com.t2.biofeedback.service.START" />
 				<action	android:name="com.t2.biofeedback.service.STOP" />
 				<action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
@@ -20,8 +21,10 @@
 			</intent-filter>
 		</receiver>
     
-       <service
-        	android:name=".BioFeedbackService">
+       <service	android:name=".BioFeedbackService">
+	            <intent-filter>
+	        <action android:name="com.t2.biofeedback.IBioFeedbackService"/>			
+	            </intent-filter>       
 		</service>
 		
         <activity 

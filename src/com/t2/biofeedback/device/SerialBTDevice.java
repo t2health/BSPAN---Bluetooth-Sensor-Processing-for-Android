@@ -8,6 +8,7 @@ import java.util.BitSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
 
@@ -17,6 +18,8 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 
 
@@ -44,6 +47,7 @@ public abstract class SerialBTDevice {
 	private Handler threadHandler;
 
 	private ConnectThread connectThread;
+	protected BioFeedbackService mBiofeedbackService;	
 	
 	public void setDevice(String BH_ADDRESS)
 	{
@@ -57,6 +61,10 @@ public abstract class SerialBTDevice {
 		
 	}
 	
+	public void setBioFeedbackService(BioFeedbackService biofeedbackService)
+	{
+		mBiofeedbackService = biofeedbackService;
+	}
 	
 	public SerialBTDevice() {
 		this.adapter = BluetoothAdapter.getDefaultAdapter();
@@ -456,16 +464,13 @@ public abstract class SerialBTDevice {
 							newBytes[i] = buffer[i];
 						}
 						
-						// Call the bytes recieved handler.
-						// This call is ran in the main thread.
-						Bundle data = new Bundle();
-						data.putByteArray("bytes", newBytes);
-						
-						Message msg = new Message();
-						msg.what = MSG_BYTES_RECEIVED;
-						msg.setData(data);
-						
-						threadHandler.sendMessage(msg);
+						// Send the message to the server via the more direct route
+						// Note this used to send the message to the handler here in this file.
+						// Now it sends directly to the server application - much better performance
+						if (mBiofeedbackService != null)
+						{
+							mBiofeedbackService.sendRawMessage(newBytes);
+						}
 					}
 					
 				// Lost the connection for some reason.

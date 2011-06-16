@@ -20,6 +20,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Messenger;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -43,7 +44,9 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	private GeneralReceiver generalBroadcastReceiver;
 
 	private AlertDialog bluetoothDisabledDialog;
+    ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
 
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -65,7 +68,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 		});
 		this.findViewById(R.id.bluetoothSettingsButton).setOnClickListener(this);
 		
-		this.deviceManager = DeviceManager.getInstance(this.getBaseContext());
+		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), null);
 		this.deviceList = (ListView)this.findViewById(R.id.list);
 		
 		this.deviceListAdapter = new ManagerItemAdapter(

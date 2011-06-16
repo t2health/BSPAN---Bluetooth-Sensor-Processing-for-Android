@@ -1,6 +1,11 @@
 package com.t2.biofeedback.device.zephyr;
 
 
+import java.util.ArrayList;
+
+import android.os.Messenger;
+
+import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 
 
@@ -14,6 +19,11 @@ public class ZephyrBH extends ZephyrDevice {
 	};	
 	
 	
+	public ZephyrBH(BioFeedbackService biofeedbackService) {
+		super(biofeedbackService);
+	}
+
+
 	@Override
 	public String getDeviceAddress() {
 		return BH_ADDRESS;

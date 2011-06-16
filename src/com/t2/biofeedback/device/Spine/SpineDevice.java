@@ -8,9 +8,13 @@ package com.t2.biofeedback.device.Spine;
 
 
 
+import java.util.ArrayList;
+
+import android.os.Messenger;
 import android.util.Log;
 
 
+import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
@@ -36,8 +40,9 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	protected int numMessagesOutOfSequence = 0;
 	protected int numMessagesFrameErrors = 0;
 	
-	SpineDevice()
+	SpineDevice(BioFeedbackService biofeedbackService)
 	{
+		this.mBiofeedbackService = biofeedbackService;
 		resetFifo();		
 	}
 
@@ -191,7 +196,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				}
 				currentMsgSeq = seq;
 				
-//				Util.logHexByteString(TAG, "Found message:", messageArray);
+				Util.logHexByteString(TAG, "Found message:", messageArray);
 				
 				this.onMessageReceived(messageArray);
 				

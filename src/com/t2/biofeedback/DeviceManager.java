@@ -11,7 +11,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Messenger;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Spine.SpineBH;
@@ -29,6 +31,7 @@ public class DeviceManager {
 
 	private SharedPreferences sharedPref;
 	private static DeviceManager deviceManager;
+	BioFeedbackService mBiofeedbackService;
 	
 	// This array is used only when "Display option B" (see below) is chosen
 	public static final BioFeedbackDevice[] devices = new BioFeedbackDevice[] {
@@ -37,7 +40,12 @@ public class DeviceManager {
 //		new TestBH(),
 	};
 	
-	private DeviceManager(Context c) {
+//	public void SetServerListeners(BioFeedbackService biofeedbackService) {
+//		this.mBiofeedbackService = biofeedbackService;
+//	}
+
+	private DeviceManager(Context c, BioFeedbackService biofeedbackService) {
+		this.mBiofeedbackService = biofeedbackService;
 		this.context = c;
 		this.sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
 		
@@ -54,12 +62,12 @@ public class DeviceManager {
 			String name = bt.getName();
 			if (name.equalsIgnoreCase("BH ZBH002095"))
 			{
-				d = new ZephyrBH();
+				d = new ZephyrBH(mBiofeedbackService);
 				
 			}
 			else
 			{
-				d = new SpineBH();
+				d = new SpineBH(mBiofeedbackService);
 				
 			}
 			d.setDevice(bt.getAddress());
@@ -85,9 +93,16 @@ public class DeviceManager {
 		manage();
 	}
 	
-	public static DeviceManager getInstance(Context c) {
+	public static DeviceManager getInstance(Context c, BioFeedbackService bioFeedbackService) {
 		if(deviceManager == null) {
-			deviceManager = new DeviceManager(c);
+			deviceManager = new DeviceManager(c, bioFeedbackService);
+		}
+		else
+		{
+			deviceManager.mBiofeedbackService = bioFeedbackService;
+			// Now we need to go through each existing device and make sure it knows about this service
+			deviceManager.updateAvailableDevices(bioFeedbackService);
+			
 		}
 		return deviceManager;
 	}
@@ -185,6 +200,17 @@ public class DeviceManager {
 	public BioFeedbackDevice[] getAvailableDevices() {
 		return this.availableDevices.values().toArray(new BioFeedbackDevice[this.availableDevices.size()]);
 	}
+	
+	// The biofeedback service may have changed, we need to tell each device about it.
+	private void updateAvailableDevices(BioFeedbackService bioFeedbackService)
+	{
+		for(String address: this.availableDevices.keySet()) {
+			BioFeedbackDevice d = this.availableDevices.get(address);
+			Log.i(TAG, "Updating device: " + d.getAddress());
+			d.setBioFeedbackService(bioFeedbackService);
+		}		
+	}
+	
 	
 	public void manage() {
 		// Add/remove devices from the bonded list.

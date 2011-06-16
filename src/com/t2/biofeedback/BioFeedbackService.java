@@ -1,5 +1,7 @@
 package com.t2.biofeedback;
 
+import java.util.ArrayList;
+
 import com.t2.biofeedback.device.AverageDeviceValue;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.BioFeedbackDevice.OnDeviceDataMessageListener;
@@ -8,14 +10,22 @@ import com.t2.biofeedback.device.SerialBTDevice;
 import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
+import android.util.Log;
 
 public class BioFeedbackService extends Service implements DeviceConnectionListener, OnDeviceDataMessageListener {
 	private static final String TAG = Constants.TAG;
+	
+	
 	
 	public static final class BroadcastMessage {
 		public static final class Type {
@@ -65,6 +75,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	public static final String EXTRA_CURRENT_TIMESTAMP = "currentTimestamp";
 	public static final String EXTRA_SAMPLE_TIMESTAMPS = "sampleTimestamps";
+	private static final int MSG_SET_ARRAY_VALUE = 5;
 	
 	private DeviceManager deviceManager;
 	private ManageDeviceThread manageDeviceThread;
@@ -94,7 +105,11 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return null;
+		Log.i(TAG, "Binding BiofeedbackService");
+		
+        return mMessenger.getBinder();
+		
+//		return null;
 	}
 
 	@Override
@@ -102,6 +117,8 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onCreate();
 		
 		this.startService();
+        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		
 	}
 
 	@Override
@@ -109,16 +126,21 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onDestroy();
 		
 		this.stopService();
+		mNM.cancelAll();
+//		mNM.cancel("started");
+		
 	}
 	
 	
 	private void startService() {
-		this.deviceManager = DeviceManager.getInstance(this.getBaseContext());
+		Log.i(TAG,"Starting Service");
+		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), this);
 		this.manageDeviceThread = new ManageDeviceThread();
 		this.manageDeviceThread.start();
 	}
 	
 	private void stopService() {
+		Log.i(TAG,"Stopping Service");
 		this.manageDeviceThread.setRun(false);
 		this.deviceManager.closeAll();
 	}
@@ -257,9 +279,43 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		
 		this.sendBroadcast(i);
+
+		
+		// Send a test message to test the server listener		
+//		if (mServerListener != null)
+//		{
+//			try {
+//				mServerListener.send(Message.obtain(null, 10, 25, 0));
+//			} catch (RemoteException e) {
+//				Log.e(TAG, "the server listener is dead");
+//				mServerListener = null;
+//				e.printStackTrace();
+//			}
+//		}
 		
 	}
 
+	public void sendRawMessage(byte[] message)
+	{
+		Log.i(TAG, "Weeeee");
+        for (int i = mServerListeners.size()-1; i >= 0; i--) {
+	        try {
+				Bundle b = new Bundle();
+				b.putByteArray("message", message);
+	
+	            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+	            msg.setData(b);
+	            mServerListeners.get(i).send(msg);
+	
+	        } catch (RemoteException e) {
+	            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+	        	mServerListeners.remove(i);
+	        }
+        }						
+		
+		
+	}
+	
 	@Override
 	public void onDeviceMessage(BioFeedbackDevice bioFeedbackDevice,
 			byte[] message) {
@@ -272,4 +328,76 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		this.sendBroadcast(i);
 
 	}
+	
+    /** For showing and hiding our notification. */
+    NotificationManager mNM;
+    /** Keeps track of all current registered clients. */
+    ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
+    /** Holds last value set by a client. */
+    int mValue = 0;
+
+    /**
+     * Command to the service to register a client, receiving callbacks
+     * from the service.  The Message's replyTo field must be a Messenger of
+     * the client where callbacks should be sent.
+     */
+    static final int MSG_REGISTER_CLIENT = 1;
+
+    /**
+     * Command to the service to unregister a client, ot stop receiving callbacks
+     * from the service.  The Message's replyTo field must be a Messenger of
+     * the client as previously given with MSG_REGISTER_CLIENT.
+     */
+    static final int MSG_UNREGISTER_CLIENT = 2;
+
+    /**
+     * Command to service to set a new value.  This can be sent to the
+     * service to supply a new value, and will be sent by the service to
+     * any registered clients with the new value.
+     */
+    static final int MSG_SET_VALUE = 3;
+
+    /**
+     * Handler of incoming messages from clients.
+     */
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_REGISTER_CLIENT:
+                	mServerListeners.add(msg.replyTo);
+                    break;
+                case MSG_UNREGISTER_CLIENT:
+                	mServerListeners.remove(msg.replyTo);
+                    break;
+                case MSG_SET_VALUE:
+                    mValue = msg.arg1;
+                    for (int i=mServerListeners.size()-1; i>=0; i--) {
+                        try {
+                        	mServerListeners.get(i).send(Message.obtain(null,
+                                    MSG_SET_VALUE, mValue, 0));
+                        } catch (RemoteException e) {
+                            // The client is dead.  Remove it from the list;
+                            // we are going through the list from back to front
+                            // so this is safe to do inside the loop.
+                        	mServerListeners.remove(i);
+                        }
+                    }
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
+    /**
+     * Target we publish for clients to send messages to IncomingHandler.
+     */
+    final Messenger mMessenger = new Messenger(new IncomingHandler());
+
+
+
+
+
+	
 }
