@@ -161,12 +161,12 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 				   h.getGroupID() != SPINEManager.getMyGroupID()) 
 					return;
 				
-				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-					StringBuffer str = new StringBuffer();
-					str.append("REC. -> ");
-					str.append(tosmsg);				
-					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-				}	
+//				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
+//					StringBuffer str = new StringBuffer();
+//					str.append("REC. -> ");
+//					str.append(tosmsg);				
+//					SPINEManager.getLogger().log(Logger.INFO, str.toString());
+//				}	
 				
 				sendMessages(sourceNodeID);
 				

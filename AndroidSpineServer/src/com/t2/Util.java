@@ -4,6 +4,12 @@ import android.util.Log;
 
 public class Util {
 	
+	static public void logString(String TAG, String prependString) {
+		Log.i(TAG,prependString);
+		
+	}
+	
+	
 	static public void logHexByteString(String TAG, String prependString, byte[] bytes) {
 		StringBuffer hexString = new StringBuffer();
 		for (int i=0;i<bytes.length;i++) {

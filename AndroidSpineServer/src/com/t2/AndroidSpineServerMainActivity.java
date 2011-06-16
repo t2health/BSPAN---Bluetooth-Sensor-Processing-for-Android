@@ -19,6 +19,8 @@ import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.SpineReceiver.ZephyrData;
+import com.t2.biofeedback.BioFeedbackService;
+
 
 //import com.t2.chart.widget.FlowingChart;
 
@@ -36,14 +38,22 @@ import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.ServiceConnection;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -190,6 +200,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceDataset.addSeries(mCurrentDeviceSeries);
         mDeviceRenderer.addSeriesRenderer(new XYSeriesRenderer());
         
+        
+        doBindService();
+        
     }
 
     
@@ -198,6 +211,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	super.onDestroy();
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
+    	doUnbindService();    	
 	}
 
 	@Override
@@ -233,39 +247,27 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onDataReceived(com.t2.SpineReceiver.BioFeedbackData)
-	 * This is where we receive data directly from a bluetooth device
-	 * (as opposed to receiving through Spine)
-	 */
-	@Override
-	public void onDataReceived(BioFeedbackData bfmd) {
-		// TODO Auto-generated method stub
-		Log.i(TAG, "Regular Data Received" );		
+//	/* (non-Javadoc)
+//	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onDataReceived(com.t2.SpineReceiver.BioFeedbackData)
+//	 * This is where we receive data directly from a bluetooth device
+//	 * (as opposed to receiving through Spine)
+//	 */
+//	@Override
+//	public void onDataReceived(BioFeedbackData bfmd) {
+//		// TODO Auto-generated method stub
+//		Log.i(TAG, "Regular Data Received" );		
+//
+//        String messageId = bfmd.messageId;
+//		if(messageId.equals("SPINE_MESSAGE")) {
+//			double value = (bfmd.avgValue * 9 / 5) + 32;
+//			String text = spineLog.getText().toString();
+//			text = value+"\n"+text;
+//			spineLog.setText(text);
+//		}
+//			
+//		
+//	}
 
-        String messageId = bfmd.messageId;
-		if(messageId.equals("SPINE_MESSAGE")) {
-			double value = (bfmd.avgValue * 9 / 5) + 32;
-			String text = spineLog.getText().toString();
-			text = value+"\n"+text;
-			spineLog.setText(text);
-		}
-			
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onSpineDataReceived(com.t2.SpineReceiver.BioFeedbackSpineData)
-	 * 
-	 * This is now simply a deprecated placeholder.
-	 * Before the full SPINE data path was implemented we were
-	 * directing data directly from the SERVICE to here.
-	 * 
-	 * Now the full data path is used and data goes to received(Data data)
-	 */
-	@Override
-	public void onSpineDataReceived(BioFeedbackSpineData bfmd) {
-	}
 
 	
 	@Override
@@ -388,25 +390,25 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 
-	@Override
-	// This is only used when the message server sends data directly to the application.
-	// (It should only send via Spine path)
-	public void onZephyrDataReceived(ZephyrData bfmd) {
-//		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
-//		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
-//		String text = deviceLog.getText().toString();
-//		text = data + "\n" + text;
-//		deviceLog.setText(text);		
-//		
-//		if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
-//		{
-//			mCurrentDeviceSeries.remove(0);
-//		}
-//		mCurrentDeviceSeries.add(mDeviceChartX++, data);
-//        if (mDeviceChartView != null) {
-//            mDeviceChartView.repaint();
-//        }        
-	}
+//	@Override
+//	// This is only used when the message server sends data directly to the application.
+//	// (It should only send via Spine path)
+//	public void onZephyrDataReceived(ZephyrData bfmd) {
+////		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
+////		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
+////		String text = deviceLog.getText().toString();
+////		text = data + "\n" + text;
+////		deviceLog.setText(text);		
+////		
+////		if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+////		{
+////			mCurrentDeviceSeries.remove(0);
+////		}
+////		mCurrentDeviceSeries.add(mDeviceChartX++, data);
+////        if (mDeviceChartView != null) {
+////            mDeviceChartView.repaint();
+////        }        
+//	}
 	public static int byteArrayToInt(byte[] bytes) {
 		int val = 0;
 		
@@ -418,5 +420,144 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		return val;
 	}
 	
+	
+    /**
+     * Command to the service to register a client, receiving callbacks
+     * from the service.  The Message's replyTo field must be a Messenger of
+     * the client where callbacks should be sent.
+     */
+    static final int MSG_REGISTER_CLIENT = 1;
+
+    /**
+     * Command to the service to unregister a client, ot stop receiving callbacks
+     * from the service.  The Message's replyTo field must be a Messenger of
+     * the client as previously given with MSG_REGISTER_CLIENT.
+     */
+    static final int MSG_UNREGISTER_CLIENT = 2;
+
+    /**
+     * Command to service to set a new value.  This can be sent to the
+     * service to supply a new value, and will be sent by the service to
+     * any registered clients with the new value.
+     */
+    static final int MSG_SET_VALUE = 3;	
+	
+	/** Messenger for communicating with service. */
+	Messenger mService = null;
+	/** Flag indicating whether we have called bind on the service. */
+	boolean mIsBound;
+	/** Some text view we are using to show state information. */
+
+	private static final int MSG_SET_ARRAY_VALUE = 5;
+	/**
+	 * Handler of incoming messages from service.
+	 */
+	class IncomingHandler extends Handler {
+	    @Override
+	    public void handleMessage(Message msg) {
+	    	
+	    	
+	        switch (msg.what) {
+            case MSG_SET_ARRAY_VALUE:
+    			byte[] ba = msg.getData().getByteArray("message");
+    			if (ba != null)
+    			{
+    	    		Util.logHexByteString(TAG, "Main Found message:", ba);
+    				
+    			}
+	                break;
+	            default:
+	                super.handleMessage(msg);
+	        }
+	    }
+	}
+
+	/**
+	 * Target we publish for clients to send messages to IncomingHandler.
+	 */
+	final Messenger mMessenger = new Messenger(new IncomingHandler());
+
+	/**
+	 * Class for interacting with the main interface of the service.
+	 */
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		public void onServiceConnected(ComponentName className,IBinder service) {
+	        // This is called when the connection with the service has been
+	        // established, giving us the service object we can use to
+	        // interact with the service.  We are communicating with our
+	        // service through an IDL interface, so get a client-side
+	        // representation of that from the raw service object.
+	        mService = new Messenger(service);
+	        Log.i(TAG,"Connecting");
+	        
+//	        mCallbackText.setText("Attached.");
+
+	        // We want to monitor the service for as long as we are
+	        // connected to it.
+	        try {
+	            Message msg = Message.obtain(null,MSG_REGISTER_CLIENT);
+	            msg.replyTo = mMessenger;
+	            mService.send(msg);
+
+	            // Give it some value as an example.
+	            msg = Message.obtain(null,MSG_SET_VALUE, this.hashCode(), 0);
+	            mService.send(msg);
+	            
+	        } catch (RemoteException e) {
+	            // In this case the service has crashed before we could even
+	            // do anything with it; we can count on soon being
+	            // disconnected (and then reconnected if it can be restarted)
+	            // so there is no need to do anything here.
+	        }
+
+
+	    }
+
+	    public void onServiceDisconnected(ComponentName className) {
+	        // This is called when the connection with the service has been
+	        // unexpectedly disconnected -- that is, its process crashed.
+	        mService = null;
+//	        mCallbackText.setText("Disconnected.");
+
+	    }
+	};
+
+	void doBindService() {
+
+		try {
+			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
+			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+			
+			mIsBound = true;
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			
+		}
+
+	}
+
+	void doUnbindService() {
+	    if (mIsBound) {
+	        // If we have received the service, and hence registered with
+	        // it, then now is the time to unregister.
+	        if (mService != null) {
+	            try {
+	                Message msg = Message.obtain(null,MSG_UNREGISTER_CLIENT);
+	                msg.replyTo = mMessenger;
+	                mService.send(msg);
+	            } catch (RemoteException e) {
+	                // There is nothing special we need to do if the service
+	                // has crashed.
+	            }
+	        }
+
+	        // Detach our existing connection.
+	        unbindService(mConnection);
+	        mIsBound = false;
+//	        mCallbackText.setText("Unbinding.");
+	    }
+	}	
+
 	
 }

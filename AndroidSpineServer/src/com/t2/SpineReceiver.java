@@ -16,23 +16,22 @@ public class SpineReceiver extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if(intent.getAction().equals("com.t2.biofeedback.service.data.BROADCAST")) {
-			if(messageRecievedListener != null) {
-				messageRecievedListener.onDataReceived(BioFeedbackData.factory(intent));
-			}
-		} else if(intent.getAction().equals("com.t2.biofeedback.service.spinedata.BROADCAST")) {
-			if(messageRecievedListener != null) {
-				messageRecievedListener.onSpineDataReceived(BioFeedbackSpineData.factory(intent));
-			}
-		} else if(intent.getAction().equals("com.t2.biofeedback.service.status.BROADCAST")) {
+//		if(intent.getAction().equals("com.t2.biofeedback.service.data.BROADCAST")) {
+//			// This is data sent directly from the service - NOT THROUGH SPINE - NOT RECOMMENDED		
+//			if(messageRecievedListener != null) {
+//				messageRecievedListener.onDataReceived(BioFeedbackData.factory(intent));
+//			}
+//		} else 
+		if(intent.getAction().equals("com.t2.biofeedback.service.status.BROADCAST")) {
 			if(messageRecievedListener != null) {
 				messageRecievedListener.onStatusReceived(BioFeedbackStatus.factory(intent));
 			}
-		} else if(intent.getAction().equals("com.t2.biofeedback.service.zephyrdata.BROADCAST")) {
-			if(messageRecievedListener != null) {
-				messageRecievedListener.onZephyrDataReceived(ZephyrData.factory(intent));
-			}
-		}
+		} 
+//		else if(intent.getAction().equals("com.t2.biofeedback.service.zephyrdata.BROADCAST")) {
+//			if(messageRecievedListener != null) {
+//				messageRecievedListener.onZephyrDataReceived(ZephyrData.factory(intent));
+//			}
+//		}
 	}
 
 	public boolean isDataMessage(Intent i) {
@@ -40,9 +39,8 @@ public class SpineReceiver extends BroadcastReceiver {
 	}
 	
 	public interface OnBioFeedbackMessageRecievedListener {
-		public void onDataReceived(BioFeedbackData bfmd);
-		public void onSpineDataReceived(BioFeedbackSpineData bfmd);
-		public void onZephyrDataReceived(ZephyrData bfmd);
+//		public void onDataReceived(BioFeedbackData bfmd);
+//		public void onZephyrDataReceived(ZephyrData bfmd);
 		public void onStatusReceived(BioFeedbackStatus bfs);
 	}
 	
