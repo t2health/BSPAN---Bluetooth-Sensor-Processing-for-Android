@@ -224,6 +224,7 @@ class EventDispatcher {
 							 
 							 // Invoking decode and setting SpineObject data
 							 o = EventDispatcher.this.spineManager.spineCodec.decode(EventDispatcher.this.spineManager.getNodeByPhysicalID(nodeID), payload);
+//							 o = null;
 							
 						} catch (PacketDecodingException e) {
 							e.printStackTrace();
@@ -308,7 +309,7 @@ class EventDispatcher {
 				
 				//System.out.println("Memory available: " + Runtime.getRuntime().freeMemory() + " KB");
 				// call to the garbage collector to favour the recycling of unused memory
-				System.gc();		
+//				System.gc();		
 			}
 		} 
 	
