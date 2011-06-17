@@ -19,8 +19,8 @@ public class ZephyrBH extends ZephyrDevice {
 	};	
 	
 	
-	public ZephyrBH(BioFeedbackService biofeedbackService) {
-		super(biofeedbackService);
+	public ZephyrBH(ArrayList<Messenger> serverListeners) {
+		super(serverListeners);
 	}
 
 

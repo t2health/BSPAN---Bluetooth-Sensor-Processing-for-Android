@@ -10,7 +10,10 @@ package com.t2.biofeedback.device.Spine;
 
 import java.util.ArrayList;
 
+import android.os.Bundle;
+import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 
 
@@ -40,9 +43,9 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	protected int numMessagesOutOfSequence = 0;
 	protected int numMessagesFrameErrors = 0;
 	
-	SpineDevice(BioFeedbackService biofeedbackService)
+	SpineDevice(ArrayList<Messenger> serverListeners)
 	{
-		this.mBiofeedbackService = biofeedbackService;
+		this.mServerListeners = serverListeners;
 		resetFifo();		
 	}
 
@@ -107,6 +110,8 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 	protected void onBytesReceived(byte[] bytes) 
 	{
 //		Util.logHexByteString(TAG, bytes);		
+//		Log.i(TAG, "Found message: PARTIAL");
+		
 
 		// Transfer bytes to fifo one by one
 		// Each time updating the state machine
@@ -196,9 +201,27 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				}
 				currentMsgSeq = seq;
 				
+//				Log.i(TAG, "Found message: FULL");
 				Util.logHexByteString(TAG, "Found message:", messageArray);
 				
-				this.onMessageReceived(messageArray);
+
+				//				this.onMessageReceived(messageArray);
+		        for (int i = mServerListeners.size()-1; i >= 0; i--) {
+			        try {
+						Bundle b = new Bundle();
+						b.putByteArray("message", messageArray);
+			
+			            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+			            msg.setData(b);
+			            mServerListeners.get(i).send(msg);
+			
+			        } catch (RemoteException e) {
+			            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+			        	mServerListeners.remove(i);
+			        }
+		        }				
+				
+				
 				
 				// Now start over
 				resetFifo();

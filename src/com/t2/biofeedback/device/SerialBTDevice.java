@@ -11,6 +11,9 @@ import java.util.UUID;
 import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
+import com.t2.biofeedback.device.BioFeedbackDevice.Capability;
+import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
+import com.t2.biofeedback.device.Spine.SpineDevice;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -30,6 +33,10 @@ public abstract class SerialBTDevice {
 	private static final int MSG_CONNECTION_LOST = 2;
 	private static final int MSG_MANAGE_SOCKET = 3;
 	private static final int MSG_BYTES_RECEIVED = 4;
+	protected static final int MSG_SET_ARRAY_VALUE = 5;
+	private static final int MSG_SET_SPINE_ARRAY_VALUE = 6;
+	private static final int MSG_SET_ZEPHYR_ARRAY_VALUE = 7;
+	
 	
 	public static final UUID UUID_RFCOMM_GENERIC = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	
@@ -47,7 +54,8 @@ public abstract class SerialBTDevice {
 	private Handler threadHandler;
 
 	private ConnectThread connectThread;
-	protected BioFeedbackService mBiofeedbackService;	
+	protected ArrayList<Messenger> mServerListeners;	
+	private SerialBTDevice me;
 	
 	public void setDevice(String BH_ADDRESS)
 	{
@@ -61,9 +69,9 @@ public abstract class SerialBTDevice {
 		
 	}
 	
-	public void setBioFeedbackService(BioFeedbackService biofeedbackService)
+	public void setServerListeners(ArrayList<Messenger> serverListeners)
 	{
-		mBiofeedbackService = biofeedbackService;
+		mServerListeners = serverListeners;
 	}
 	
 	public SerialBTDevice() {
@@ -78,7 +86,9 @@ public abstract class SerialBTDevice {
 		this.device = this.adapter.getRemoteDevice(this.getDeviceAddress());
 		Set t = this.adapter.getBondedDevices();
 		
+		me = this;
 		
+		// TODO: change all messages to use direct connect (via service MEssenger) instead of listeners
 		threadHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
@@ -464,13 +474,69 @@ public abstract class SerialBTDevice {
 							newBytes[i] = buffer[i];
 						}
 						
-						// Send the message to the server via the more direct route
-						// Note this used to send the message to the handler here in this file.
-						// Now it sends directly to the server application - much better performance
-						if (mBiofeedbackService != null)
-						{
-							mBiofeedbackService.sendRawMessage(newBytes);
-						}
+
+						// TODO: decide whether to send only raw bytes (to the server) - Method A 
+						// here or decode them in a sub-class then send only complete messages - Method B
+						// The difference is that if we decode them here then we need to add 
+						// one extra level of messaging (framing done in SpineDevice) : 
+
+						// Method B:
+						// 	msg(bytes) -> SerialBTDevice -> msg(SpineDevice.onBytesReceived()) -> Server
+
+						// Method A:
+						// Otherwise we send partial byte packets directly to the server and it will frame them:
+						//  msg(bytes) -> Server.
+						//    The drawback to this method is that the class SerialDTDevice needs to have
+						//    knowledge  of what type of class it is (SpineDevice) and add that to the message
+						//    so the server knows how to frame it
+						
+						
+						// Send the message to the server via the OLD route
+						// Call the bytes recieved handler.
+						// This call is ran in the main thread.
+						//						Bundle data = new Bundle();
+						//						data.putByteArray("message", newBytes);
+						//						Message msg = new Message();
+						//						msg.what = MSG_BYTES_RECEIVED;
+						//						msg.setData(data);
+						//						threadHandler.sendMessage(msg);
+						
+						// -----------------
+						// Method B:
+						// -----------------
+//						// Send the message to the server via the more direct route
+//						// Note this used to send the message to the handler here in this file.
+//						// Now it sends directly to the server application - much better performance
+//						Log.i(TAG, "Weeeee");
+//				        for (int i = mServerListeners.size()-1; i >= 0; i--) {
+//					        try {
+//								Bundle b = new Bundle();
+//								b.putByteArray("message", newBytes);
+//					
+//					            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+//					            msg.setData(b);
+//					            mServerListeners.get(i).send(msg);
+//					
+//					        } catch (RemoteException e) {
+//					            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+//					        	mServerListeners.remove(i);
+//					        }
+//				        }	
+//				        if (me instanceof SpineDevice)
+//				        {
+//				        	
+//				        }
+
+						// -----------------
+						// Method A:
+						// -----------------
+						
+				    	Bundle data = new Bundle();
+						data.putByteArray("bytes", newBytes);
+						Message msg = new Message();
+						msg.what = MSG_BYTES_RECEIVED;
+						msg.setData(data);
+						threadHandler.sendMessage(msg);
 					}
 					
 				// Lost the connection for some reason.

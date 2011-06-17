@@ -75,7 +75,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	public static final String EXTRA_CURRENT_TIMESTAMP = "currentTimestamp";
 	public static final String EXTRA_SAMPLE_TIMESTAMPS = "sampleTimestamps";
-	private static final int MSG_SET_ARRAY_VALUE = 5;
 	
 	private DeviceManager deviceManager;
 	private ManageDeviceThread manageDeviceThread;
@@ -117,7 +116,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onCreate();
 		
 		this.startService();
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		
 	}
 
@@ -126,7 +124,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onDestroy();
 		
 		this.stopService();
-		mNM.cancelAll();
 //		mNM.cancel("started");
 		
 	}
@@ -134,7 +131,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	private void startService() {
 		Log.i(TAG,"Starting Service");
-		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), this);
+		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), mServerListeners);
 		this.manageDeviceThread = new ManageDeviceThread();
 		this.manageDeviceThread.start();
 	}
@@ -280,38 +277,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		this.sendBroadcast(i);
 
-		
-		// Send a test message to test the server listener		
-//		if (mServerListener != null)
-//		{
-//			try {
-//				mServerListener.send(Message.obtain(null, 10, 25, 0));
-//			} catch (RemoteException e) {
-//				Log.e(TAG, "the server listener is dead");
-//				mServerListener = null;
-//				e.printStackTrace();
-//			}
-//		}
+
 		
 	}
 
 	public void sendRawMessage(byte[] message)
 	{
-		Log.i(TAG, "Weeeee");
-        for (int i = mServerListeners.size()-1; i >= 0; i--) {
-	        try {
-				Bundle b = new Bundle();
-				b.putByteArray("message", message);
-	
-	            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
-	            msg.setData(b);
-	            mServerListeners.get(i).send(msg);
-	
-	        } catch (RemoteException e) {
-	            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
-	        	mServerListeners.remove(i);
-	        }
-        }						
+					
 		
 		
 	}
@@ -329,8 +301,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 
 	}
 	
-    /** For showing and hiding our notification. */
-    NotificationManager mNM;
     /** Keeps track of all current registered clients. */
     ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
     /** Holds last value set by a client. */

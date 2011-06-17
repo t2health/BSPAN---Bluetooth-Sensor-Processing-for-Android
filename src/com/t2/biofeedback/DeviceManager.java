@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Spine.SpineBH;
+import com.t2.biofeedback.device.neurosky.NeuroskyBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 public class DeviceManager {
@@ -31,7 +32,7 @@ public class DeviceManager {
 
 	private SharedPreferences sharedPref;
 	private static DeviceManager deviceManager;
-	BioFeedbackService mBiofeedbackService;
+	ArrayList<Messenger> mServerListeners;	
 	
 	// This array is used only when "Display option B" (see below) is chosen
 	public static final BioFeedbackDevice[] devices = new BioFeedbackDevice[] {
@@ -44,8 +45,8 @@ public class DeviceManager {
 //		this.mBiofeedbackService = biofeedbackService;
 //	}
 
-	private DeviceManager(Context c, BioFeedbackService biofeedbackService) {
-		this.mBiofeedbackService = biofeedbackService;
+	private DeviceManager(Context c, ArrayList<Messenger> serverListeners) {
+		this.mServerListeners = serverListeners;
 		this.context = c;
 		this.sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
 		
@@ -62,13 +63,16 @@ public class DeviceManager {
 			String name = bt.getName();
 			if (name.equalsIgnoreCase("BH ZBH002095"))
 			{
-				d = new ZephyrBH(mBiofeedbackService);
+				d = new ZephyrBH(mServerListeners);
 				
+			}
+			else if (name.equalsIgnoreCase("MINDSET")) 
+			{
+				d = new NeuroskyBH(mServerListeners);
 			}
 			else
 			{
-				d = new SpineBH(mBiofeedbackService);
-				
+				d = new SpineBH(mServerListeners);
 			}
 			d.setDevice(bt.getAddress());
 			this.availableDevices.put(d.getAddress(),d);			
@@ -93,15 +97,15 @@ public class DeviceManager {
 		manage();
 	}
 	
-	public static DeviceManager getInstance(Context c, BioFeedbackService bioFeedbackService) {
+	public static DeviceManager getInstance(Context c, ArrayList<Messenger> serverListeners) {
 		if(deviceManager == null) {
-			deviceManager = new DeviceManager(c, bioFeedbackService);
+			deviceManager = new DeviceManager(c, serverListeners);
 		}
 		else
 		{
-			deviceManager.mBiofeedbackService = bioFeedbackService;
+			deviceManager.mServerListeners = serverListeners;
 			// Now we need to go through each existing device and make sure it knows about this service
-			deviceManager.updateAvailableDevices(bioFeedbackService);
+			deviceManager.updateAvailableDevices(serverListeners);
 			
 		}
 		return deviceManager;
@@ -202,12 +206,12 @@ public class DeviceManager {
 	}
 	
 	// The biofeedback service may have changed, we need to tell each device about it.
-	private void updateAvailableDevices(BioFeedbackService bioFeedbackService)
+	private void updateAvailableDevices(ArrayList<Messenger> mServerListeners)
 	{
 		for(String address: this.availableDevices.keySet()) {
 			BioFeedbackDevice d = this.availableDevices.get(address);
 			Log.i(TAG, "Updating device: " + d.getAddress());
-			d.setBioFeedbackService(bioFeedbackService);
+			d.setServerListeners(mServerListeners);
 		}		
 	}
 	

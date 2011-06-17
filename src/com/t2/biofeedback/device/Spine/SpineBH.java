@@ -11,8 +11,8 @@ import com.t2.biofeedback.Constants;
 
 public class SpineBH extends SpineDevice {
 
-	public SpineBH(BioFeedbackService biofeedbackService) {
-		super(biofeedbackService);
+	public SpineBH(ArrayList<Messenger> serverListeners) {
+		super(serverListeners);
 		
 	}
 
