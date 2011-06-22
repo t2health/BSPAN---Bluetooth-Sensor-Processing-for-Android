@@ -188,21 +188,23 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 			zepherMessage[i++] = 0; // No label
 			
 //			this.onSpineMessage(zepherMessage);
-	        for (i = mServerListeners.size()-1; i >= 0; i--) {
-		        try {
-					Bundle b = new Bundle();
-					b.putByteArray("message", zepherMessage);
-		
-		            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
-		            msg1.setData(b);
-		            mServerListeners.get(i).send(msg1);
-		
-		        } catch (RemoteException e) {
-		            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
-		        	mServerListeners.remove(i);
-		        }
-	        }			
+			if (mServerListeners != null)
+			{			
+		        for (i = mServerListeners.size()-1; i >= 0; i--) {
+			        try {
+						Bundle b = new Bundle();
+						b.putByteArray("message", zepherMessage);
 			
+			            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+			            msg1.setData(b);
+			            mServerListeners.get(i).send(msg1);
+			
+			        } catch (RemoteException e) {
+			            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+			        	mServerListeners.remove(i);
+			        }
+		        }			
+			}			
 
 		}		
 		

@@ -2,6 +2,7 @@ package com.t2.biofeedback;
 
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
+import com.t2.biofeedback.device.Spine.SpineDevice;
 
 //import t2.spine.communication.android.AndroidMessage;
 import android.bluetooth.BluetoothAdapter;
@@ -93,11 +94,16 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
-							String str = new String("Reset");
-							byte[] strBytes = str.getBytes();
 							
+							if (d instanceof SpineDevice)
+							{
+								// Special case for Arduino node, need to send "reset" command
+								String str = new String("Reset");
+								byte[] strBytes = str.getBytes();
+								d.write(strBytes);
+								
+							}
 	
-							d.write(strBytes);
 							
 						}
 					}					

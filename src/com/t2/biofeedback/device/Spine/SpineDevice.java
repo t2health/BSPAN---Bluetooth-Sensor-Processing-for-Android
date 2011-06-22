@@ -206,21 +206,25 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				
 
 				//				this.onMessageReceived(messageArray);
-		        for (int i = mServerListeners.size()-1; i >= 0; i--) {
-			        try {
-						Bundle b = new Bundle();
-						b.putByteArray("message", messageArray);
-			
-			            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
-			            msg.setData(b);
-			            mServerListeners.get(i).send(msg);
-			
-			        } catch (RemoteException e) {
-			            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
-			        	mServerListeners.remove(i);
-			        }
-		        }				
+				if (mServerListeners != null)
+				{
+					for (int i = mServerListeners.size()-1; i >= 0; i--) {
+				        try {
+							Bundle b = new Bundle();
+							b.putByteArray("message", messageArray);
 				
+				            Message msg = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+				            msg.setData(b);
+				            mServerListeners.get(i).send(msg);
+				
+				        } catch (RemoteException e) {
+				            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+				        	mServerListeners.remove(i);
+				        }
+				    }				
+					
+				}
+					
 				
 				
 				// Now start over

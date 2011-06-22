@@ -210,7 +210,7 @@ public class DeviceManager {
 	{
 		for(String address: this.availableDevices.keySet()) {
 			BioFeedbackDevice d = this.availableDevices.get(address);
-			Log.i(TAG, "Updating device: " + d.getAddress());
+			Log.i(TAG, "Updating device listeners: " + d.getAddress());
 			d.setServerListeners(mServerListeners);
 		}		
 	}
