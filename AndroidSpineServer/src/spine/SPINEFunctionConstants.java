@@ -48,6 +48,7 @@ public class SPINEFunctionConstants {
 	public static final byte HMM = 0x07;
 	public static final byte HEARTBEAT = 0x08;
 	public static final byte ZEPHYR = 0x09;
+	public static final byte MINDSET = 0x0A;
 	
 	//alarm types
 	public static final byte BELOW_THRESHOLD = 0x01;
@@ -83,6 +84,7 @@ public class SPINEFunctionConstants {
 	public static final String HMM_LABEL = "Hmm";
 	public static final String HEARTBEAT_LABEL = "HeartBeat";
 	public static final String ZEPHYR_LABEL = "Zephyr";
+	public static final String MINDSET_LABEL = "Mindset";
 	
 	// if new function libraries are added, declare their labels down here
 	public static final String RAW_DATA_LABEL = "Raw Data";
@@ -119,11 +121,14 @@ public class SPINEFunctionConstants {
 			case HMM: return HMM_LABEL;
 			case HEARTBEAT: return HEARTBEAT_LABEL;
 			case ZEPHYR: return ZEPHYR_LABEL;
+			case MINDSET: return MINDSET_LABEL;
 			default: return "?";
 		}
 	}
 	
 	public static byte functionCodeByString(String label) {
+		if(label.equals(MINDSET_LABEL))
+			return MINDSET;
 		if(label.equals(FEATURE_LABEL))
 			return FEATURE;
 		if(label.equals(ALARM_LABEL))

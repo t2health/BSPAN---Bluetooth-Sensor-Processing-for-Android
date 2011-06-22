@@ -34,6 +34,7 @@ import spine.datamodel.Address;
 import spine.datamodel.Data;
 import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
+import spine.datamodel.MindsetData;
 import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
@@ -370,6 +371,25 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				
 				break;
 			}
+			
+			case SPINEFunctionConstants.MINDSET: {
+				Node source = data.getNode();
+				
+				MindsetData mData = (MindsetData) data;
+				if (mData.exeCode == 2)
+				{
+					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+					
+				}
+				if (mData.exeCode == 4)
+				{
+					Log.i(TAG, "attention= "  + mData.attention);
+					
+				}
+				
+				
+				break;
+			}			
 				case SPINEFunctionConstants.ONE_SHOT:
 					Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
 					break;
@@ -428,6 +448,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		Node zepherNode = null;
 		zepherNode = new Node(new Address("" + -15));
 		activeNodes.add(zepherNode);
+		
+		Node mindsetNode = null;
+		mindsetNode = new Node(new Address("" + -14));
+		activeNodes.add(mindsetNode);
 		
 	}
 
