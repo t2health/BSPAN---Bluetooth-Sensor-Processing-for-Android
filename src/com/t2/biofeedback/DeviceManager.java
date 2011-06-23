@@ -104,11 +104,11 @@ public class DeviceManager {
 		else
 		{
 			// There is already a device manager.
-			// Update listeners if they arn't already there
+			// Update listeners if a new set of listeners is presented
 			// Listeners are the mechanism through which the service sends data (not commands)
 			// to the server (commands are send via Intent broadcasts. This was done this way
 			// to reduce system load (since potentially lots of data will be transmitted to the server)
-			if (deviceManager.mServerListeners == null)
+			if (serverListeners != null)
 			{
 				// Note: the reason this might be null is if the service activity were started before
 				// server, in which case it doesn't know about any listeners yet. So when
