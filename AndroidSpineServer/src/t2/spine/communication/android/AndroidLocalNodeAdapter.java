@@ -45,20 +45,15 @@ import jade.util.Logger;
 
 import java.util.Vector;
 
-import spine.Properties;
 import spine.SPINEManager;
 import spine.SPINEPacketsConstants;
-import spine.SPINESupportedPlatforms;
 
 
 //import com.t2.AndroidSocketThrdServer;
 import com.tilab.gal.ConfigurationDescriptor;
 import com.tilab.gal.LocalNodeAdapter;
-import com.tilab.gal.Message;
 import com.tilab.gal.WSNConnection;
 
-import java.util.Hashtable;
-import java.util.Enumeration;
 
 import net.tinyos.message.MessageListener;
 

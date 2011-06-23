@@ -4,7 +4,6 @@ package com.t2;
 
 
 
-import java.util.Queue;
 import java.util.Vector;
 
 import org.achartengine.ChartFactory;
@@ -14,12 +13,8 @@ import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
-import com.t2.SpineReceiver.BioFeedbackData;
-import com.t2.SpineReceiver.BioFeedbackSpineData;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.SpineReceiver.ZephyrData;
-import com.t2.biofeedback.BioFeedbackService;
 
 
 //import com.t2.chart.widget.FlowingChart;
@@ -29,34 +24,23 @@ import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
 import spine.SPINEListener;
 import spine.SPINEManager;
-import spine.SPINEPacketsConstants;
 import spine.datamodel.Address;
 import spine.datamodel.Data;
 import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
-import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
-import android.content.ServiceConnection;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -66,8 +50,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-
-import spine.datamodel.functions.*;
 
 
 public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {

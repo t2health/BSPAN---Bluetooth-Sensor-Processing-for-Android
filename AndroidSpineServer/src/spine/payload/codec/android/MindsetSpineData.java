@@ -1,15 +1,5 @@
 package spine.payload.codec.android;
 
-import jade.util.Logger;
-
-import java.util.Vector;
-
-import spine.SPINEFunctionConstants;
-import spine.SPINEManager;
-import spine.SPINESensorConstants;
-import spine.datamodel.Data;
-import spine.datamodel.Feature;
-import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.Node;
 import spine.datamodel.functions.SpineCodec;

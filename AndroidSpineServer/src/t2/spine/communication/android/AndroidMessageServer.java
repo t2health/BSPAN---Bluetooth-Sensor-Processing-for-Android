@@ -5,13 +5,11 @@ import net.tinyos.message.MessageListener;
 
 import com.t2.AndroidSpineServerMainActivity;
 import com.t2.Constants;
-import com.t2.Util;
 
 
 
 import jade.util.Logger;
 import spine.SPINEManager;
-import spine.SPINEPacketsConstants;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;

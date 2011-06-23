@@ -1,8 +1,8 @@
 package spine.datamodel;
 
-import spine.SPINEFunctionConstants;
 
 public class MindsetData  extends Data {
+	private static final long serialVersionUID = 1L;	
 	
 	public int poorSignalStrength;
 	public int attention;

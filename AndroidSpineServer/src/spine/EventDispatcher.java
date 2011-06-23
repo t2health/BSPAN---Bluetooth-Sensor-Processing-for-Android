@@ -43,9 +43,6 @@ import spine.exceptions.PacketDecodingException;
 
 
 
-import android.util.Log;
-
-import com.t2.Util;
 import com.tilab.gal.WSNConnection;
 
 /**
