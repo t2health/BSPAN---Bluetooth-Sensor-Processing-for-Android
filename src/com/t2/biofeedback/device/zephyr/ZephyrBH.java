@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import android.os.Messenger;
 
-import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 
 

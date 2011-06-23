@@ -8,12 +8,8 @@ import java.util.BitSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.t2.biofeedback.BioFeedbackService;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
-import com.t2.biofeedback.device.BioFeedbackDevice.Capability;
-import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
-import com.t2.biofeedback.device.Spine.SpineDevice;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -22,7 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 
 

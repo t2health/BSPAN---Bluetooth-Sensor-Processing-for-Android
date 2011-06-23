@@ -1,13 +1,11 @@
 package com.t2.biofeedback.device.neurosky;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 
 import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
@@ -16,26 +14,6 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 
 
 
-//import t2.spine.communication.android.AndroidMessage;
-
-
-//import spine.communication.android.AndroidMessage;
-
-
-
-import java.util.ArrayList;
-
-import android.os.Bundle;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
-import android.util.Log;
-
-
-import com.t2.biofeedback.BioFeedbackService;
-import com.t2.biofeedback.Constants;
-import com.t2.biofeedback.Util;
-import com.t2.biofeedback.device.BioFeedbackDevice;
 
 public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataListener{
 	private static final String TAG = Constants.TAG;

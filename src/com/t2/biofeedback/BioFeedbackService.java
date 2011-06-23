@@ -10,11 +10,8 @@ import com.t2.biofeedback.device.SerialBTDevice;
 import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
-import android.app.NotificationManager;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
