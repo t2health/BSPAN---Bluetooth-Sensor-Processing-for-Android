@@ -103,9 +103,20 @@ public class DeviceManager {
 		}
 		else
 		{
-			deviceManager.mServerListeners = serverListeners;
-			// Now we need to go through each existing device and make sure it knows about this service
-			deviceManager.updateAvailableDevices(serverListeners);
+			// There is already a device manager.
+			// Update listeners if they arn't already there
+			// Listeners are the mechanism through which the service sends data (not commands)
+			// to the server (commands are send via Intent broadcasts. This was done this way
+			// to reduce system load (since potentially lots of data will be transmitted to the server)
+			if (deviceManager.mServerListeners == null)
+			{
+				// Note: the reason this might be null is if the service activity were started before
+				// server, in which case it doesn't know about any listeners yet. So when
+				// the server finally starts it will update us with it's listeners 
+				deviceManager.mServerListeners = serverListeners;
+				// Now we need to go through each existing device and make sure it knows about this service
+				deviceManager.updateAvailableDevices(serverListeners);
+			}
 			
 		}
 		return deviceManager;
