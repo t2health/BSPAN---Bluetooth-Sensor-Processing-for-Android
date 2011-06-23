@@ -32,15 +32,20 @@ import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -72,16 +77,22 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private XYSeries mCurrentDeviceSeries;
 	
 	  
-	
+    static final int MSG_UNREGISTER_CLIENT = 2;	
 	
 	private EditText spineLog;
-//	private FlowingChart spineChart;
 	private EditText deviceLog;
-//	private FlowingChart deviceChart;
 	
 	int mSpineChartX = 0;
 	int mDeviceChartX = 0;
+	boolean mIsBound = false;
+	ServiceConnection mConnection;	
+	private Messenger mService = null;	
 	
+	
+	public void setmService(Messenger mService) {
+		this.mService = mService;
+	}
+
 	public static AndroidSpineServerMainActivity getInstance() 
 	{
 	   return instance;
@@ -92,7 +103,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
         instance = this;
         
         Resources resources = this.getResources();
@@ -116,12 +126,24 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			e.printStackTrace();
 		}        
         
+		
+		// Since zepher is a static node we have to manually put it in the active node list
+		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
+		Node zepherNode = null;
+		zepherNode = new Node(new Address("" + -15));
+		manager.getActiveNodes().add(zepherNode);
+		
+		Node mindsetNode = null;
+		mindsetNode = new Node(new Address("" + -14));
+		manager.getActiveNodes().add(mindsetNode);
+				
+		
 		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
 		// (I register myself since I'm a SPINEListener implementation!)
 		manager.addListener(this);	        
                 
-        // This one will go away soon!
-		// Create a broadcast receiver.
+		// Create a broadcast receiver. Note that this is used ONLY for command messages from the service
+		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
         this.receiver = new SpineReceiver(this);
         
         // Create a connecting dialog.
@@ -151,18 +173,20 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
           layout.addView(mSpineChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
         mSpineRenderer.setShowLabels(false);
-        // mRenderer.setMargins(new int[] {20, 30, 15, 0});
+        mSpineRenderer.setShowAxes(true);
+        mSpineRenderer.setShowLegend(false);
         mSpineRenderer.setMargins(new int[] {0,0,0,0});
-        mSpineRenderer.setShowAxes(false);
         mSpineRenderer.setZoomEnabled(false, false);
         mSpineRenderer.setPanEnabled(false, false);
         mSpineRenderer.setYAxisMin(0);
         mSpineRenderer.setYAxisMax(255);
         
+        
         String seriesTitle = "Series " + (mSpineDataset.getSeriesCount() + 1);
         mCurrentSpineSeries = new XYSeries(seriesTitle);
         mSpineDataset.addSeries(mCurrentSpineSeries);
         XYSeriesRenderer renderer = new XYSeriesRenderer();
+        renderer.setColor(0xffffffff); // White
         mSpineRenderer.addSeriesRenderer(renderer);
         
         // Set up Device data chart
@@ -173,17 +197,21 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
           layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
         mDeviceRenderer.setShowLabels(false);
-        // mRenderer.setMargins(new int[] {20, 30, 15, 0});
         mDeviceRenderer.setMargins(new int[] {0,0,0,0});
-        mDeviceRenderer.setShowAxes(false);
+        mDeviceRenderer.setShowAxes(true);
+        mDeviceRenderer.setShowLegend(false);
+        
         mDeviceRenderer.setZoomEnabled(false, false);
         mDeviceRenderer.setPanEnabled(false, false);
         mDeviceRenderer.setYAxisMin(0);
         mDeviceRenderer.setYAxisMax(255);
+
         
         mCurrentDeviceSeries = new XYSeries(seriesTitle);
         mDeviceDataset.addSeries(mCurrentDeviceSeries);
-        mDeviceRenderer.addSeriesRenderer(new XYSeriesRenderer());
+        renderer = new XYSeriesRenderer();
+        renderer.setColor(0xffffffff); // White
+        mDeviceRenderer.addSeriesRenderer(renderer);
         
         
 //        doBindService();
@@ -196,7 +224,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	super.onDestroy();
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
-//    	doUnbindService();    	
+    	doUnbindService();    	
 	}
 
 	@Override
@@ -230,30 +258,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				return super.onOptionsItemSelected(item);
 		}
 	}
-
-
-//	/* (non-Javadoc)
-//	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onDataReceived(com.t2.SpineReceiver.BioFeedbackData)
-//	 * This is where we receive data directly from a bluetooth device
-//	 * (as opposed to receiving through Spine)
-//	 */
-//	@Override
-//	public void onDataReceived(BioFeedbackData bfmd) {
-//		// TODO Auto-generated method stub
-//		Log.i(TAG, "Regular Data Received" );		
-//
-//        String messageId = bfmd.messageId;
-//		if(messageId.equals("SPINE_MESSAGE")) {
-//			double value = (bfmd.avgValue * 9 / 5) + 32;
-//			String text = spineLog.getText().toString();
-//			text = value+"\n"+text;
-//			spineLog.setText(text);
-//		}
-//			
-//		
-//	}
-
-
 	
 	@Override
 	public void onStatusReceived(BioFeedbackStatus bfs) {
@@ -286,8 +290,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	 */
 	@Override
 	public void received(Data data) {
-		int ch1Value;
-
 		
 		if (data != null)
 		{
@@ -299,30 +301,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				Feature firsFeat = feats[0];
 				byte sensor = firsFeat.getSensorCode();
 				byte featCode = firsFeat.getFeatureCode();
-				ch1Value = firsFeat.getCh1Value();
-				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
-				{
-					mCurrentSpineSeries.remove(0);
-				}
-				mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
-		        if (mSpineChartView != null) {
-		            mSpineChartView.repaint();
-		        }        
+				int ch1Value = firsFeat.getCh1Value();
 
 				new UpdateUITask().execute(ch1Value);
 				
+						
 				Log.i(TAG,"ch1Value= " + ch1Value);
-
-				
-				//				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
-//				{
-//					mCurrentSpineSeries.remove(0);
-//				}
-//				mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
-//		        if (mSpineChartView != null) {
-//		            mSpineChartView.repaint();
-//		        }        
-//				
+		
 				break;
 			}				
 			case SPINEFunctionConstants.ZEPHYR: {
@@ -361,15 +346,23 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				if (mData.exeCode == 2)
 				{
 					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+					int b = mData.poorSignalStrength &  0xff;
+					String result = Integer.toHexString(b);					
+					deviceLog.setText(result);
 					
 				}
 				if (mData.exeCode == 4)
 				{
 					Log.i(TAG, "attention= "  + mData.attention);
-					
+					if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+					{
+						mCurrentDeviceSeries.remove(0);
+					}
+					mCurrentDeviceSeries.add(mDeviceChartX++, mData.attention);
+			        if (mDeviceChartView != null) {
+			            mDeviceChartView.repaint();
+			        }   					
 				}
-				
-				
 				break;
 			}			
 				case SPINEFunctionConstants.ONE_SHOT:
@@ -380,42 +373,44 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
 					break;
 			}
-			
-			
-			
-//			Log.i(TAG, "RealSpine: Received data: " + data.toString() );
-
-			
 		}
-
-		
 	}
 
 
-	private class UpdateUITask extends AsyncTask<Integer, Void, String>{
+//	private class UpdateUITask extends AsyncTask<Integer, Void, String>{
+//	     protected void onPostExecute(final String result) {
+//				spineLog.setText(result);
+//	     }
+//
+//		@Override
+//		protected String doInBackground(final Integer... params) {
+//
+//			
+//			String result = Integer.toString(params[0]);
+//			return result;
+//		}
+//	 }
+	private class UpdateUITask extends AsyncTask<Integer, Void, Integer>{
+	     protected void onPostExecute(final Integer value) {
 
-
-	     protected void onPostExecute(final String result) {
-//				String existingValues = spineLog.getText().toString();
-//				existingValues = newValue + "\n" + existingValues;
-//				spineLog.setText(existingValues);	
-				spineLog.setText(result);
-//		        if (mSpineChartView != null) {
-//		            mSpineChartView.repaint();
-//		        }        
+	    	 String result = Integer.toString(value);
+	    	 spineLog.setText(result);
+				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
+				{
+					mCurrentSpineSeries.remove(0);
+				}
+				mCurrentSpineSeries.add(mSpineChartX++, value);
+		        if (mSpineChartView != null) {
+		            mSpineChartView.repaint();
+		        }        
 	     }
-
 		@Override
-		protected String doInBackground(final Integer... params) {
+		protected Integer doInBackground(final Integer... params) {
 
 			
-			String result = Integer.toString(params[0]);
-			return result;
+
+			return params[0];
 		}
-
-
-
-
 	 }
 	
 	
@@ -425,16 +420,16 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	public void discoveryCompleted(Vector activeNodes) {
 		Log.i(TAG, "discovery completed" );	
 
-		// Since zepher is a static node we have to manually put it in the active node list
-		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
-		Node zepherNode = null;
-		zepherNode = new Node(new Address("" + -15));
-		activeNodes.add(zepherNode);
-		
-		Node mindsetNode = null;
-		mindsetNode = new Node(new Address("" + -14));
-		activeNodes.add(mindsetNode);
-		
+//		// Since zepher is a static node we have to manually put it in the active node list
+//		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
+//		Node zepherNode = null;
+//		zepherNode = new Node(new Address("" + -15));
+//		activeNodes.add(zepherNode);
+//		
+//		Node mindsetNode = null;
+//		mindsetNode = new Node(new Address("" + -14));
+//		activeNodes.add(mindsetNode);
+//		
 	}
 
 //	@Override
@@ -466,5 +461,46 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		return val;
 	}
+
+	public void doBindService(ServiceConnection mConnection ) {
+		this.mConnection = mConnection; 
+		Log.i(TAG, "*****************binding **************************");
+
+		try {
+			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
+			AndroidSpineServerMainActivity.getInstance().bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+			Log.i(TAG, "*****************binding SUCCESS**************************");
+			
+			mIsBound = true;
+		} catch (Exception e) {
+			Log.i(TAG, "*****************binding FAIL**************************");
+			Log.e(TAG, e.toString());
+			
+		}
+	}	
+	void doUnbindService() {
+	    if (mIsBound) {
+			Log.i(TAG, "*****************UN-binding **************************");
+	    	
+	        // If we have received the service, and hence registered with
+	        // it, then now is the time to unregister.
+	        if (mService != null) {
+	            try {
+	                Message msg = Message.obtain(null,MSG_UNREGISTER_CLIENT);
+	    			Log.i(TAG, "*****************UN- binding SUCCESS**************************");
+	    			// msg.replyTo = mMessenger; We don't care about reply to because we're shutting down
+	                mService.send(msg);
+	            } catch (RemoteException e) {
+	                // There is nothing special we need to do if the service
+	                // has crashed.
+	            }
+	        }
+
+	        // Detach our existing connection.
+	        AndroidSpineServerMainActivity.getInstance().unbindService(mConnection);
+	        mIsBound = false;
+	    }
+	}		
+	
 	
 }

@@ -162,9 +162,6 @@ import android.util.Log;
 		
 		/** Messenger for communicating with service. */
 		Messenger mService = null;
-		/** Flag indicating whether we have called bind on the service. */
-		boolean mIsBound;
-		/** Some text view we are using to show state information. */
 
 		private static final int MSG_SET_ARRAY_VALUE = 5;
 		/**
@@ -213,7 +210,8 @@ import android.util.Log;
 		        // service through an IDL interface, so get a client-side
 		        // representation of that from the raw service object.
 		        mService = new Messenger(service);
-		        Log.i(TAG,"Connecting");
+		        AndroidSpineServerMainActivity.getInstance().setmService(mService);
+		        Log.i(TAG,"Service Connected");
 		        
 //		        mCallbackText.setText("Attached.");
 
@@ -242,49 +240,36 @@ import android.util.Log;
 		        // This is called when the connection with the service has been
 		        // unexpectedly disconnected -- that is, its process crashed.
 		        mService = null;
+		        AndroidSpineServerMainActivity.getInstance().setmService(mService);
+		        
+		        Log.i(TAG,"Service Disconnected");
+		        
 //		        mCallbackText.setText("Disconnected.");
 
 		    }
 		};
 
 		void doBindService() {
-			Log.i(TAG, "*****************binding **************************");
-
-			try {
-				Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-				AndroidSpineServerMainActivity.getInstance().bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
-				Log.i(TAG, "*****************binding SUCCESS**************************");
-				
-				mIsBound = true;
-			} catch (Exception e) {
-				Log.i(TAG, "*****************binding FAIL**************************");
-				Log.e(TAG, e.toString());
-				
-			}
-
+//			Log.i(TAG, "*****************binding **************************");
+//
+//			try {
+//				Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
+//				AndroidSpineServerMainActivity.getInstance().bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+//				Log.i(TAG, "*****************binding SUCCESS**************************");
+//				
+//				mIsBound = true;
+//			} catch (Exception e) {
+//				Log.i(TAG, "*****************binding FAIL**************************");
+//				Log.e(TAG, e.toString());
+//				
+//			}
+			// Note: we have to do this in the main activity so it knows about our connection
+			// so that it can un bind on destroy time.
+			// This class doesn't know about the destroy event
+			AndroidSpineServerMainActivity.getInstance().doBindService(mConnection);
+			
 		}
 
-		void doUnbindService() {
-		    if (mIsBound) {
-		        // If we have received the service, and hence registered with
-		        // it, then now is the time to unregister.
-		        if (mService != null) {
-		            try {
-		                Message msg = Message.obtain(null,MSG_UNREGISTER_CLIENT);
-		                msg.replyTo = mMessenger;
-		                mService.send(msg);
-		            } catch (RemoteException e) {
-		                // There is nothing special we need to do if the service
-		                // has crashed.
-		            }
-		        }
-
-		        // Detach our existing connection.
-		        AndroidSpineServerMainActivity.getInstance().unbindService(mConnection);
-		        mIsBound = false;
-//		        mCallbackText.setText("Unbinding.");
-		    }
-		}	
 
 		
 
