@@ -41,6 +41,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Message;
@@ -172,21 +173,21 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
           mSpineChartView = ChartFactory.getLineChartView(this, mSpineDataset, mSpineRenderer);
           layout.addView(mSpineChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
+        
         mSpineRenderer.setShowLabels(false);
         mSpineRenderer.setShowAxes(true);
-        mSpineRenderer.setShowLegend(false);
+        mSpineRenderer.setShowLegend(true);
         mSpineRenderer.setMargins(new int[] {0,0,0,0});
         mSpineRenderer.setZoomEnabled(false, false);
         mSpineRenderer.setPanEnabled(false, false);
         mSpineRenderer.setYAxisMin(0);
         mSpineRenderer.setYAxisMax(255);
-        
-        
-        String seriesTitle = "Series " + (mSpineDataset.getSeriesCount() + 1);
-        mCurrentSpineSeries = new XYSeries(seriesTitle);
+
+   
+        mCurrentSpineSeries = new XYSeries("Test Data");
         mSpineDataset.addSeries(mCurrentSpineSeries);
         XYSeriesRenderer renderer = new XYSeriesRenderer();
-        renderer.setColor(0xffffffff); // White
+        renderer.setColor(Color.WHITE); // White
         mSpineRenderer.addSeriesRenderer(renderer);
         
         // Set up Device data chart
@@ -199,7 +200,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceRenderer.setShowLabels(false);
         mDeviceRenderer.setMargins(new int[] {0,0,0,0});
         mDeviceRenderer.setShowAxes(true);
-        mDeviceRenderer.setShowLegend(false);
+        mDeviceRenderer.setShowLegend(true);
         
         mDeviceRenderer.setZoomEnabled(false, false);
         mDeviceRenderer.setPanEnabled(false, false);
@@ -207,10 +208,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceRenderer.setYAxisMax(255);
 
         
-        mCurrentDeviceSeries = new XYSeries(seriesTitle);
+        mCurrentDeviceSeries = new XYSeries("Attention");
         mDeviceDataset.addSeries(mCurrentDeviceSeries);
         renderer = new XYSeriesRenderer();
-        renderer.setColor(0xffffffff); // White
+        renderer.setColor(Color.WHITE); // White
         mDeviceRenderer.addSeriesRenderer(renderer);
         
         
