@@ -303,8 +303,19 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				byte featCode = firsFeat.getFeatureCode();
 				int ch1Value = firsFeat.getCh1Value();
 
-				new UpdateUITask().execute(ch1Value);
+//				new UpdateUITask().execute(ch1Value);
 				
+		    	 String result = Integer.toString(ch1Value);
+		    	 spineLog.setText(result);				
+				if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
+				{
+					mCurrentSpineSeries.remove(0);
+				}
+				mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
+		        if (mSpineChartView != null) {
+		            mSpineChartView.repaint();
+		        }        
+
 						
 				Log.i(TAG,"ch1Value= " + ch1Value);
 		
@@ -343,14 +354,14 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				Node source = data.getNode();
 				
 				MindsetData mData = (MindsetData) data;
-				if (mData.exeCode == 2)
-				{
-					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
-					int b = mData.poorSignalStrength &  0xff;
-					String result = Integer.toHexString(b);					
-					deviceLog.setText(result);
-					
-				}
+//				if (mData.exeCode == 2)
+//				{
+//					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+//					int b = mData.poorSignalStrength &  0xff;
+//					String result = Integer.toHexString(b);					
+//					deviceLog.setText(result);
+//					
+//				}
 				if (mData.exeCode == 4)
 				{
 					Log.i(TAG, "attention= "  + mData.attention);
