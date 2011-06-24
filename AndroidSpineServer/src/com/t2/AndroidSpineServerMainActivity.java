@@ -75,7 +75,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private GraphicalView mDeviceChartView;
 	private XYMultipleSeriesDataset mDeviceDataset = new XYMultipleSeriesDataset();
 	private XYMultipleSeriesRenderer mDeviceRenderer = new XYMultipleSeriesRenderer();
-	private XYSeries mCurrentDeviceSeries;
+	private XYSeries mMindsetAttentionSeries;
+	private XYSeries mMindsetMeditationSeries;
 	
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
@@ -84,7 +85,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private EditText deviceLog;
 	
 	int mSpineChartX = 0;
-	int mDeviceChartX = 0;
+	int mAttentionChartX = 0;
+	int mMeditationChartX = 0;
 	boolean mIsBound = false;
 	ServiceConnection mConnection;	
 	private Messenger mService = null;	
@@ -186,6 +188,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
    
         mCurrentSpineSeries = new XYSeries("Test Data");
         mSpineDataset.addSeries(mCurrentSpineSeries);
+
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         renderer.setColor(Color.WHITE); // White
         mSpineRenderer.addSeriesRenderer(renderer);
@@ -208,10 +211,19 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceRenderer.setYAxisMax(255);
 
         
-        mCurrentDeviceSeries = new XYSeries("Attention");
-        mDeviceDataset.addSeries(mCurrentDeviceSeries);
+        mMindsetAttentionSeries = new XYSeries("Attention");
+        mMindsetMeditationSeries = new XYSeries("Meditation");
+
+        mDeviceDataset.addSeries(mMindsetAttentionSeries);
+        mDeviceDataset.addSeries(mMindsetMeditationSeries);
+
         renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.WHITE); // White
+        renderer.setColor(Color.GREEN); // White
+        mDeviceRenderer.addSeriesRenderer(renderer);
+
+        
+        renderer = new XYSeriesRenderer();
+        renderer.setColor(Color.YELLOW); // White
         mDeviceRenderer.addSeriesRenderer(renderer);
         
         
@@ -339,11 +351,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				String text = deviceLog.getText().toString();
 				text = heartRate + "\n" + text;
 				deviceLog.setText(text);		
-				if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+				if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
 				{
-					mCurrentDeviceSeries.remove(0);
+					mMindsetAttentionSeries.remove(0);
 				}
-				mCurrentDeviceSeries.add(mSpineChartX++, heartRate);
+				mMindsetAttentionSeries.add(mSpineChartX++, heartRate);
 		        if (mDeviceChartView != null) {
 		            mDeviceChartView.repaint();
 		        }        
@@ -355,23 +367,42 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				Node source = data.getNode();
 				
 				MindsetData mData = (MindsetData) data;
-//				if (mData.exeCode == 2)
-//				{
-//					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
-//					int b = mData.poorSignalStrength &  0xff;
-//					String result = Integer.toHexString(b);					
-//					deviceLog.setText(result);
-//					
-//				}
+				if (mData.exeCode == 2)
+				{
+					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+					int b = mData.poorSignalStrength &  0xff;
+					String result = Integer.toHexString(b);					
+					deviceLog.setText(result);
+					
+				}
 				if (mData.exeCode == 4)
 				{
 					Log.i(TAG, "attention= "  + mData.attention);
-					if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
+					if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
 					{
-						mCurrentDeviceSeries.remove(0);
+						mMindsetAttentionSeries.remove(0);
 					}
-					mCurrentDeviceSeries.add(mDeviceChartX++, mData.attention);
-			        if (mDeviceChartView != null) {
+					mMindsetAttentionSeries.add(mAttentionChartX, mData.attention);
+
+					mAttentionChartX++;
+					
+					if (mDeviceChartView != null) {
+			            mDeviceChartView.repaint();
+			        }   					
+				}
+				if (mData.exeCode == 5)
+				{
+					Log.i(TAG, "meditation= "  + mData.meditation);
+
+					if (mMindsetMeditationSeries.getItemCount() > SPINE_CHART_SIZE)
+					{
+						mMindsetMeditationSeries.remove(0);
+					}
+					mMindsetMeditationSeries.add(mMeditationChartX, mData.meditation);
+
+					mMeditationChartX++;
+					
+					if (mDeviceChartView != null) {
 			            mDeviceChartView.repaint();
 			        }   					
 				}
