@@ -13,14 +13,13 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	private boolean onSpineMessageListenerIsSet = false;
 	private boolean onDeviceDataMessageListenerIsSet = false;
 
-	
-	
-	private int[] capabilities;
-	
 	public BioFeedbackDevice() {
 		super();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.SerialBTDevice#write(byte[])
+	 */
 	@Override
 	public void write(byte[] bytes) {
 		super.write(bytes);
@@ -43,28 +42,11 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 		return linkTimeout;
 	}
 	
-	public boolean hasCapability(int cap) {
-		if(capabilities == null) {
-			this.capabilities = getCapabilities();
-		}
-		
-		for(int i = 0; i < this.capabilities.length; i++) {
-			if(this.capabilities[i] == cap) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
 	
-	
-	public void setOnDeviceDataMessageListener(OnDeviceDataMessageListener l, BioFeedbackDevice device) throws UnsupportedCapabilityException {
+	public void setOnDeviceDataMessageListener(OnDeviceDataMessageListener l, BioFeedbackDevice device){
 
 		if (device instanceof SpineDevice)
 		{
-			if(!this.hasCapability(Capability.SPINE_MESSAGE)) {
-				throw new UnsupportedCapabilityException("Device doesn't support this capability.");
-			}
 			this.onSpineMessageListener = l;
 			this.onSpineMessageListenerIsSet= (l != null);
 		}
@@ -87,9 +69,7 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	protected void onSetCollectData(int data, boolean canCollect) {}
 
 	protected abstract void onSetLinkTimeout(long linkTimeout);
-	public abstract int[] getCapabilities();	
 	public abstract ModelInfo getModelInfo();
-//	public abstract int getDeviceId();
 	
 	
 	protected void onSpineMessage(byte[] message) {
@@ -124,26 +104,7 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 		}
 	}
 	
-	public class UnsupportedCapabilityException extends Exception {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4070660360479320363L;
 
-		public UnsupportedCapabilityException(String msg) {
-			super(msg);
-		}
-	}
-	
-	public static class Capability {
-
-		public static final int SPINE_MESSAGE = 44;
-		public static final int BATTERY_LEVEL = 44;
-		public static final int HEART_RATE = 45;
-		public static final int RESPIRATION_RATE = 46;
-		public static final int SKIN_TEMP = 47;
-	}
-	
 	
 
 }

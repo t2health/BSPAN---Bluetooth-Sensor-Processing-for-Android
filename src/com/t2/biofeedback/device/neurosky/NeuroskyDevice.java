@@ -11,14 +11,27 @@ import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
-
-
-
-
+/**
+ * Encapsulates methods necessary to communicate with a Bluetooth Neurosky device
+ * 
+ * @author scott.coleman
+ *
+ */
 public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataListener{
 	private static final String TAG = Constants.TAG;
 
+	/**
+	 * Parses byte stream coming from Neurosky device into complete messages
+	 */
 	StreamParser mStreamParser;
+
+	/**
+	 * Message formatted according to the MindsetProtocol specification
+	 */
+	byte[] mMindsetMessage;	
+	
+	private int mMessageIndex = 0;
+	
 	
 	static final byte EXECODE_POOR_SIG_QUALITY = 2;
 	static final byte EXECODE_ATTENTION = 4;
@@ -28,108 +41,76 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	static final byte EXECODE_SPECTRAL = (byte) 0x83;
 
 	static final int MINDSET_FUNCT_CODE						= 0x0A;
-	static final int MINDSET_SENSOR_CODE 						= 0x0D;
+	static final int MINDSET_SENSOR_CODE 					= 0x0D;
 	static final int SPINE_HEADER_SIZE 						= 9;
-	static final int MINDSET_MSG_SIZE 							= 33;		
+	static final int MINDSET_MSG_SIZE 						= 33;		
 	
 	static final byte EXECODE_POOR_SIG_QUALITY_POS = SPINE_HEADER_SIZE + 3 + 0; 
 	static final byte EXECODE_ATTENTION_POS = SPINE_HEADER_SIZE + 3  + 1; 
 	static final byte EXECODE_MEDITATION_POS = SPINE_HEADER_SIZE + 3  + 2; 
 	static final byte EXECODE_BLINK_STRENGTH_POS = SPINE_HEADER_SIZE + 3  + 3; 
 	
-	
-	
-	private int mMessageIndex = 0;
-	byte[] mMindsetMessage;	
-	
-	
+	/**
+	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
+	 */
 	NeuroskyDevice(ArrayList<Messenger> serverListeners)
 	{
 		this.mServerListeners = serverListeners;
-		resetFifo();		
-	}
-
-	public class SpineHeader {
-		int version;		// Byte 0 bits 7:6
-		int extension;      // Byte 0 bits 5
-		int type;           // Byte 0 bits 4:0
-		int group;			// Byte 1
-		int sourceNode;     // Bytes 2 - 3 
-		int destNode;       // Bytes 4 - 5
-		int seq;			// Byte 6
-		int totalFragments;	// Byte 7
-		int fragment;		// Byte 9
-
-		SpineHeader(byte[] bytes) throws  BadHeaderException 
-		{
-			int b1 = bytes[0];
-			version = (b1 >> 6) & 0x07;
-			extension = (b1 >> 5) & 0x01;
-			type = b1 & 0x1f;
-			
-			if ((version != 3) || (type != 4) || extension != 0)
-			{
-				throw new BadHeaderException("");
-			}
-		}
-	}
-
- 	public class BadHeaderException extends Exception 
- 	{
-		private static final long serialVersionUID = 4070660360479320363L;
-
-		public BadHeaderException(String msg) 
-		{
-			super(msg + " invalid header");
-		}
 	}
 	
-	
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onSetLinkTimeout(long)
+	 */
 	protected void onSetLinkTimeout(long linkTimeout) {
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()
+	 */
 	protected void onDeviceConnected() 
 	{
 		mStreamParser = new StreamParser(StreamParser.PARSER_TYPE_PACKETS, this, null);
-		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBeforeConnectionClosed()
+	 */
 	protected void onBeforeConnectionClosed() 
 	{
 	}
 	
+	/**
+	 * 
+	 * Receives bytes from Bluetooth device and sends them to the parser.
+	 * 	Note that the received bytes by come in any length. The parser seeds to 
+	 *  Frame the data and detect complete messages. When this happens the
+	 *  parser will call dataValueReceived with the complete message.
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBytesReceived(byte[])
+	 */
 	protected void onBytesReceived(byte[] bytes) 
 	{
-	//	Util.logHexByteString(TAG, "Partial Neurosky: ", bytes);		
-//		Log.i(TAG, "Found message: PARTIAL");
-		
-
 		// Transfer bytes to parser one by one
 		// Each time updating the state machine
+		// then checking for a value header
 		for (int i=0; i< bytes.length; i++) 
 		{
 			mStreamParser.parseByte(bytes[i]);		
-			
 		}		
 	}
 	
-	protected void resetFifo()
-	{
-	}
-	
-
-
-	private void onMessageReceived(byte[] message) 
-	{
-		this.onSpineMessage(message);
-	}			
-	
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#write(byte[])
+	 * 
+	 * Not used - Neurosky device is write only.
+	 */
 	public void write(byte[] bytes) {
-
 		super.write(bytes);
 	}
 	
-	void startMessage()
+	/**
+	 * Begins a Mindset message, populating common fields
+	 */
+	private void startMessage()
 	{
 		mMessageIndex = 0;
 		mMindsetMessage = new byte[MINDSET_MSG_SIZE + SPINE_HEADER_SIZE];		
@@ -144,15 +125,18 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		mMindsetMessage[mMessageIndex++] = (byte) 0x01;	
 		mMindsetMessage[mMessageIndex++] = MINDSET_FUNCT_CODE;			
 		mMindsetMessage[mMessageIndex++] = MINDSET_SENSOR_CODE;			
-		
-		
 	}
 	
+	/* 
+	 * Called when the parser has a data row to send to the server
+	 *  
+	 * (non-Javadoc)
+	 * @see com.t2.biofeedback.device.neurosky.DataListener#dataValueReceived(int, int, int, byte[], java.lang.Object)
+	 */
 	public void dataValueReceived( int extendedCodeLevel, int code, int numBytes,
 			   byte[] valueBytes, Object customData )
 	{
 		// We need to build a SPINE-style message
-
 		
 		//  SPINE HEADER
 		//  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
@@ -171,8 +155,6 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		// 8		Blink Strength
 		// 16		RAW wave value
 		// 24*8		spectral data
-		
-		
 		
 		// For now we'll ignore all extended codes
 		if (extendedCodeLevel != 0)
@@ -223,8 +205,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 					mMindsetMessage[mMessageIndex++] = valueBytes[j++];
 				}
 			}
-			
 			break;
+
 		default:
 			return;
 		
@@ -232,6 +214,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		
 		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
 		
+		// Now we have a message we need to send it to the server via the server listener(s)
 		if (mServerListeners != null)
 		{
 	        for (int i = mServerListeners.size()-1; i >= 0; i--) {
@@ -250,6 +233,4 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	        }			
 		}		
 	}
-					
-
 }

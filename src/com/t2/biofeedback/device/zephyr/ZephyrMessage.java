@@ -2,6 +2,12 @@ package com.t2.biofeedback.device.zephyr;
 
 import com.t2.biofeedback.Constants;
 
+/**
+ * Message structure used to send/receive messages to the Zephyr device.
+ * 	Describes the internal format Zephyr devices use to pack data
+ * @author scott.coleman
+ *
+ */
 public class ZephyrMessage {
 	private static final String TAG = Constants.TAG;
 	
@@ -31,6 +37,12 @@ public class ZephyrMessage {
 		this.end = end;
 	}
 	
+	/**
+	 * Parses Zephyr message from input byte stream from device
+	 * 
+	 * @param stream	Byte array containing message bytes
+	 * @return			Parsed message
+	 */
 	public static ZephyrMessage parse(byte[] stream) {
 		int streamIndex = 0;
 		ZephyrMessage m = new ZephyrMessage();
@@ -91,15 +103,18 @@ public class ZephyrMessage {
 	}
 	
 	/**
-	 * @param b
-	 *            is the byte to convert
-	 * @return a integer from the given byte
+	 * @param b		is the byte to convert
+	 * @return a 	integer from the given byte
 	 */
 	static int readUnsignedByte(byte b) {
 		return (b & 0xff);
 	}
 	
-	
+	/**
+	 * Retrieves payload bytes from message
+	 * 
+	 * @return	Payload bytes from message
+	 */
 	public byte[] getBytes() {
 		byte[] outBytes = new byte[this.payload.length + 5];
 		int i = 0;

@@ -12,15 +12,23 @@ import android.util.Log;
 import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
+/**
+ * Encapsulates methods necessary to communicate with a Bluetooth Zephyr device
+ * 
+ * @author scott.coleman
+ *
+ */
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
-	
 	
 	ZephyrDevice(ArrayList<Messenger> serverListeners)
 	{
 		this.mServerListeners = serverListeners;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onSetLinkTimeout(long)
+	 */
 	@Override
 	protected void onSetLinkTimeout(long linkTimeout) {
 		ZephyrMessage m = new ZephyrMessage(
@@ -36,6 +44,9 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		this.write(m);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()
+	 */
 	@Override
 	protected void onDeviceConnected() {
 		super.onDeviceConnected();
@@ -52,6 +63,9 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
     	this.write(m);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBeforeConnectionClosed()
+	 */
 	@Override
 	protected void onBeforeConnectionClosed() {
 		Log.v(TAG, "Tell the device to stop sending periodic data.");
@@ -65,6 +79,11 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
     	this.write(m);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBytesReceived(byte[])
+	 * 
+	 * Parses the received bytes into a Zephyr message and forwards them
+	 */
 	@Override
 	protected void onBytesReceived(byte[] bytes) {
 		
@@ -72,9 +91,14 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		{
 			this.onMessageReceived(ZephyrMessage.parse(bytes));
 		}
-		
 	}
 	
+	/**
+	 * Receives parsed message from Zephyr device. Formats it to look like
+	 * a Spine message then sends it to the Spine server.
+	 *  
+	 * @param msg	Message to send to Spine server
+	 */
 	private void onMessageReceived(ZephyrMessage msg) {
 		if(!msg.validPayload) {
 			return;
@@ -111,36 +135,12 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 			final int ZEPHYR_FUNCT_CODE							= 0x09;
 			final int ZEPHER_FUNCT_TYPE							= 1;   //(Raw data)
 			final int ZEPHYR_SENSOR_CODE 						= 0x0C;
-//
-//			final int ZEPHYR_FEATURE_CODE_BATLEVEL 				= 1;
-//			final int ZEPHYR_FEATURE_CODE_BATLEVEL_BITMASK 		= 0x08;
-//
-//			final int ZEPHYR_FEATURE_CODE_HEARTRATE 			= 2;
-//			final int ZEPHYR_FEATURE_CODE_HEARTRATE_BITMASK 	= 0x04;
-//
-//			final int ZEPHYR_FEATURE_CODE_RESPRATE 				= 3;
-//			final int ZEPHYR_FEATURE_CODE_RESPRATE_BITMASK 		= 0x02;
-//
-//			final int ZEPHYR_FEATURE_CODE_SKINTEMP 				= 4;
-//			final int ZEPHYR_FEATURE_CODE_SKINTEMP_BITMASK 		= 0x01;
-
 			
 			final int SPINE_HEADER_SIZE = 9;
 			final int ZEPHYR_MSG_SIZE = 22;
-			
-//			final int ZEPHYR_PKT_TYPE_POS = 0;
-//			final int ZEPHYR_FUNCT_CODE_POS = 1;
-//			final int ZEPHYR_SENSOR_CODE_POS = 2;
-//			final int ZEPHYR_FEAT_COUNT_POS = 3;
-//			final int ZEPHYR_FEAT_BATLEVEL_POS = 4;
-//			final int ZEPHYR_FEAT_HEARTRATE_POS = 10;
-//			final int ZEPHYR_FEAT_RESPRATE_POS = 16;
-//			final int ZEPHYR_FEAT_SKINTEMP_POS = 22;
 				
 			byte[] zepherMessage = new byte[ZEPHYR_MSG_SIZE + SPINE_HEADER_SIZE];
 
-//			byte[] spineHeader = new byte[] {(byte) 0xc4, (byte) 0xab, (byte) 0xff, (byte) 0xf1, 0,0,0,1,1}; 
-			
 			// First add spine header
 			int i = 0;
 			// Header
@@ -161,7 +161,6 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 
 			zepherMessage[i++] = ZEPHER_FUNCT_TYPE;   
 			zepherMessage[i++] = 0x0f;   				// Bitmask
-
 			
 			zepherMessage[i++] = msg.raw[53];
 			zepherMessage[i++] = msg.raw[54];
@@ -185,7 +184,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 
 			zepherMessage[i++] = 0; // No label
 			
-//			this.onSpineMessage(zepherMessage);
+//			this.onSpineMessage(zepherMessage);		// Old method of sending data to server
 			if (mServerListeners != null)
 			{			
 		        for (i = mServerListeners.size()-1; i >= 0; i--) {
@@ -203,17 +202,12 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 			        }
 		        }			
 			}			
-
 		}		
-		
 	}
-	
 	
 	private void write(ZephyrMessage msg) {
 		this.write(msg.getBytes());
 	}
-	
-
 	
 	public static byte[] bitSetToByteArray(BitSet bs) {
 		byte[] bytes = new byte[(int) Math.ceil(bs.size() / 8)];
@@ -224,5 +218,4 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		}
 		return bytes;
 	}
-
 }

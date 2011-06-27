@@ -1,13 +1,5 @@
 package com.t2.biofeedback.device.Spine;
 
-
-//import t2.spine.communication.android.AndroidMessage;
-
-
-//import spine.communication.android.AndroidMessage;
-
-
-
 import java.util.ArrayList;
 
 import android.os.Bundle;
@@ -21,6 +13,12 @@ import com.t2.biofeedback.Constants;
 import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
+/**
+ * Encapsulates methods necessary to communicate with a Bluetooth Spine device
+ * 
+ * @author scott.coleman
+ *
+ */
 public abstract class SpineDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
 
@@ -83,29 +81,31 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		}
 	}
 	
-	
-	protected void onSetLinkTimeout(long linkTimeout) {
-	//		ZephyrMessage m = new ZephyrMessage(
-	//				0xA4,
-	//				new byte[] {
-	//					(byte) linkTimeout,
-	//					(byte) linkTimeout,
-	//					0x1,
-	//					0x1,
-	//				},
-	//				ZephyrMessage.ETX
-	//		);
-	//		this.write(m);
+   	// Not used for Spine devices
+   	protected void onSetLinkTimeout(long linkTimeout) {
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()
+	 */
 	protected void onDeviceConnected() 
 	{
 	}
 
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBeforeConnectionClosed()
+	 */
 	protected void onBeforeConnectionClosed() 
 	{
 	}
 	
+	/** 
+	 * @see com.t2.biofeedback.device.SerialBTDevice#onBytesReceived(byte[])
+	 * 
+	 * 	Note that the received bytes by come in any length. The parser seeds to 
+	 *  Frame the data and detect complete messages. When this happens the
+	 *  parser will call dataValueReceived with the complete message.	 * 
+	 */
 	protected void onBytesReceived(byte[] bytes) 
 	{
 //		Util.logHexByteString(TAG, bytes);		
@@ -116,10 +116,13 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		// Each time updating the state machine
 		for (int i=0; i< bytes.length; i++) 
 		{
-			addByteCheckMsg(bytes[i]);		
+			parseByte(bytes[i]);		
 		}		
 	}
 	
+	/**
+	 * 
+	 */
 	protected void resetFifo()
 	{
 		mFifo = new byte[MAX_FIFO];
@@ -131,7 +134,12 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		mFifoTail = 0; 		
 	}
 	
-	protected void addByteCheckMsg(byte aByte) {
+	/**
+	 * Adds byte to FIFO and parses the FIFO for valie message headers
+	 * 
+	 * @param aByte		Byte to add to FIFO
+	 */
+	protected void parseByte(byte aByte) {
 		//AndroidMessage	msg = new AndroidMessage();
 		int ix = 0;
 		int jx = 0;
@@ -203,8 +211,8 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 //				Log.i(TAG, "Found message: FULL");
 				Util.logHexByteString(TAG, "Found message:", messageArray);
 				
-
-				//				this.onMessageReceived(messageArray);
+				// this.onSpineMessage(message); // Old method of sending data to server
+				
 				if (mServerListeners != null)
 				{
 					for (int i = mServerListeners.size()-1; i >= 0; i--) {
@@ -223,8 +231,6 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				    }				
 					
 				}
-					
-				
 				
 				// Now start over
 				resetFifo();
@@ -254,13 +260,19 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 			}
 	}
 			
-	// Search for valid header by comparing bytes in the fifo to a reference 
-	// header string. The reference has wildcards for places where the
-	// header might change.
-	//		Ex header: Data packet from node 1 to base (0), seq # 1, one frag
-	// 			C4 00 01 00 00 00 01 01 01
-    //		Ex reference string
-	// 			C4 00 xx xx 00 00 xx xx xx
+	/**
+	 * Search for valid header by comparing bytes in the fifo to a reference
+	 * header string. The reference has wildcards for places where the
+	 * header might change.
+	 *		Ex header: Data packet from node 1 to base (0), seq # 1, one frag
+	 * 			C4 00 01 00 00 00 01 01 01
+     *		Ex reference string
+	 * 			C4 00 xx xx 00 00 xx xx xx	 * 
+	 * 
+	 * 
+	 * @param index		Index into FIFO to start looking for header
+	 * @return
+	 */
 	protected boolean isHeader(int index)
 	{
 		boolean result = true;
@@ -285,6 +297,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 			return result;
 		
 		result = true;
+		
 		// Check for a service advertisement packet
 		for (int i = 0 ; i < SPINEPacketsConstants.SPINE_HEADER_SIZE; i++)
 		{
@@ -304,15 +317,13 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		return result;
 	}
 
-	private void onMessageReceived(byte[] message) 
-	{
-		this.onSpineMessage(message);
-	}			
 	
+	/* (non-Javadoc)
+	 * @see com.t2.biofeedback.device.BioFeedbackDevice#write(byte[])
+	 */
 	public void write(byte[] bytes) {
 
 		super.write(bytes);
 	}
-	
 
 }

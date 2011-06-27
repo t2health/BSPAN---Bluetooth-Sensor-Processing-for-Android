@@ -21,6 +21,19 @@ import android.os.Messenger;
 import android.util.Log;
 
 
+/**
+ * Base class of all Bluetooth based devices
+ * 	Each SerialBTDevice has two threads:
+ * 		A connect thread (ConnectThread) used to establish connection to a device.	
+ * 		A connected thread (ConnectedThread) used to send/receive data to/from the connected device
+ * 
+ * @author scott.coleman
+ *
+ */
+/**
+ * @author scott.coleman
+ *
+ */
 public abstract class SerialBTDevice {
 	private static final String TAG = Constants.TAG;
 	
@@ -32,26 +45,58 @@ public abstract class SerialBTDevice {
 	private static final int MSG_SET_SPINE_ARRAY_VALUE = 6;
 	private static final int MSG_SET_ZEPHYR_ARRAY_VALUE = 7;
 	
-	
 	public static final UUID UUID_RFCOMM_GENERIC = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	
 	private final BluetoothAdapter adapter;
-//	private final BluetoothDevice device;
 	private BluetoothDevice device;
 	private BluetoothSocket socket;
+
+	/**
+	 * Thread used to communicate messages to/from device
+	 */
 	private ConnectedThread connectedThread;
+
+	/**
+	 * Thread used to establish connection to device
+	 */
+	private ConnectThread connectThread;
+
+	/**
+	 * Listener to send connect/disconnect messages to
+	 */
 	private DeviceConnectionListener connectionListener;
 	
+	/**
+	 * Whether or not to reconnect automatically when a connection is lost
+	 */
 	private boolean reconnectOnConnectionLost = true;
 	
+	/**
+	 * Queue of bytes for ConnectedThread to write to device
+	 */
 	private ArrayList<Byte[]> writeQueue = new ArrayList<Byte[]>();
 	
+	/**
+	 * Handler used to send messages from the ConnectedThread to the main class
+	 */
 	private Handler threadHandler;
 
-	private ConnectThread connectThread;
+	/**
+	 * List of devices to notify when a message is received from a device
+	 */
 	protected ArrayList<Messenger> mServerListeners;	
+
+	/**
+	 * Used to discern what type of class this is
+	 */
 	private SerialBTDevice me;
 	
+	/**
+	 * Sets this SerialBTDevice to the corresponding OS Bluetooth device which
+	 * matches the given address
+	 * 
+	 * @param BH_ADDRESS	Address of device to set this class to
+	 */
 	public void setDevice(String BH_ADDRESS)
 	{
 		if(!BluetoothAdapter.checkBluetoothAddress(BH_ADDRESS)) {
@@ -64,6 +109,10 @@ public abstract class SerialBTDevice {
 		
 	}
 	
+	/**
+	 * Sets server listeners which listen for data from this device
+	 * @param serverListeners	Array of listeners to send any received messages to
+	 */
 	public void setServerListeners(ArrayList<Messenger> serverListeners)
 	{
 		mServerListeners = serverListeners;
@@ -103,7 +152,7 @@ public abstract class SerialBTDevice {
 				}
 			}
 		};
-	}
+	} // End public SerialBTDevice()
 	
 	public boolean isConnecting() {
 		if(!this.isConencted()) {
@@ -150,6 +199,9 @@ public abstract class SerialBTDevice {
 		return this.device.getBondState() == BluetoothDevice.BOND_BONDED;
 	}
 	
+	/**
+	 * Begin process of connecting to Bluetooth device
+	 */
 	public void connect() {
 		if(!isInitialized()) {
 			return;
@@ -175,6 +227,9 @@ public abstract class SerialBTDevice {
 		this.connectThread.start();
 	}
 	
+	/**
+	 * Close connection to device
+	 */
 	public void close() {
 		if(!isInitialized()) {
 			return;
@@ -183,12 +238,17 @@ public abstract class SerialBTDevice {
 		this.close(true);
 	}
 	
+	/**
+	 * Close connection to device
+	 * 
+	 * @param report	Whether of not to call beforeDeviceClosed and deviceClosed
+	 */
 	private void close(boolean report) {
 		if(!isInitialized()) {
 			return;
 		}
 		
-//		Log.v(TAG, "BT close");
+		Log.v(TAG, "BT close");
 		if(report) {
 			this.beforeDeviceClosed();
 		}
@@ -211,14 +271,14 @@ public abstract class SerialBTDevice {
 	}
 	
 	private void deviceConnecting() {
-//		Log.v(TAG, "Device connecting.");
+		Log.v(TAG, "Device connecting.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnecting(this);
 		}
 	}
 	
 	private void deviceConnected() {
-//		Log.v(TAG, "Device connected.");
+		Log.v(TAG, "Device connected.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnected(this);
 		}
@@ -227,7 +287,7 @@ public abstract class SerialBTDevice {
 	
 	private void beforeDeviceClosed() {
 		if(this.isConencted()) {
-//			Log.v(TAG, "Run before device disconnected.");
+			Log.v(TAG, "Run before device disconnected.");
 			if(connectionListener != null) {
 				connectionListener.onBeforeDeviceClosed(this);
 			}
@@ -236,21 +296,21 @@ public abstract class SerialBTDevice {
 	}
 	
 	private void deviceClosed() {
-//		Log.v(TAG, "Device disconnected.");
+		Log.v(TAG, "Device disconnected.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceClosed(this);
 		}
 	}
 	
 	private void deviceConnectionLost() {
-//		Log.v(TAG, "Lost the connection to the device.");
+		Log.v(TAG, "Lost the connection to the device.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnectionLost(this);
 		}
 		
 		// Try to reconnect.
 		if(this.isBonded() && reconnectOnConnectionLost) {
-//			Log.v(TAG, "Trying to reconnect to the device.");
+			Log.v(TAG, "Trying to reconnect to the device.");
 			this.connect();
 		}
 	}
@@ -281,6 +341,11 @@ public abstract class SerialBTDevice {
 		}
 	}
 	
+	/**
+	 * Immediately write the bytes to the device
+	 * 
+	 * @param bytes	Bytes to send to device
+	 */
 	protected void write(byte[] bytes) {
 		// Immediately write the bytes.
 		if(this.connectedThread != null && this.connectedThread.isRunning()) {

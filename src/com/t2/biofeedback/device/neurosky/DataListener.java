@@ -29,6 +29,14 @@ package com.t2.biofeedback.device.neurosky;
 public interface
 DataListener {
 	
+	/**
+	 * Called when the parser has a data row to send to the Spine server 
+	 * @param extendedCodeLevel Not currently used
+	 * @param code Exe (function) code as devined by the Neurosky protocol
+	 * @param numBytes Number of bytest in message
+	 * @param valueBytes Message bytes
+	 * @param customData Currently not used
+	 */
 	public void 
 	dataValueReceived( int extendedCodeLevel, int code, int numBytes,
 					   byte[] valueBytes, Object customData );

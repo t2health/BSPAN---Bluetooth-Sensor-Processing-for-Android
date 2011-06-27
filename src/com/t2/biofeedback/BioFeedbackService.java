@@ -2,12 +2,10 @@ package com.t2.biofeedback;
 
 import java.util.ArrayList;
 
-import com.t2.biofeedback.device.AverageDeviceValue;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.BioFeedbackDevice.OnDeviceDataMessageListener;
 import com.t2.biofeedback.device.SerialBTDevice;
 
-import com.t2.biofeedback.device.BioFeedbackDevice.UnsupportedCapabilityException;
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
 import android.app.Service;
@@ -19,11 +17,26 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+/**
+ * Background service for use with AndroidSpineServer.
+ * Maintains list of Bluetooth devices which communicate with the main Spine server
+ * Provides communication between individual Bluetooth devices
+ * and the Spine Server.
+ * 
+ * @see AndroidSpineServer
+ * @author scott.coleman
+ *
+ */
 public class BioFeedbackService extends Service implements DeviceConnectionListener, OnDeviceDataMessageListener {
 	private static final String TAG = Constants.TAG;
 	
 	
 	
+	/**
+	 * Broadcast message used send status messages to the Spine server
+	 * @author scott.coleman
+	 *
+	 */
 	public static final class BroadcastMessage {
 		public static final class Type {
 			public static final String STATUS = "STATUS";
@@ -62,20 +75,25 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	public static final String EXTRA_MESSAGE_ID = "messageId";
 	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
 	public static final String EXTRA_TIMESTAMP = "timestamp";
-	
 	public static final String EXTRA_MSG_BYTES = "msgBytes";
 
+
 	
-	public static final String EXTRA_AVERAGE_VALUE = "avgValue";
-	public static final String EXTRA_CURRENT_VALUE = "currentValue";
-	public static final String EXTRA_SAMPLE_VALUES = "sampleValue";
-	
-	public static final String EXTRA_CURRENT_TIMESTAMP = "currentTimestamp";
-	public static final String EXTRA_SAMPLE_TIMESTAMPS = "sampleTimestamps";
-	
+	/**
+	 * Interfaces with OS to control individual connections to Bluetooth devices
+	 */
 	private DeviceManager deviceManager;
+
+	/**
+	 * Thread used to periodically update Bluetooth device connections 
+	 */
 	private ManageDeviceThread manageDeviceThread;
 	
+	/**
+	 * Handler used to received messages from ManageDeviceThread
+	 * Used only to call mangeDevices periodically to look for
+	 * Bluetooth devices, add/remove, etc.
+	 */
 	private Handler manageHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -141,13 +159,8 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	
 	
 	private void setListeners(BioFeedbackDevice device) {
-		try {
-			device.setOnDeviceDataMessageListener(this, device);
-		} catch (UnsupportedCapabilityException e) {}		
-		
+		device.setOnDeviceDataMessageListener(this, device);
 		device.setDeviceConnectionListener(this);
-		
-
 	}
 	
 	private Intent getStatusBroadcastIntent(SerialBTDevice d, String messageType, String messageId, Double value) {
@@ -164,20 +177,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		return i;
 	}
 	
-	private Intent getDeviceBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
-			AverageDeviceValue dv) {
-		
-		Intent i = getStatusBroadcastIntent(d, messageType, messageId, null);
-		i.setAction(ACTION_DATA_BROADCAST);
-		i.putExtra(EXTRA_AVERAGE_VALUE, dv.avgValue);
-		i.putExtra(EXTRA_CURRENT_VALUE, dv.currentValue);
-		i.putExtra(EXTRA_SAMPLE_VALUES, dv.sampleValues);
-		
-		i.putExtra(EXTRA_CURRENT_TIMESTAMP, dv.currentTimetamp);
-		i.putExtra(EXTRA_SAMPLE_TIMESTAMPS, dv.sampleTimestamps);
-		
-		return i;
-	}
 	
 	private Intent getSpineBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
 			byte[] msgBytes) {
