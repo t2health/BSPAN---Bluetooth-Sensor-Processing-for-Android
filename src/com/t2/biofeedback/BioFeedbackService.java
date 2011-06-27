@@ -3,7 +3,6 @@ package com.t2.biofeedback;
 import java.util.ArrayList;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
-import com.t2.biofeedback.device.BioFeedbackDevice.OnDeviceDataMessageListener;
 import com.t2.biofeedback.device.SerialBTDevice;
 
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
@@ -27,10 +26,8 @@ import android.util.Log;
  * @author scott.coleman
  *
  */
-public class BioFeedbackService extends Service implements DeviceConnectionListener, OnDeviceDataMessageListener {
+public class BioFeedbackService extends Service implements DeviceConnectionListener {
 	private static final String TAG = Constants.TAG;
-	
-	
 	
 	/**
 	 * Broadcast message used send status messages to the Spine server
@@ -122,8 +119,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		Log.i(TAG, "Binding BiofeedbackService");
 		
         return mMessenger.getBinder();
-		
-//		return null;
 	}
 
 	@Override
@@ -131,7 +126,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onCreate();
 		
 		this.startService();
-		
 	}
 
 	@Override
@@ -139,8 +133,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		super.onDestroy();
 		
 		this.stopService();
-//		mNM.cancel("started");
-		
 	}
 	
 	
@@ -157,9 +149,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		this.deviceManager.closeAll();
 	}
 	
-	
 	private void setListeners(BioFeedbackDevice device) {
-		device.setOnDeviceDataMessageListener(this, device);
 		device.setDeviceConnectionListener(this);
 	}
 	
@@ -174,18 +164,6 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			i.putExtra(EXTRA_MESSAGE_ID, messageId);
 			i.putExtra(EXTRA_MESSAGE_VALUE, value);
 			i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
-		return i;
-	}
-	
-	
-	private Intent getSpineBroadcastIntent(BioFeedbackDevice d, String messageType, String messageId,
-			byte[] msgBytes) {
-		
-		Intent i = getStatusBroadcastIntent(d, messageType, messageId, null);
-		i.setAction(ACTION_SPINE_DATA_BROADCAST);
-		i.putExtra(EXTRA_MSG_BYTES, msgBytes);
-		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
-		
 		return i;
 	}
 	
@@ -235,10 +213,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_CONNECTION_LOST, null)
 		);
 	}
-
-
 	
-	
+	/**
+	 * Main thread for updating supported devices
+	 * @author scott.coleman
+	 *
+	 */
 	private class ManageDeviceThread extends Thread {
 		boolean run = true;
 		
@@ -261,44 +241,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-	
-	@Override
-	public void onSpineMessage(BioFeedbackDevice d, byte[] message) {
-		
-		Intent i = getStatusBroadcastIntent(d, BroadcastMessage.Type.DATA,  BroadcastMessage.Id.SPINE_MESSAGE, null);
-		i.setAction(ACTION_SPINE_DATA_BROADCAST);
-		i.putExtra(EXTRA_MSG_BYTES, message);
-		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
-		
-		
-		this.sendBroadcast(i);
-
-
-		
-	}
-
-	public void sendRawMessage(byte[] message)
-	{
-					
-		
-		
-	}
-	
-	@Override
-	public void onDeviceMessage(BioFeedbackDevice bioFeedbackDevice,
-			byte[] message) {
-
-		Intent i = getStatusBroadcastIntent(bioFeedbackDevice, BroadcastMessage.Type.DATA,  BroadcastMessage.Id.DATA_MESSAGE, null);
-		i.setAction(ACTION_ZEPHYR_DATA_BROADCAST);
-		i.putExtra(EXTRA_MSG_BYTES, message);
-		i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
-		
-		this.sendBroadcast(i);
-
-	}
-	
-    /** Keeps track of all current registered clients. */
+    /**
+     * List of server listeners. These devices will be notified
+     * any time any device transmits data to the Spine Server
+     */
     ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
+
     /** Holds last value set by a client. */
     int mValue = 0;
 
@@ -310,7 +258,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
     static final int MSG_REGISTER_CLIENT = 1;
 
     /**
-     * Command to the service to unregister a client, ot stop receiving callbacks
+     * Command to the service to unregister a client, or stop receiving callbacks
      * from the service.  The Message's replyTo field must be a Messenger of
      * the client as previously given with MSG_REGISTER_CLIENT.
      */
@@ -336,6 +284,8 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
                 case MSG_UNREGISTER_CLIENT:
                 	mServerListeners.remove(msg.replyTo);
                     break;
+
+                // This is not currently used (except by example). 
                 case MSG_SET_VALUE:
                     mValue = msg.arg1;
                     for (int i=mServerListeners.size()-1; i>=0; i--) {
@@ -360,10 +310,5 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
      * Target we publish for clients to send messages to IncomingHandler.
      */
     final Messenger mMessenger = new Messenger(new IncomingHandler());
-
-
-
-
-
 	
 }

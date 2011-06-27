@@ -32,6 +32,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+/**
+ * Activity used to manually administer list of available devices.
+ * This is instantiated in two conditions
+ *  1. When the user starts the service manually (without, or more accurately before the Spine server).
+ *  2. When the user selects "Manage Devices" from the Spine Server main menu.
+ *  
+ * @author scott.coleman
+ *
+ */
 public class BTServiceManager extends Activity implements OnClickListener {
 	private static final String TAG = Constants.TAG;
 
@@ -45,7 +54,6 @@ public class BTServiceManager extends Activity implements OnClickListener {
 
 	private AlertDialog bluetoothDisabledDialog;
     ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
-
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +115,6 @@ public class BTServiceManager extends Activity implements OnClickListener {
 			.create();
 	}
 	
-	
-	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -147,7 +153,6 @@ public class BTServiceManager extends Activity implements OnClickListener {
 				break;
 		}
 	}
-	
 	
 	private class GeneralReceiver extends BroadcastReceiver {
 		@Override

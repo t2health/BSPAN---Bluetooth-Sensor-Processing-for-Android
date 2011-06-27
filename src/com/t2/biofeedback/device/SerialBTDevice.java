@@ -22,7 +22,7 @@ import android.util.Log;
 
 
 /**
- * Base class of all Bluetooth based devices
+ * Base class of all Bluetooth based sensor devices
  * 	Each SerialBTDevice has two threads:
  * 		A connect thread (ConnectThread) used to establish connection to a device.	
  * 		A connected thread (ConnectedThread) used to send/receive data to/from the connected device
@@ -133,6 +133,9 @@ public abstract class SerialBTDevice {
 		me = this;
 		
 		// TODO: change all messages to use direct connect (via service MEssenger) instead of listeners
+		// This is not too important because status messages dont' happen all that much, so the load
+		// of sending them via broadcast intents is not too bad.
+		//
 		threadHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
@@ -147,6 +150,7 @@ public abstract class SerialBTDevice {
 						manageConnection(socket);
 						break;
 					case MSG_BYTES_RECEIVED:
+						// Bytes received from the ConnectedThread (from a sensor device)
 						onBytesReceived(msg.getData().getByteArray("bytes"));
 						break;
 				}
@@ -483,6 +487,13 @@ public abstract class SerialBTDevice {
 		}
 	}
 	
+	/**
+	 * Main thread for an already connected device.
+	 * Handles transmit and receive of data to/from device
+	 * 
+	 * @author scott.coleman
+	 *
+	 */
 	private class ConnectedThread extends Thread {
 		private final BluetoothSocket socket;
 		private final InputStream inputStream;
@@ -638,9 +649,7 @@ public abstract class SerialBTDevice {
     }
 	
 	public class DeviceNotBondedException extends RuntimeException {
-		/**
-		 * 
-		 */
+
 		private static final long serialVersionUID = -5585726446729463776L;
 
 		public DeviceNotBondedException(String msg) {
@@ -649,9 +658,7 @@ public abstract class SerialBTDevice {
 	}
 	
 	public class InvalidBluetoothAddressException extends RuntimeException {
-		/**
-		 * 
-		 */
+
 		private static final long serialVersionUID = -30604768627158724L;
 
 		public InvalidBluetoothAddressException(String msg) {
@@ -660,10 +667,34 @@ public abstract class SerialBTDevice {
 	}
 	
 	public interface DeviceConnectionListener {
+		/**
+		 * Called when a connection is trying to be established with device
+		 * @param d	Device in question
+		 */
 		public void onDeviceConnecting(SerialBTDevice d);
+
+		/**
+		 * Called when a connection has been established with device
+		 * @param d	Device in question
+		 */
 		public void onDeviceConnected(SerialBTDevice d);
+
+		/**
+		 * Called when device connection is closed
+		 * @param d
+		 */
 		public void onDeviceClosed(SerialBTDevice d);
+
+		/**
+		 * Called just before a device connection is closed
+		 * @param serialBTDevice
+		 */
 		public void onBeforeDeviceClosed(SerialBTDevice serialBTDevice);
+		
+		/**
+		 * Called when an existing connection to a device has been lost
+		 * @param d
+		 */
 		public void onDeviceConnectionLost(SerialBTDevice d);
 	}
 }

@@ -11,9 +11,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+/**
+ * Receiver of broadcast intent messages from 3 different sources:
+ * 	1. BTServiceManager (Activity) - Startup and shutdown
+ *  2. Android BluetoothAdapter - Bluetooth hardware adapter turned on/off
+ *  3. AndroidSpineServer (Activity) - Messages to send to sensor devices (i.e "Discover")
+ *  
+ * @author scott.coleman
+ *
+ */
 public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	private static final String TAG = Constants.TAG;
-	private static boolean startServiceOnBluetoothStarted = false;
+
+	private static boolean mStartServiceOnBluetoothStarted = false;
 	
 	public static final String EXTRA_ADDRESS = "address";
 	public static final String EXTRA_NAME = "name";
@@ -22,42 +32,25 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
 	public static final String EXTRA_TIMESTAMP = "timestamp";	
 
-//	public static class BioFeedbackSpineData extends BioFeedbackMessage {
-//		public byte[] msgBytes;
-//		public long currentTimestamp;
-//		
-//		public static BioFeedbackSpineData factory(Intent i) {
-//			BioFeedbackSpineData m = new BioFeedbackSpineData();
-//			m.address = i.getStringExtra("address");
-//			m.name = i.getStringExtra("name");
-//			m.messageType = i.getStringExtra("messageType");
-//			m.messageId = i.getStringExtra("messageId");
-//			m.msgBytes = i.getByteArrayExtra("msgBytes");
-//			m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
-//			
-//			return m;
-//		}
-//	}	
-	
-	private Intent serviceIntent;
+	private Intent mServiceIntent;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		
 		String action = intent.getAction();
 		
-		if(serviceIntent == null) {
-			serviceIntent = new Intent(context.getApplicationContext(), BioFeedbackService.class);
+		if(mServiceIntent == null) {
+			mServiceIntent = new Intent(context.getApplicationContext(), BioFeedbackService.class);
 		}
 		
 		// Start the service.
 		if(action.equals(BioFeedbackService.ACTION_SERVICE_START)) {
 			// In the event that bluetooth isn't on, tell the service to start when bluetooth does start.
-			startServiceOnBluetoothStarted = true;
+			mStartServiceOnBluetoothStarted = true;
 			this.startService(context);
 			
 		} else if(action.equals(BioFeedbackService.ACTION_SERVICE_STOP)) {
-			startServiceOnBluetoothStarted = false;
+			mStartServiceOnBluetoothStarted = false;
 			this.stopService(context);
 			
 		} else if(action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
@@ -67,7 +60,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 				case BluetoothAdapter.STATE_ON:
 					Log.v(TAG, "Bluetooth enabled.");
 					// Turn on the service because bluetooth has been enabled.
-					if(startServiceOnBluetoothStarted) {
+					if(mStartServiceOnBluetoothStarted) {
 						this.startService(context);
 					}
 					break;
@@ -87,9 +80,9 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 				short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
 
 // TODO: Fix this so we actually look at the incoming packet and send the appropriate stuff to the device				
-//				// Real dumb here
+				// Real dumb here. Right now the only command that is sent by the system
+				// is the discovery message so we'll assume that's what this is.
 				if (ClusterId == 1) {
-//					
 					Log.v(TAG, "*** Received a discovery msg  ***");
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
@@ -101,29 +94,21 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 								String str = new String("Reset");
 								byte[] strBytes = str.getBytes();
 								d.write(strBytes);
-								
 							}
-	
-							
 						}
 					}					
-					
 				}
-//
-//				
-//				
 			}
-			
-	}
+		}
 	}
 	
 	private void startService(Context context) {
 		Log.v(TAG, "Starting service");
-		context.startService(serviceIntent);
+		context.startService(mServiceIntent);
 	}
 	
 	private void stopService(Context context) {
 		Log.v(TAG, "Stopping service");
-		context.stopService(serviceIntent);
+		context.stopService(mServiceIntent);
 	}
 }
