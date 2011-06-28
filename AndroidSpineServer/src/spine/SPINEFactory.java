@@ -60,33 +60,6 @@ public class SPINEFactory {
 //		if (managerInstance != null)
 //			throw new InstantiationException("SPINEManager already initialized");
 //		else {
-			
-//	        AssetManager assetManager = resources.getAssets();
-//
-//	        // Read from the /assets directory
-//	        try {
-//	            InputStream inputStream = assetManager.open(appPropertiesFile);
-//	            Properties properties = new Properties();
-//	            properties.load(inputStream);
-//
-//				String MOTECOM = System.getProperty(SpineProperties.MOTECOM_KEY);
-//				MOTECOM = (MOTECOM != null) ? MOTECOM : properties.getProperty(SpineProperties.MOTECOM_KEY);
-//	            
-//				String PLATFORM = System.getProperty(SpineProperties.PLATFORM_KEY);
-//				PLATFORM = (PLATFORM != null) ? PLATFORM : properties.getProperty(SpineProperties.PLATFORM_KEY);
-//				
-//				if (MOTECOM == null || PLATFORM == null)
-//					throw new InstantiationException(APP_PROP_MISSING_MSG);
-//				
-//				managerInstance = new SPINEManager(MOTECOM, PLATFORM, resources);	            
-//	            
-//	            
-//	            
-//	        } catch (IOException e) {
-//	            System.err.println("Failed to open property file");
-//	            e.printStackTrace();
-//	        }  			
-			
 			Properties.setResources(resources);
 			Properties appProp = Properties.getProperties(appPropertiesFile);
 
@@ -104,7 +77,4 @@ public class SPINEFactory {
 		return managerInstance;
 
 	}
-
-
-	
 }

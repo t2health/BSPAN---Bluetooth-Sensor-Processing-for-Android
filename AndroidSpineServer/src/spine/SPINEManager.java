@@ -207,13 +207,6 @@ public class SPINEManager {
 			System.setProperty(SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
 			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter();	
 			
-			
-			
-			
-			
-			
-//			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter(LOCALNODEADAPTER_CLASSNAME);	
-
 			Vector params = new Vector();
 			params.addElement(MOTECOM);
 			nodeAdapter.init(params);
@@ -226,10 +219,6 @@ public class SPINEManager {
 			baseStation.setLogicalID(new Address(SPINEPacketsConstants.SPINE_BASE_STATION_LABEL));
 			
 			eventDispatcher = new EventDispatcher(this);
-	        
-	        
-			
-			
 
 		} catch (NumberFormatException e) {
 			exit(DEF_PROP_MISSING_MSG);

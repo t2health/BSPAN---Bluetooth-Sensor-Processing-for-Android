@@ -2,8 +2,25 @@ package jade.util;
 
 import java.util.Hashtable;
 import java.util.Properties;
+
 import android.util.Log;
 
+/**
+ * Wrapper class for using the generic Java logging facility
+ * which is used by the majority of SPINE core code
+ * 	ex:
+ * 			private static Logger l = Logger.getMyLogger(SPINEManager.class.getName());
+ *			if (l.isLoggable(Logger.SEVERE)) 
+ *				l.log(Logger.SEVERE, "Test");
+ *
+ *  This is maintained in the core SPINE code for compatibility purposes with other platforms
+ *  Classes that are exclusively Android will usually use the android Catalog Logger
+ *  ex:
+ *  		Log.i("Test);
+ *  
+ * @author scott.coleman
+ *
+ */
 public class Logger
 {
 	private static final String TAG = "JavaLogger";

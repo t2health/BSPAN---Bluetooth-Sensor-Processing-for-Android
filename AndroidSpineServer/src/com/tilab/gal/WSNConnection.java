@@ -1,8 +1,11 @@
 package com.tilab.gal;
 
+/**
+ * Interface class defining the Wireless Sensor Network communication
+ * @author scott.coleman
+ *
+ */
 public abstract interface WSNConnection {
-	
-	
 	
 	  // Method descriptor #6 (Lcom/tilab/gal/WSNConnection$Listener;)V
 	  public abstract void setListener(com.tilab.gal.WSNConnection.Listener arg0);
@@ -19,7 +22,7 @@ public abstract interface WSNConnection {
 	  // Method descriptor #18 ()V
 	  public abstract void close();	
 	  
-//		inner name: #24 Listener, accessflags: 1545 public abstract static]	
+	  //		inner name: #24 Listener, accessflags: 1545 public abstract static]	
 
 	  public interface Listener
 	  {

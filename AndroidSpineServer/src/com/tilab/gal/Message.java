@@ -1,6 +1,12 @@
 package com.tilab.gal;
 
 
+/**
+ * Stub file for base class of generic Message
+ * 
+ * @author scott.coleman
+ *
+ */
 public class Message {
 	
    
