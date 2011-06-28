@@ -86,22 +86,7 @@ import android.util.Log;
 			public Double messageValue;
 		}		
 		
-		public static class BioFeedbackSpineData extends BioFeedbackMessage {
-			public byte[] msgBytes;
-			public long currentTimestamp;
-			
-			public static BioFeedbackSpineData factory(Intent i) {
-				BioFeedbackSpineData m = new BioFeedbackSpineData();
-				m.address = i.getStringExtra("address");
-				m.name = i.getStringExtra("name");
-				m.messageType = i.getStringExtra("messageType");
-				m.messageId = i.getStringExtra("messageId");
-				m.msgBytes = i.getByteArrayExtra("msgBytes");
-				m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
-				
-				return m;
-			}
-		}		
+
 		public void sendCommand(int destNodeID, AndroidMessage emumsg) {
 			if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
 				StringBuffer str = new StringBuffer();
@@ -250,19 +235,7 @@ import android.util.Log;
 		};
 
 		void doBindService() {
-//			Log.i(TAG, "*****************binding **************************");
-//
-//			try {
-//				Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-//				AndroidSpineServerMainActivity.getInstance().bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
-//				Log.i(TAG, "*****************binding SUCCESS**************************");
-//				
-//				mIsBound = true;
-//			} catch (Exception e) {
-//				Log.i(TAG, "*****************binding FAIL**************************");
-//				Log.e(TAG, e.toString());
-//				
-//			}
+
 			// Note: we have to do this in the main activity so it knows about our connection
 			// so that it can un bind on destroy time.
 			// This class doesn't know about the destroy event
@@ -270,10 +243,26 @@ import android.util.Log;
 			
 		}
 
-
+		// The following is legacy code for when we used to send sensor data using
+		// broadcast intents:
 		
-
 		
+		//		public static class BioFeedbackSpineData extends BioFeedbackMessage {
+		//			public byte[] msgBytes;
+		//			public long currentTimestamp;
+		//			
+		//			public static BioFeedbackSpineData factory(Intent i) {
+		//				BioFeedbackSpineData m = new BioFeedbackSpineData();
+		//				m.address = i.getStringExtra("address");
+		//				m.name = i.getStringExtra("name");
+		//				m.messageType = i.getStringExtra("messageType");
+		//				m.messageId = i.getStringExtra("messageId");
+		//				m.msgBytes = i.getByteArrayExtra("msgBytes");
+		//				m.currentTimestamp = i.getLongExtra("currentTimestamp", 0);
+		//				
+		//				return m;
+		//			}
+		//		}		
 
 }
 	

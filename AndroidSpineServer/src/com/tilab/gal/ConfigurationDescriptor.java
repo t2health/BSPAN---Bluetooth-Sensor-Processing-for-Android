@@ -1,5 +1,10 @@
 package com.tilab.gal;
 
+/**
+ * Stub file
+ * @author scott.coleman
+ *
+ */
 public abstract interface  ConfigurationDescriptor {
 	
 	 // Field descriptor #6 I
