@@ -42,6 +42,13 @@ import spine.Properties;
 import spine.SPINEPacketsConstants;
 import spine.SPINESupportedPlatforms;
 
+/**
+ * This is the encapsulation of messages send to/from sensor nodes
+ * for Android.
+ * 
+ * @author scott.coleman
+ *
+ */
 public class AndroidMessage extends Message {
 	
 //	private static final String TINYOS_URL_PREFIX = Properties.getDefaultProperties().getProperty(SPINESupportedPlatforms.TINYOS + "_" + Properties.URL_PREFIX_KEY);
@@ -53,6 +60,8 @@ public class AndroidMessage extends Message {
 	private static final int AM_TYPE = SPINEPacketsConstants.AM_SPINE;
 	
 	// TODO: This will change back to 8 when we switch to real shimmer hardware
+	// Currently we are using a bluetooth embedded controller to simulate sensors
+	// these controllers don't currently send the AM Header
 	protected static final int AM_HEADER_SIZE = 0;
 //	protected static final int AM_HEADER_SIZE = 8;
 	
@@ -66,6 +75,17 @@ public class AndroidMessage extends Message {
         this.amTypeSet(AM_TYPE);
     }
     
+	/**
+	 * Constructs an Android message with the given parameters
+	 * @param pktType
+	 * @param groupID
+	 * @param sourceID
+	 * @param destID
+	 * @param sequenceNumber
+	 * @param fragmentNr
+	 * @param totalFragments
+	 * @param payload
+	 */
 	protected AndroidMessage(byte pktType, byte groupID, int sourceID, int destID, byte sequenceNumber, byte fragmentNr, byte totalFragments, byte[] payload) {
     	super(SPINEPacketsConstants.SPINE_HEADER_SIZE + payload.length);
     	
@@ -84,10 +104,10 @@ public class AndroidMessage extends Message {
 	}
 	
 	/**
-	 * Construct a SpineTOSMessage from a raw SERIAL ACTIVE MESSAGE from a
-	 * Serial Forwarder.
+	 * Construct a SpineTOSMessage from a raw SERIAL ACTIVE MESSAGE from 
+	 * the AndroidBTService (which looks like a Serial Forwarder to us).
 	 *
-	 * @param	rawsfmessage raw message bytes from a serial forwarder
+	 * @param	rawsfmessage raw message bytes from the AndroidBTService
 	 */
 	public static AndroidMessage Construct(byte[] rawsfmessage) {
 		byte[] payload;
@@ -107,10 +127,14 @@ public class AndroidMessage extends Message {
 		System.arraycopy(rawsfmessage, AM_HEADER_SIZE+SPINEPacketsConstants.SPINE_HEADER_SIZE,
 						 payload, 0, payload.length);
 		
-		
 		return new AndroidMessage(h.getPktType(), h.getGroupID(), h.getSourceID(), h.getDestID(), h.getSequenceNumber(), h.getFragmentNumber(), h.getTotalFragments(), payload);
 	}
     
+	/**
+	 * Gets the header associated with the current AndroidMessage
+	 * @return Current header
+	 * @throws IllegalSpineHeaderSizeException
+	 */
 	protected SPINEHeader getHeader() throws IllegalSpineHeaderSizeException {
     	byte[] msgBuf = this.dataGet();
     	
@@ -123,6 +147,10 @@ public class AndroidMessage extends Message {
 		return new SPINEHeader(headerBuf); 
     }
     
+	/**
+	 * Returns the raw payload buffer for current AndroidMessage
+	 * @return byte array payload buffer
+	 */
 	protected byte[] getRawPayload() {
     	if (this.payloadBuf == null) {
 	    	this.payloadBuf = new byte[this.dataGet().length - SPINEPacketsConstants.SPINE_HEADER_SIZE];
@@ -131,10 +159,21 @@ public class AndroidMessage extends Message {
 		return this.payloadBuf;
     }
     
+	/**
+	 * Sets the raw payload buffer for this AndroidMessage
+	 * @param payload	Byte array of bayload buffer
+	 */
 	protected void setRawPayload(byte[] payload) {
     	this.payloadBuf = payload;
     }
 
+	/**
+	 * Parses the current AndroidMessage into a TOS message for 
+	 * forwarding to the Spine server
+	 * 
+	 * @return	TOS formatted message
+	 * @throws IllegalSpineHeaderSizeException
+	 */
 	protected TOSMessage parse() throws IllegalSpineHeaderSizeException {
 		TOSMessage msg = new TOSMessage();
 		
@@ -165,6 +204,9 @@ public class AndroidMessage extends Message {
 		return msg;
 	}
     
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString() {
 		String s = null;
 		
@@ -209,6 +251,12 @@ public class AndroidMessage extends Message {
 }
 
 
+/**
+ * Class encapsulating a generic Spine header
+ * 
+ * @author scott.coleman
+ *
+ */
 class SPINEHeader {
 	
 	private byte headerBuf[] = new byte[SPINEPacketsConstants.SPINE_HEADER_SIZE];
@@ -258,6 +306,10 @@ class SPINEHeader {
 		}
 	}
 	
+	/**
+	 * Builds a Spine header for the current AndroidMessage
+	 * @return	Spine header for current AndroidMessage
+	 */
 	protected byte[] build() {
 		
 		if (!canBuild)
@@ -283,6 +335,10 @@ class SPINEHeader {
 		return headerBuf;
 	}
 
+	/**
+	 * Parses current header buffer into this classes members
+	 * @return
+	 */
 	private boolean parse() {       
 		if (!canParse)
 			return false;
@@ -347,6 +403,9 @@ class SPINEHeader {
 		return headerBuf;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString() {
 		
 		String grp = (grpID<0)? Integer.toHexString(grpID+256): Integer.toHexString(grpID);		

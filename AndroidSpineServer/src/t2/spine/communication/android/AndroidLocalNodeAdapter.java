@@ -37,8 +37,8 @@
  * 
  * @see LocalNodeAdapter
  * @see SocketMessageListener
+ * @see AndroidMessageServer
  */
-
 package t2.spine.communication.android;
 
 import jade.util.Logger;
@@ -64,30 +64,37 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 	private String host = null;
 	private String port = null;
 	
+	/**
+	 * Vector for holding message fragments sent from a sensor before they are re-assembled and forwarded 
+	 */
 	private Vector partials = new Vector(); // <values: Partial>
 	
+	/**
+	 * Vector for holding outbound messages in the case that we are in low power mode
+	 * (indicated by sendImmediately = false)
+	 * @see sendImmediately
+	 */
 	private Vector messagesQueue = new Vector(); // <values: Msg>
 	
+	/**
+	 * Boolean saying whether to send messages to the sendor right away
+	 * or hold them until the next message is received from the sensor
+	 * (after which they are sent as a batch)
+	 */
 	private boolean sendImmediately = true;
 
+	/**
+	 * The node coordinator is responsible for the low level details transmitting/receiving messages
+	 */
 	private AndroidMessageServer nodeCoordinator = null;	
 	
 	
 	public  void init (Vector parms) {
-//		String motecom = (String)parms.elementAt(0);
-//		
-//		this.host = "127.0.0.1";
-//		this.port = "9002";
-//		
-//		if (motecom.startsWith("sf@")) {
-//			String[] hostport = motecom.substring(3).split(":");
-//			if (hostport.length >= 2) {
-//				this.host = hostport[0];
-//				this.port = hostport[1];
-//			}
-//		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.tilab.gal.LocalNodeAdapter#start()
+	 */
 	public void start () {
 		if (nodeCoordinator == null) {
 			nodeCoordinator = new AndroidMessageServer();
@@ -95,35 +102,59 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 			SPINEManager.getLogger().log(Logger.INFO, "AndroidLLocalNodeAdapter in wainting ...");
 
 			nodeCoordinator.registerListener(this);			
-
-			
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.tilab.gal.LocalNodeAdapter#stop()
+	 */
 	public void stop() {
 		nodeCoordinator = null;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.tilab.gal.LocalNodeAdapter#reset()
+	 */
 	public void reset() {
 		this.stop();
 		this.start();
 	}
 	
+	/**
+	 * Initiates sending (to the sensor) of messages built up in the messagesQueue
+	 *  @see messageReceived
+	 *  @see send
+	 * 
+	 * @param nodeID	Source id of node sending the message
+	 */
 	protected void sendMessages(int nodeID) {		
 		Msg curr = null;	
 		for (int i = 0; i<this.messagesQueue.size(); i++) {
 			curr = (Msg)this.messagesQueue.elementAt(i);
 			if (curr.destNodeID == nodeID || curr.destNodeID == SPINEPacketsConstants.SPINE_BROADCAST) {
-				nodeCoordinator.sendMessage(curr.destNodeID, curr.tosmsg);
+				nodeCoordinator.sendCommand(curr.destNodeID, curr.tosmsg);
 				this.messagesQueue.removeElementAt(i);
 				try { Thread.sleep(2); } catch (InterruptedException e) {}
 			}
 		}		
 	}
 
+	/**
+	 * Sends the specified message to the specified destination node
+	 *   Note that if sendImmediately is true the message is send immediately
+	 *   to the destination node.
+	 *   If sendImmediately is false (which indicates power saving mode) the message
+	 *   goes into messagesQueue. Messages in messagesQueue are send after the next reception
+	 *   of a message from the node.
+	 *  @see sendMessages
+	 *  @see messageReceived
+	 *   
+	 * @param destNodeID	ID of the destination
+	 * @param tosmsg		Message to send
+	 */
 	protected synchronized void send(int destNodeID, AndroidMessage tosmsg) {
 		if(this.sendImmediately) {
-			nodeCoordinator.sendMessage(destNodeID, tosmsg);
+			nodeCoordinator.sendCommand(destNodeID, tosmsg);
 			try {
 			 // check if the flag radioAlwaysOn flag is false
 				if(tosmsg.getHeader().getPktType() == SPINEPacketsConstants.START && tosmsg.getRawPayload()[2] == 0)
@@ -155,14 +186,9 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 				   h.getDestID() != SPINEPacketsConstants.SPINE_BASE_STATION || 
 				   h.getGroupID() != SPINEManager.getMyGroupID()) 
 					return;
-				
-//				if (SPINEManager.getLogger().isLoggable(Logger.INFO)) {
-//					StringBuffer str = new StringBuffer();
-//					str.append("REC. -> ");
-//					str.append(tosmsg);				
-//					SPINEManager.getLogger().log(Logger.INFO, str.toString());
-//				}	
-				
+
+				// Since we know the radio is now on, go ahead and send
+				// any outgoing messages queued up.
 				sendMessages(sourceNodeID);
 				
 				// re-assembly of fragments into complete messages 
@@ -211,12 +237,22 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 		}
 	}
 	
+	/**
+	 * Searches for message in partials array
+	 * 
+	 * @param sourceID			Source ID of message to search
+	 * @param sequenceNumber	Sequence number of message to search
+	 * @return		Returns index of partial message in partials if it is found
+	 */
 	private int inPartials(int sourceID, byte sequenceNumber) {
 		for (int i = 0; i<this.partials.size(); i++)
 			if (((Partial)partials.elementAt(i)).equal(sourceID, sequenceNumber)) return i;
 		return -1;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.tilab.gal.LocalNodeAdapter#createAPSConnection()
+	 */
 	public WSNConnection createAPSConnection() {
 		WSNConnection newConnection = new AndroidWSNConnection(this);
 		connections.add(newConnection);
@@ -227,6 +263,14 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 		return null;
 	}
 			
+	/**
+	 * Sensors may break up large message packets into fragments.
+	 * This class is used to store these fragments before they are re-assembled
+	 * and send to the event dispatcher
+	 * 
+	 * @author scott.coleman
+	 *
+	 */
 	private class Partial {
 		int nodeID;
 		byte seqNr;
@@ -257,8 +301,12 @@ public final class AndroidLocalNodeAdapter extends LocalNodeAdapter implements M
 		}
 		
 	}
-	
-	
+
+	/**
+	 * Generic base class for partial messages stored in the partials array
+	 * @author scott.coleman
+	 *
+	 */
 	private class Msg {
 		int destNodeID;
 		AndroidMessage tosmsg;

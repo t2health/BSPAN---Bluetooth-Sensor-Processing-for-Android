@@ -32,6 +32,9 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -126,6 +129,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	int mSpineChartX = 0;
 	int mAttentionChartX = 0;
 	int mMeditationChartX = 0;
+	
+	String mPackageName = "";
+	int mVersionCode;
+	String mVersionName = "";
+	
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -265,8 +273,19 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         renderer = new XYSeriesRenderer();
         renderer.setColor(Color.YELLOW); // White
         mDeviceRenderer.addSeriesRenderer(renderer);
+        
+		try {
+			PackageManager packageManager = this.getPackageManager();
+			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
+			mPackageName = info.packageName;
+			mVersionCode = info.versionCode;
+			mVersionName = info.versionName;
+			Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+		} 
+		catch (NameNotFoundException e) {
+			   	Log.e(TAG, e.toString());
+		}			
     }
-
     
     @Override
 	protected void onDestroy() {
@@ -305,13 +324,26 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		this.getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
-			case R.id.settings:
-				startActivity(new Intent("com.t2.biofeedback.MANAGER"));
-				return true;
-		
+		case R.id.settings:
+			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
+			return true;
+	
+		case R.id.about:
+			String content = "National Center for Telehealth and Technology (T2)\n\n";
+			content += "Spine Server Test Application\n";
+			content += "Version " + mVersionName;
+			
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+			
+			alert.setTitle("About");
+			alert.setMessage(content);	
+			alert.show();			
+			return true;
+	
 			default:
 				return super.onOptionsItemSelected(item);
 		}
@@ -468,6 +500,14 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void discoveryCompleted(Vector activeNodes) {
 		Log.i(TAG, "discovery completed" );	
+		
+		Node curr = null;
+		for (Object o: activeNodes)
+		{
+			curr = (Node)o;
+			Log.i(TAG, o.toString());
+		}
+			
 	}
 
 //	@Override

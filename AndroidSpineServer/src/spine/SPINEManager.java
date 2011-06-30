@@ -195,16 +195,16 @@ public class SPINEManager {
 			MOTECOM = moteCom;
 			PLATFORM = platform;	
 			
-			MY_GROUP_ID = (byte)Short.parseShort(prop.getProperty(SpineProperties.GROUP_ID_KEY), 16);
-			LOCALNODEADAPTER_CLASSNAME = prop.getProperty(PLATFORM + "_" + SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY);
-			URL_PREFIX = prop.getProperty(PLATFORM + "_" + SpineProperties.URL_PREFIX_KEY);
+			MY_GROUP_ID = (byte)Short.parseShort(prop.getProperty(Properties.GROUP_ID_KEY), 16);
+			LOCALNODEADAPTER_CLASSNAME = prop.getProperty(PLATFORM + "_" + Properties.LOCALNODEADAPTER_CLASSNAME_KEY);
+			URL_PREFIX = prop.getProperty(PLATFORM + "_" + Properties.URL_PREFIX_KEY);
 			SPINEDATACODEC_PACKAGE = SPINEDATACODEC_PACKAGE_PREFIX + 
-									prop.getProperty(PLATFORM + "_" + SpineProperties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
-			MESSAGE_CLASSNAME = prop.getProperty(PLATFORM + "_" + SpineProperties.MESSAGE_CLASSNAME_KEY);
+									prop.getProperty(PLATFORM + "_" + Properties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
+			MESSAGE_CLASSNAME = prop.getProperty(PLATFORM + "_" + Properties.MESSAGE_CLASSNAME_KEY);
 			SPINE_SERVICE_MESSAGE_CODEC_PACKAGE = SPINE_SERVICE_MESSAGE_CODEC_PACKAGE_PREFIX + 
-													prop.getProperty(PLATFORM + "_" + SpineProperties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
+													prop.getProperty(PLATFORM + "_" + Properties.SPINEDATACODEC_PACKAGE_SUFFIX_KEY) + ".";
 			
-			System.setProperty(SpineProperties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
+			System.setProperty(Properties.LOCALNODEADAPTER_CLASSNAME_KEY, LOCALNODEADAPTER_CLASSNAME);
 			nodeAdapter = LocalNodeAdapter.getLocalNodeAdapter();	
 			
 			Vector params = new Vector();

@@ -65,7 +65,12 @@ public abstract class LocalNodeAdapter {
 	  //  public abstract com.tilab.gal.ConfigurationDescriptor getConfigurationDescriptor();
 	  
 	  // Method descriptor #61 ()Lcom/tilab/gal/WSNConnection;
-	  public abstract com.tilab.gal.WSNConnection createAPSConnection();
+	/**
+	 * Creates a new connection
+	 *  The connection serves as the link between the event dispatcher and the local node adapter
+	 * @return Newly created AndroidWSNConnection
+	 */
+	public abstract com.tilab.gal.WSNConnection createAPSConnection();
 	 
 
 }
