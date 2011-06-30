@@ -17,10 +17,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Messenger;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -54,6 +58,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 
 	private AlertDialog bluetoothDisabledDialog;
     ArrayList<Messenger> mServerListeners = new ArrayList<Messenger>();
+	String mVersionName = "";    
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +80,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 			}
 		});
 		this.findViewById(R.id.bluetoothSettingsButton).setOnClickListener(this);
+		this.findViewById(R.id.about).setOnClickListener(this);
 		
 		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), null);
 		this.deviceList = (ListView)this.findViewById(R.id.list);
@@ -113,6 +119,16 @@ public class BTServiceManager extends Activity implements OnClickListener {
 				}
 			})
 			.create();
+		
+		try {
+			PackageManager packageManager = this.getPackageManager();
+			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
+			mVersionName = info.versionName;
+			Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+		} 
+		catch (NameNotFoundException e) {
+			   	Log.e(TAG, e.toString());
+		}			
 	}
 	
 	@Override
@@ -148,9 +164,20 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		switch(v.getId()) {
-			case R.id.bluetoothSettingsButton:
-				this.startBluetoothSettings();
-				break;
+		case R.id.bluetoothSettingsButton:
+			this.startBluetoothSettings();
+			break;
+		case R.id.about:
+			String content = "National Center for Telehealth and Technology (T2)\n\n";
+			content += "Spine Bluetooth Service\n";
+			content += "Version " + mVersionName;
+			
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+			
+			alert.setTitle("About");
+			alert.setMessage(content);	
+			alert.show();	
+			break;
 		}
 	}
 	

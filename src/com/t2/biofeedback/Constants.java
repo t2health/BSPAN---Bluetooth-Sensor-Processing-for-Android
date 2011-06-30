@@ -1,7 +1,7 @@
 package com.t2.biofeedback;
 
 /**
- * Global constants
+ * Global static constants
  * @author scott.coleman
  *
  */

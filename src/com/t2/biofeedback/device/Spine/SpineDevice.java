@@ -8,9 +8,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
-
 import com.t2.biofeedback.Constants;
-import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**
@@ -209,7 +207,7 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 				currentMsgSeq = seq;
 				
 //				Log.i(TAG, "Found message: FULL");
-				Util.logHexByteString(TAG, "Found message:", messageArray);
+//				Util.logHexByteString(TAG, "Found message:", messageArray);
 				
 				// this.onSpineMessage(message); // Old method of sending data to server
 				

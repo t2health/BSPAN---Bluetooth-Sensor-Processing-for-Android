@@ -77,13 +77,10 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
 			if (deviceManger != null) {
 				
-				short ClusterId = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
+				short pktType = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
 
-// TODO: Fix this so we actually look at the incoming packet and send the appropriate stuff to the device				
-				// Real dumb here. Right now the only command that is sent by the system
-				// is the discovery message so we'll assume that's what this is.
-				if (ClusterId == 1) {
-					Log.v(TAG, "*** Received a discovery msg  ***");
+				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
+					Log.i(TAG, "*** Received a discovery msg  ***");
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {

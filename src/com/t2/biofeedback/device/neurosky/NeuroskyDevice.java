@@ -8,7 +8,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import com.t2.biofeedback.Constants;
-import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**
@@ -212,7 +211,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		
 		}
 		
-		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
+//		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
 		
 		// Now we have a message we need to send it to the server via the server listener(s)
 		if (mServerListeners != null)
