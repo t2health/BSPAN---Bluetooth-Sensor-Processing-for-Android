@@ -23,6 +23,12 @@ import com.t2.biofeedback.device.zephyr.ZephyrBH;
 /**
  * This is the main interface used by the service to the actual Bluetooth 
  * devices which are connected or paired to the mobile device.
+ * 
+ *  Two options for listing devices are possible
+ * 		Display option A - Use this option if you want to list all bonded BT devices regardless of their BT Address
+ * 		Display option B - Use this option if you want to list list only devices that match the specific Addresses
+ *
+ *  Currently the code uses Option A. Option B is commented out
  *  
  * @author scott.coleman
  *
@@ -30,10 +36,27 @@ import com.t2.biofeedback.device.zephyr.ZephyrBH;
 public class DeviceManager {
 	private static final String TAG = Constants.TAG;
 	
+	/**
+	 * All devices which have been explicitly disabled by the user (Bonded or not)
+	 */
 	private ArrayList<String> disabledAddresses = new ArrayList<String>();
-	private HashMap<String,BioFeedbackDevice> availableDevices = new HashMap<String,BioFeedbackDevice>(); 
-	private HashMap<String,BioFeedbackDevice> bondedDevices = new HashMap<String,BioFeedbackDevice>(); 
+
+	/**
+	 * All bonded devices which have NOT been explicitly disabled by the user
+	 */
 	private HashMap<String,BioFeedbackDevice> enabledDevices = new HashMap<String,BioFeedbackDevice>();
+
+	/**
+	 * Option A - All bonded BT devices regardless of their BT Address
+	 * Option B - Only bonded BT devices appearing in the "device" array
+	 */
+	private HashMap<String,BioFeedbackDevice> availableDevices = new HashMap<String,BioFeedbackDevice>(); 
+
+	/**
+	 * Add bonded (paired) devices according to the Android OS
+	 */
+	private HashMap<String,BioFeedbackDevice> bondedDevices = new HashMap<String,BioFeedbackDevice>(); 
+
 
 	private Context context;
 
