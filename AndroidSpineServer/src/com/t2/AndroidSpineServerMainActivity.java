@@ -11,6 +11,8 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.helloworld.HelloWorld;
+import com.t2.biomap.BioMapActivity;
 
 import spine.datamodel.Node;
 import spine.SPINEFactory;
@@ -70,6 +72,9 @@ import android.widget.LinearLayout;
 public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = Constants.TAG;
 
+    private static AndroidSpineConnector spineConnector;
+    private static boolean firstTime = true;
+	
 	/**
      * The Spine manager contains the bulk of the Spine server. 
      */
@@ -157,6 +162,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         instance = this;
+        
+        AndroidSpineConnector.setMainActivityInstance(instance);
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
@@ -284,8 +291,20 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		} 
 		catch (NameNotFoundException e) {
 			   	Log.e(TAG, e.toString());
-		}			
-    }
+		}
+		
+		if (firstTime) 
+		{
+			firstTime = false;
+			Intent i = new Intent(this, BioMapActivity.class);
+			this.startActivity(i);
+		}
+		
+		manager.discoveryWsn();
+		
+		
+		
+    } // End onCreate(Bundle savedInstanceState)
     
     @Override
 	protected void onDestroy() {
@@ -316,6 +335,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		//filter.addAction("com.t2.biofeedback.service.zephyrdata.BROADCAST");
 		
 		this.registerReceiver(this.receiver,filter);
+		
+
+		
         		
 	}
     
@@ -331,7 +353,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		case R.id.settings:
 			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
 			return true;
-	
+			
 		case R.id.about:
 			String content = "National Center for Telehealth and Technology (T2)\n\n";
 			content += "Spine Server Test Application\n";
@@ -343,8 +365,15 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			alert.setMessage(content);	
 			alert.show();			
 			return true;
-	
-			default:
+
+			
+		case R.id.biomap:
+
+			Intent i = new Intent(this, BioMapActivity.class);
+			this.startActivity(i);
+			return true;
+
+		default:
 				return super.onOptionsItemSelected(item);
 		}
 	}
@@ -568,7 +597,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 		try {
 			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-			AndroidSpineServerMainActivity.getInstance().bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
 			Log.i(TAG, "*****************binding SUCCESS**************************");
 			
 			mIsBound = true;
@@ -600,7 +629,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	        }
 
 	        // Detach our existing connection.
-	        AndroidSpineServerMainActivity.getInstance().unbindService(mConnection);
+	        unbindService(mConnection);
 	        mIsBound = false;
 	    }
 	}		
