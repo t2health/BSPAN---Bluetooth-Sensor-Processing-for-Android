@@ -266,7 +266,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 			
 			} // End switch (data.getFunctionCode())
 			
-	        if (mInfoView != null) {
+	        if (mInfoView != null && mTarget != null) {
 	        	
 	        	if (mTarget.name.equalsIgnoreCase("scott"))
 	        	{

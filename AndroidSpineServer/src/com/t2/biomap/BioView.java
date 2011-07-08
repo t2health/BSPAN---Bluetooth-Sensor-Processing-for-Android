@@ -23,7 +23,7 @@ public class BioView extends View
 	private int mCy = 0;
     private double BuildingAngleDegrees = 23;
 	float left, top, right, bottom;
-	boolean mDebug = false;
+	boolean mDebug = true;
     
     float mCompass;
     
@@ -144,7 +144,7 @@ public class BioView extends View
         	if (deltaP < delta)
         	{
         		delta = deltaP;
-        		Log.i("fred", "delta= " + delta + ", Target = " + mTarget.name);
+//        		Log.i("fred", "delta= " + delta + ", Target = " + mTarget.name);
         		
         		// Onnly set if within 5 degrees
         		if (delta <= 10)
@@ -218,6 +218,17 @@ public class BioView extends View
         	if (mDebug)
         	{
                 // Debug - draw lines in the directions of all targets
+        		
+        		// Make the line for Bob blue
+        		if (peer.name.equalsIgnoreCase("bob"))
+        		{
+        			xPaint.setColor(Color.BLUE);
+        		}
+        		else
+        		{
+        			xPaint.setColor(Color.BLACK);
+        			
+        		}
         		
 	        	// Draw a ray to the angle to each peer
 	        	dx = (float) (100 * Math.cos(Math.toRadians(peer.angle - 90 + BuildingAngleDegrees)));
