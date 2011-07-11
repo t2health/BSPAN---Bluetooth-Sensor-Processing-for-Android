@@ -4,4 +4,7 @@
     <string name="app_name">AndroidSpineServer</string>
     <string name="StatusLogLabelText">Status/Log</string>
     <string name="discoverbutton">DiscoverAndStart</string>
+	<string name="chart_high">Hi</string>
+	<string name="chart_low">Lo</string>
+    
 </resources>

@@ -84,6 +84,9 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
         
         mLayout = (FrameLayout) findViewById(R.id.frameLayout1);
 
+        ImageView image = (ImageView) findViewById(R.id.imageView2);
+        image.setImageResource(R.drawable.biomobile);        
+
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         
         params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);    
