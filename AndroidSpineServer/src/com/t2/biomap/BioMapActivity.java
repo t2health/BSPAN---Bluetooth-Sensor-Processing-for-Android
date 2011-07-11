@@ -185,6 +185,15 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 	        if (mInfoView.isPositionMe(event.getX(), event.getY()))
 	        {
 				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
+				Bundle bundle = new Bundle();
+
+				//Add the parameters to bundle as 
+				bundle.putString("TARGET_NAME",mTarget.name);
+
+				//Add this bundle to the intent
+				i.putExtras(bundle);				
+				
+				
 				this.startActivity(i);	        	
 	        	return false;
 	        }

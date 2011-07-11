@@ -4,7 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
-    <ImageView android:src="@drawable/icon" android:id="@+id/imageView2" android:layout_height="wrap_content" android:layout_width="wrap_content" ></ImageView>
+    <ImageView android:id="@+id/imageView2" android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/biomobile" android:layout_gravity="center_horizontal"></ImageView>
 <FrameLayout android:id="@+id/frameLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
 
 
@@ -14,6 +14,7 @@
     	android:layout_height="wrap_content" 
     	android:layout_width="wrap_content" 
     	android:id="@+id/imageView1"
+		android:layout_gravity="center_vertical|center_horizontal"    	
     />
 
 	<com.t2.biomap.BioView 

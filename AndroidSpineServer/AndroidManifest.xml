@@ -17,6 +17,7 @@
 
 
         <activity android:name=".AndroidSpineServerMainActivity"
+        			android:excludeFromRecents="true"
                   android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +25,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".biomap.BioMapActivity" android:label="biomap">
+        <activity android:name=".biomap.BioMapActivity" 
+        			android:excludeFromRecents="true"
+        			android:label="biomap">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
