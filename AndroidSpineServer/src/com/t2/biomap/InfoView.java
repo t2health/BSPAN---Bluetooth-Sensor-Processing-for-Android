@@ -1,5 +1,7 @@
 package com.t2.biomap;
 
+import java.util.StringTokenizer;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -30,12 +32,17 @@ public class InfoView extends View {
 	
 	
     private double BuildingAngleDegrees = 23;
-    private BioLocation mTarget = new BioLocation();
+    public BioLocation mTarget = new BioLocation();
     
     private ShapeDrawable mDrawable;
     String mLine1 = "one";
     String mLine2 = "two";
-    String mLine3 = "three";	
+    String mLine3 = "three";
+    static final int MAX_LINES = 4;
+    static final int LINE_HEIGHT = 15;
+    int mNumLines = 0;
+    
+    String[] lines = new String[MAX_LINES];
 	
 
 	/**
@@ -121,9 +128,18 @@ public class InfoView extends View {
 	        mDrawable.setBounds((int)left, (int)top, (int)right, (int)bottom);
 	        
 	        mDrawable.draw(canvas);
-			canvas.drawText(mLine1, left + 5, top + 15, mTextPaint);
-			canvas.drawText(mLine2, left + 5, top + 30, mTextPaint);
-			canvas.drawText(mLine3, left + 5, top + 45, mTextPaint);
+
+	        float x = left + 5;
+	        float y = top + 15;
+	        
+	        for (int i = 0; i < mNumLines; i++)
+	        {
+				canvas.drawText(lines[i], x, y + (LINE_HEIGHT * i), mTextPaint);
+	        }
+	        
+//			canvas.drawText(mLine1, left + 5, top + 15, mTextPaint);
+//			canvas.drawText(mLine2, left + 5, top + 30, mTextPaint);
+//			canvas.drawText(mLine3, left + 5, top + 45, mTextPaint);
 			
 //		}
 		
@@ -148,7 +164,9 @@ public class InfoView extends View {
 	{
 		mTarget.mLat = (int) target.mLon;
 		mTarget.mLon = (int) target.mLat;
-
+		mTarget.mEnabled = target.mEnabled;
+		mTarget.mSensors = target.mSensors;
+		mTarget.mName = target.mName;
 		
 		if (target.mActive)
 		{
@@ -167,13 +185,26 @@ public class InfoView extends View {
 		
 		
 	}
-	public void setText(String line1, String line2,String line3)
+	public void setText(String line)
 	{
-	    mLine1 = line1;
+		 StringTokenizer st = new StringTokenizer(line, "\n");
+		 
+		 int i = 0;
+		 while (st.hasMoreTokens()) {
+			 lines[i++] = st.nextToken();
+			 if (i >= MAX_LINES)
+				 break;
+		 }	
+		 mNumLines = i;
+		 
+	}
+
+	
+	public void setText(String line1, String line2,String line3)
+		{
+		mLine1 = line1;
 	    mLine2 = line2;
 	    mLine3 = line3;
-		
-		
 	}	
 
 	public void setDrawable(ShapeDrawable drawable)

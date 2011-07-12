@@ -52,10 +52,10 @@ public class BioMapActivity extends Activity
 	private SensorManager mSensorManager;
     private float[] mValues;
     private BioView mBioView; 
-    private InfoView mInfoView; 
     private BioLocation mTarget;
     private Button mBtnView;    
-    
+	static final int test_1 = 1;
+
     
     private int status;
     private ImageView image;
@@ -75,10 +75,9 @@ public class BioMapActivity extends Activity
 	
 	float touchX, touchY;
 	Vector<BioLocation> currentUsers;
-	Vector<InfoView> infoViews;
-	
-	
-    private InfoView mInfoView1; 
+
+	private InfoView mInfoView; 
+	private Vector<InfoView> mToggledInfoViews;
 	
 	
 	
@@ -89,11 +88,19 @@ public class BioMapActivity extends Activity
 	
 	
 	
-    /** Called when the activity is first created. */
+    @Override
+	protected void onDestroy() {
+		super.onDestroy();
+		mToggledInfoViews.clear();
+	}
+
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.biomap_layout);
+        
+        mToggledInfoViews = new Vector<InfoView>();      
 
         View v1 = findViewById (R.id.staff); 
         v1.setOnTouchListener (this);
@@ -151,17 +158,16 @@ public class BioMapActivity extends Activity
 //        		return;
         	mCompass = values[0];     	
         	
-        	//            if (Config.LOGD) Log.d(TAG, "sensorChanged (" + values[0] + ", " + values[1] + ", " + values[2] + ")");
-//            Log.d(TAG, "sensorChanged (" + values[0] + ", " + values[1] + ", " + values[2] + ")");
             mValues = values;
             
             
+            // If a valid target has been established
+            // mTarget will be active, otherwise it will be inactive
             if (mBioView != null) {
             	mTarget = mBioView.compassChanged(values[0]);
             }
             
             if (mInfoView != null) {
-//            	mInfoView.setText("Heartrate: 86", "SkinTemp: 98.6", "");
             	mInfoView.updateTargetLocation(mTarget);
             }
 
@@ -214,15 +220,15 @@ public class BioMapActivity extends Activity
 		case MotionEvent.ACTION_DOWN:
 	        if (mInfoView.isPositionMe(event.getX(), event.getY()))
 	        {
-	    		mInfoView1 = new InfoView(this);
-	    		mInfoView1.setVisibility(View.VISIBLE);
-	    		mInfoView1.setText("fred", "is", "a");
-	    		mLayout.addView(mInfoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
 	        	
-              BioLocation t1 = mTarget;
-//              t1.mLat += 100;
-//              t1.mLon += 100;
-          	mInfoView1.updateTargetLocation(t1);	    		
+	    		InfoView infoView1 = new InfoView(this);
+	    		infoView1.setVisibility(View.VISIBLE);
+	    		mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
+	        	
+	    		// Since we know we're on the info view we know that the target location for this valid
+	    		// It has stuff like name and type of sensors
+	    		infoView1.updateTargetLocation(mTarget);	    		
+	    		mToggledInfoViews.add(infoView1);
 	        	
 	        	
 	        	return false;
@@ -339,7 +345,7 @@ public class BioMapActivity extends Activity
 				}
 				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 				{
-					mAttention = mData.poorSignalStrength;				
+					mSignalStrength = mData.poorSignalStrength;				
 //					Log.i(TAG,"Meditation = " + mData.attention);
 				}
 				break;
@@ -349,7 +355,42 @@ public class BioMapActivity extends Activity
 			
 			} // End switch (data.getFunctionCode())
 			
-	        if (mInfoView != null && mTarget != null) {
+			
+			if (mTarget == null)
+				return;
+			// Now update the info views (if any)
+			for (InfoView v: mToggledInfoViews)
+			{
+				
+				int[] test = {1,2};
+				int tlen = test.length;
+				int alen = v.mTarget.mSensors.length;
+				
+				String statusLine = "";
+				for (int i = 0; i < v.mTarget.mSensors.length; i++)
+				{
+					switch (v.mTarget.mSensors[i])
+					{
+					case Constants.DATA_SIGNAL_STRENGTH:
+						statusLine += "Connection = " + mSignalStrength + "\n";
+						break;
+					case Constants.DATA_TYPE_ATTENTION:
+						statusLine += "Attention = " + mAttention + "\n";
+						break;
+					case Constants.DATA_TYPE_MEDITATION:
+						statusLine += "Meditation = " + mMeditation + "\n";
+						break;
+					case Constants.DATA_TYPE_HEARTRATE:
+						statusLine += "Heart Rate = " + mHeartRate + "\n";
+						break;
+					}
+					
+				}
+				v.setText(statusLine);
+				
+			}
+			
+			if (mInfoView != null && mTarget != null) {
 	        	
 	        	if (mTarget.mName.equalsIgnoreCase("scott"))
 	        	{
@@ -361,8 +402,6 @@ public class BioMapActivity extends Activity
 		        	mInfoView.setText("Meditation: " + mMeditation, "", "");
 	        		
 	        	}
-	        	
-//	        	mInfoView.setText("Heartrate: " + Integer.toString(ch1Value), "SkinTemp: 98.6", "");
 	        	mInfoView.invalidate();
 	        }
 

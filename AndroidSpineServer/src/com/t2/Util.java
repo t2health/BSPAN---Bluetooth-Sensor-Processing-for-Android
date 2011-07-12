@@ -83,9 +83,7 @@ public class Util {
 								Constants.DATA_TYPE_ATTENTION,
 								Constants.DATA_TYPE_MEDITATION}, true))	;
 			currentUsers.add(new BioLocation("Scott", 126,340, 
-					new int[] {Constants.DATA_SIGNAL_STRENGTH,
-								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+					new int[] {Constants.DATA_TYPE_HEARTRATE}, true))	;
 		}
 		else
 		{
@@ -98,9 +96,7 @@ public class Util {
 								Constants.DATA_TYPE_ATTENTION,
 								Constants.DATA_TYPE_MEDITATION}, true))	;
 			currentUsers.add(new BioLocation("Scott", 110,300, 
-					new int[] {Constants.DATA_SIGNAL_STRENGTH,
-								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+					new int[] {Constants.DATA_TYPE_HEARTRATE}, true))	;
 			
 		}
 				
