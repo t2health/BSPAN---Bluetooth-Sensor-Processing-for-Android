@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -53,10 +54,6 @@ public class BioView extends View
         mTextPaint.setColor(Color.BLACK);
         
         mPeers =  new Vector <BioLocation>();
-        mPeers.add(new BioLocation("Dave", 240,283, 100));
-        mPeers.add(new BioLocation("Bob", 240,308, 112));
-        mPeers.add(new BioLocation("Scott", 110,300, 0));
-
         mUser = new BioLocation("Scott", 110,300, 229);
 	}
 	
@@ -264,5 +261,15 @@ public class BioView extends View
 		setMeasuredDimension(mWidth,mHeight);
 		updateUserLocation(mCx, mCy);
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	}
+	
+	void addPeer(BioLocation peer)
+	{
+		mPeers.add(peer);
+	}
+
+	void clearPeers()
+	{
+		mPeers.clear();
 	}
 }

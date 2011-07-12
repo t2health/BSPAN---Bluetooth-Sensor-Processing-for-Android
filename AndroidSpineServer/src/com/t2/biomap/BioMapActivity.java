@@ -20,6 +20,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Config;
 import android.util.Log;
@@ -78,6 +79,33 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
         View v1 = findViewById (R.id.staff); 
         v1.setOnTouchListener (this);
         mBioView = (BioView)v1;
+        mBioView.clearPeers();
+        
+	    String model;
+	      
+	    try {
+	    	model = Build.MODEL;
+		} catch (Exception e) {
+			model = "";
+		}
+		
+		if (model.equalsIgnoreCase("MB860")) // Motorolla Attrix
+		{
+			Log.i(TAG, "Model = " + model);
+		}		
+      
+		if (model.equalsIgnoreCase("MB860")) // Motorolla Attrix
+		{
+			mBioView.addPeer(new BioLocation("Dave", 272,333, 100));
+			mBioView.addPeer(new BioLocation("Bob", 272,363, 112));
+			mBioView.addPeer(new BioLocation("Scott", 126,340, 0));        
+		}
+		else
+		{
+			mBioView.addPeer(new BioLocation("Dave", 240,283, 100));
+			mBioView.addPeer(new BioLocation("Bob", 240,308, 112));
+			mBioView.addPeer(new BioLocation("Scott", 110,300, 0));
+		}        
 
         View v2 = findViewById (R.id.info); 
         mInfoView = (InfoView)v2;
@@ -173,7 +201,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 		}
 		if (v == mBioView)
 		{
-            Log.d(TAG, "foun Bio");
+            Log.i(TAG, "X = " + event.getX() + " , Y = " + event.getY());
 			
 		}
 
