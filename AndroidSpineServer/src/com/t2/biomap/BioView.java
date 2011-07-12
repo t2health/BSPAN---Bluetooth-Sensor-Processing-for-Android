@@ -2,12 +2,12 @@ package com.t2.biomap;
 
 import java.util.Vector;
 
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -75,12 +75,12 @@ public class BioView extends View
 		int angle1;
 		int angle2;
 		int quadrant;
-		mUser.lat =  lon;
-		mUser.lon =  lat;
+		mUser.mLat =  lon;
+		mUser.mLon =  lat;
         for (BioLocation peer: mPeers )
         {
-        	int x = (int) (peer.lat - mUser.lat);
-        	int y = (int) (peer.lon - mUser.lon);
+        	int x = (int) (peer.mLat - mUser.mLat);
+        	int y = (int) (peer.mLon - mUser.mLon);
 
         	if (y >= 0)
         		quadrant = 1;
@@ -116,8 +116,8 @@ public class BioView extends View
         	if (angle2 < 0)
         		angle2 += 360;
         		
-        	peer.angle = angle2;
-    		Log.i("arnie", " peer " + peer.name + ": " + angle1 + ",  " + angle2);
+        	peer.mAngle = angle2;
+    		Log.i("arnie", " peer " + peer.mName + ": " + angle1 + ",  " + angle2);
         }
         
 		left = (float) lon - 20;
@@ -127,16 +127,25 @@ public class BioView extends View
         
 	}
 
+	/**
+	 * Sets up mTarget active depending on what direction the compass is pointing.
+	 * 
+	 * Iterates through all of the peers and finds the peer(target) that most closely matches
+	 * the current compass angle. Makes that target active if the angle is within 10 degrees.
+	 * 
+	 * @param compass
+	 * @return
+	 */
 	public BioLocation compassChanged(float compass)
 	{
 		int delta = 360;
 		int deltaP;
 		mCompass = compass;
-		mTarget.active = false;
+		mTarget.mActive = false;
 		
         for (BioLocation peer: mPeers )
         {
-        	deltaP = (int) Math.abs(peer.angle - mCompass); 
+        	deltaP = (int) Math.abs(peer.mAngle - mCompass); 
         	
         	if (deltaP < delta)
         	{
@@ -147,7 +156,7 @@ public class BioView extends View
         		if (delta <= 10)
         			mTarget.set(peer);
         		else
-        			mTarget.active = false;
+        			mTarget.mActive = false;
         			
 //        		break;
         	}
@@ -174,26 +183,26 @@ public class BioView extends View
         Paint p = mLinePaint;        
         p.setColor(Color.RED);
         
-        if (mTarget.active)
-        	canvas.drawLine(mUser.lat,mUser.lon,mTarget.lat, mTarget.lon,p);
+        if (mTarget.mActive)
+        	canvas.drawLine(mUser.mLat,mUser.mLon,mTarget.mLat, mTarget.mLon,p);
         
         // Draw User
-        canvas.drawCircle(mUser.lat, mUser.lon, 10, mUserPaint);
+        canvas.drawCircle(mUser.mLat, mUser.mLon, 10, mUserPaint);
     	if (mDebug)
     	{
-    		canvas.drawText("" + mCompass, mUser.lat + 20, mUser.lon, mTextPaint);
+    		canvas.drawText("" + mCompass, mUser.mLat + 20, mUser.mLon, mTextPaint);
     	}
         
     	dx = (float) (50 * Math.cos(Math.toRadians(mCompass - 90 + BuildingAngleDegrees)));
     	dy = (float) (50 * Math.sin(Math.toRadians(mCompass - 90 + BuildingAngleDegrees)));
-    	canvas.drawLine(mUser.lat,mUser.lon,mUser.lat + dx,mUser.lon+dy,xPaint);        	
+    	canvas.drawLine(mUser.mLat,mUser.mLon,mUser.mLat + dx,mUser.mLon+dy,xPaint);        	
 
         
         // Draw Peers
         for (BioLocation peer: mPeers )
         {
         	
-        	if (peer.name.equalsIgnoreCase(mTarget.name))
+        	if (peer.mName.equalsIgnoreCase(mTarget.mName))
         	{
         		mTextPaint.setColor(Color.RED);
         	}
@@ -204,11 +213,11 @@ public class BioView extends View
         	
         	if (mDebug)
         	{
-            	canvas.drawText(peer.name + ": " + peer.angle, peer.lat, peer.lon, mTextPaint);
+            	canvas.drawText(peer.mName + ": " + peer.mAngle, peer.mLat, peer.mLon, mTextPaint);
         	}
         	else
         	{
-            	canvas.drawText(peer.name, peer.lat, peer.lon, mTextPaint);
+            	canvas.drawText(peer.mName, peer.mLat, peer.mLon, mTextPaint);
         	}
         	
         	
@@ -217,7 +226,7 @@ public class BioView extends View
                 // Debug - draw lines in the directions of all targets
         		
         		// Make the line for Bob blue
-        		if (peer.name.equalsIgnoreCase("bob"))
+        		if (peer.mName.equalsIgnoreCase("bob"))
         		{
         			xPaint.setColor(Color.BLUE);
         		}
@@ -228,9 +237,9 @@ public class BioView extends View
         		}
         		
 	        	// Draw a ray to the angle to each peer
-	        	dx = (float) (100 * Math.cos(Math.toRadians(peer.angle - 90 + BuildingAngleDegrees)));
-	        	dy = (float) (100 * Math.sin(Math.toRadians(peer.angle - 90 + BuildingAngleDegrees)));
-	        	canvas.drawLine(mUser.lat,mUser.lon,mUser.lat + dx,mUser.lon+dy,xPaint);        	
+	        	dx = (float) (100 * Math.cos(Math.toRadians(peer.mAngle - 90 + BuildingAngleDegrees)));
+	        	dy = (float) (100 * Math.sin(Math.toRadians(peer.mAngle - 90 + BuildingAngleDegrees)));
+	        	canvas.drawLine(mUser.mLat,mUser.mLon,mUser.mLat + dx,mUser.mLon+dy,xPaint);        	
         	}        	
         	
         	// Draw line to all for now
@@ -255,21 +264,17 @@ public class BioView extends View
 		mCx = mWidth/2;
 		mCy = mHeight/2;
 		
-		mUser.lat = mCx;
-		mUser.lon = mCy;
+		mUser.mLat = mCx;
+		mUser.mLon = mCy;
 		
 		setMeasuredDimension(mWidth,mHeight);
 		updateUserLocation(mCx, mCy);
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 	}
 	
-	void addPeer(BioLocation peer)
+	void setPeers(Vector<BioLocation> peers)
 	{
-		mPeers.add(peer);
+		mPeers = peers;
 	}
 
-	void clearPeers()
-	{
-		mPeers.clear();
-	}
 }

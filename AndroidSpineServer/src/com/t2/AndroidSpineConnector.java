@@ -1,7 +1,5 @@
 package com.t2;
 
-import android.app.Activity;
-import android.content.ServiceConnection;
 
 public class AndroidSpineConnector {
 	

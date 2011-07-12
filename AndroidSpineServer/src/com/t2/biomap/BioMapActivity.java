@@ -20,7 +20,6 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Config;
 import android.util.Log;
@@ -37,6 +36,7 @@ import android.widget.ImageView;
 import com.t2.AndroidSpineServerMainActivity;
 import com.t2.Constants;
 import com.t2.R;
+import com.t2.Util;
 
 @SuppressWarnings("deprecation")
 public class BioMapActivity extends Activity implements View.OnTouchListener, SPINEListener {
@@ -60,6 +60,8 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 	float mCompass = 0;
 	int mMeditation = 0;
 	int mHeartRate = 0;
+	Vector<BioLocation> currentUsers;
+	
 	
 	
 	
@@ -79,33 +81,9 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
         View v1 = findViewById (R.id.staff); 
         v1.setOnTouchListener (this);
         mBioView = (BioView)v1;
-        mBioView.clearPeers();
         
-	    String model;
-	      
-	    try {
-	    	model = Build.MODEL;
-		} catch (Exception e) {
-			model = "";
-		}
-		
-		if (model.equalsIgnoreCase("MB860")) // Motorolla Attrix
-		{
-			Log.i(TAG, "Model = " + model);
-		}		
-      
-		if (model.equalsIgnoreCase("MB860")) // Motorolla Attrix
-		{
-			mBioView.addPeer(new BioLocation("Dave", 272,333, 100));
-			mBioView.addPeer(new BioLocation("Bob", 272,363, 112));
-			mBioView.addPeer(new BioLocation("Scott", 126,340, 0));        
-		}
-		else
-		{
-			mBioView.addPeer(new BioLocation("Dave", 240,283, 100));
-			mBioView.addPeer(new BioLocation("Bob", 240,308, 112));
-			mBioView.addPeer(new BioLocation("Scott", 110,300, 0));
-		}        
+        currentUsers = Util.setupUsers();        
+        mBioView.setPeers(currentUsers);
 
         View v2 = findViewById (R.id.info); 
         mInfoView = (InfoView)v2;
@@ -216,7 +194,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 				Bundle bundle = new Bundle();
 
 				//Add the parameters to bundle as 
-				bundle.putString("TARGET_NAME",mTarget.name);
+				bundle.putString("TARGET_NAME",mTarget.mName);
 
 				//Add this bundle to the intent
 				i.putExtras(bundle);				
@@ -308,7 +286,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 			
 	        if (mInfoView != null && mTarget != null) {
 	        	
-	        	if (mTarget.name.equalsIgnoreCase("scott"))
+	        	if (mTarget.mName.equalsIgnoreCase("scott"))
 	        	{
 		        	mInfoView.setText("Heartrate: " + mHeartRate, "", "");
 	        		

@@ -109,17 +109,17 @@ public class InfoView extends View {
 	}
 	public void updateTargetLocation(BioLocation target)
 	{
-		mTarget.lat = (int) target.lon;
-		mTarget.lon = (int) target.lat;
+		mTarget.mLat = (int) target.mLon;
+		mTarget.mLon = (int) target.mLat;
 
 		
-		if (target.active)
+		if (target.mActive)
 		{
 			this.setVisibility(VISIBLE);
-			left = mTarget.lon - 60 - 40;
-			right = mTarget.lon + 60 - 40;
-			top = mTarget.lat + 5;
-			bottom = mTarget.lat + 60;
+			left = mTarget.mLon - 60 - 40;
+			right = mTarget.mLon + 60 - 40;
+			top = mTarget.mLat + 5;
+			bottom = mTarget.mLat + 60;
 		}
 		else
 		{

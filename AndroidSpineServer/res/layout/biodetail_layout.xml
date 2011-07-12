@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <ImageView 
+    	android:layout_height="wrap_content" 
+    	android:id="@+id/imageView1" 
+    	android:layout_width="wrap_content" 
+    	android:src="@drawable/biomobile" android:layout_gravity="center_vertical|center_horizontal">
+    </ImageView>
+		<RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/relativeLayout1">
+    <ImageView android:gravity="left" android:layout_width="wrap_content" android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/targetImage"></ImageView>
+    <Button 
+    	android:onClick="T2ButtonHandler"
+    	android:text="Return to Map View" 
+    	android:layout_width="wrap_content" 
+    	android:id="@+id/button1" 
+    	android:gravity="right" 
+    	android:layout_height="wrap_content" 
+    	android:layout_alignParentRight="true">
+    </Button>
+		</RelativeLayout>	
+
+
+	<TextView 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" 
+		android:id="@+id/StatusLogLabel" 
+		android:text="Biofeedback Dataxxxxxxxxxxxxxxxxxxxxxxx">
+	</TextView>
+	<LinearLayout 
+		android:id="@+id/frameLayout1"
+		android:layout_width="fill_parent"
+		android:layout_height="250dip">	
+	
+		<EditText 
+			android:id="@+id/deviceLog" android:layout_gravity="top"
+			android:layout_width="0dip"
+			android:layout_height="fill_parent"
+			android:background="#00FFFFFF"
+			android:textColor="#FFFFFFFF"
+			android:gravity="left"
+			android:editable="false" >
+		</EditText>
+			
+		<LinearLayout android:id="@+id/deviceChart" 
+			android:gravity="right"
+			android:orientation="horizontal"
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content" 
+			android:layout_weight="1" />
+			
+		
+	</LinearLayout>
+		<EditText 
+			android:id="@+id/detailLog" 	
+			android:layout_width="fill_parent" 
+			android:layout_height="100dip" android:editable="false" android:inputType="none">
+		</EditText>
+		
+</LinearLayout>

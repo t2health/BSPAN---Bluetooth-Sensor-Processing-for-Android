@@ -11,8 +11,9 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.helloworld.HelloWorld;
+import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
+import com.t2.Constants;
 
 import spine.datamodel.Node;
 import spine.SPINEFactory;
@@ -76,11 +77,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     private static AndroidSpineConnector spineConnector;
     private static boolean firstTime = true;
     
-    private static int DATA_TYPE_HEARTRATE = 1;
-    private static int DATA_TYPE_MEDITATION = 2;
-    private static int DATA_TYPE_ATTENTION = 3;
-    private static int DATA_SIGNAL_STRENGTH = 4;
-	
+
 	/**
      * The Spine manager contains the bulk of the Spine server. 
      */
@@ -123,7 +120,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	String mLastAttention = "";
 	String mLastSignalStrength = "";
 	
-	
+	Vector<BioLocation> currentUsers;
 	
 	
 	// Charting stuff
@@ -323,7 +320,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		if (firstTime) 
 		{
+
+			
+			currentUsers = Util.setupUsers();
+			
+			
 			firstTime = false;
+//			Intent i = new Intent(this, BioDetailActivity.class);
 			Intent i = new Intent(this, BioMapActivity.class);
 			this.startActivity(i);
 		}
@@ -455,7 +458,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				String result = Integer.toString(ch1Value);
 		    	deviceLog.setText(result);
 		    	
-		    	updateDetailLog(result, DATA_TYPE_HEARTRATE);
+		    	updateDetailLog(result, Constants.DATA_TYPE_HEARTRATE);
 
 				if (mTargetName.equalsIgnoreCase("scott"))
 				{
@@ -506,16 +509,16 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				Node source = data.getNode();
 				
 				MindsetData mData = (MindsetData) data;
-				if (mData.exeCode == 2)
+				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 				{
 					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
 					int b = mData.poorSignalStrength &  0xff;
 					String result = Integer.toHexString(b);					
 					deviceLog.setText(result);
-			    	updateDetailLog(result, DATA_SIGNAL_STRENGTH);
+			    	updateDetailLog(result, Constants.DATA_SIGNAL_STRENGTH);
 
 				}
-				if (mData.exeCode == 4)
+				if (mData.exeCode == Constants.EXECODE_ATTENTION)
 				{
 					Log.i(TAG, "attention= "  + mData.attention);
 
@@ -531,7 +534,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						
 						mMindsetAttentionSeries.add(mSpineChartX, mData.attention);
 						mSpineChartX++;
-				    	updateDetailLog(Integer.toString(mData.attention), DATA_TYPE_ATTENTION);
+				    	updateDetailLog(Integer.toString(mData.attention), Constants.DATA_TYPE_ATTENTION);
 	
 	
 						
@@ -540,7 +543,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				        }
 					}
 				}
-				if (mData.exeCode == 5)
+				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
 					Log.i(TAG, "meditation= "  + mData.meditation);
 
@@ -554,7 +557,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	//					mMeditationChartX++;
 						mMindsetMeditationSeries.add(mSpineChartX, mData.meditation);
 						mSpineChartX++;
-				    	updateDetailLog(Integer.toString(mData.meditation), DATA_TYPE_MEDITATION);
+				    	updateDetailLog(Integer.toString(mData.meditation), Constants.DATA_TYPE_MEDITATION);
 						
 	
 						
@@ -690,17 +693,17 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		if (mTargetName.equalsIgnoreCase("scott"))
 		{
-			if (dataType == DATA_TYPE_HEARTRATE)
+			if (dataType == Constants.DATA_TYPE_HEARTRATE)
 				detailLog.setText("Heart Rate: " + text);
 				
 		}
 		else
 		{
-			if (dataType == DATA_TYPE_MEDITATION)
+			if (dataType == Constants.DATA_TYPE_MEDITATION)
 				mLastMeditation = text;
-			if (dataType == DATA_TYPE_ATTENTION)
+			if (dataType == Constants.DATA_TYPE_ATTENTION)
 				mLastAttention = text;
-			if (dataType == DATA_SIGNAL_STRENGTH)
+			if (dataType == Constants.DATA_SIGNAL_STRENGTH)
 				mLastSignalStrength = text;
 			
 						
