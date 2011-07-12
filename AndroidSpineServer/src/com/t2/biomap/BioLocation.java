@@ -52,6 +52,8 @@ public class BioLocation {
 		this.mLat = l.mLat;
 		this.mLon = l.mLon;
 		this.mAngle = l.mAngle;
+		this.mSensors = l.mSensors;
+		this.mEnabled = l.mEnabled;
 		this.mActive = true;
 	}
 	

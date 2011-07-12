@@ -13,6 +13,9 @@ import android.view.View;
 
 public class InfoView extends View {
 	
+
+    public String mOwner = "";
+	
 	private Paint   mTextPaint;	
 	private Paint   mLinePaint;	
 	private Paint   mUserPaint;	
@@ -35,10 +38,44 @@ public class InfoView extends View {
     String mLine3 = "three";	
 	
 
+	/**
+	 * This constructor is used for adding dynamic views
+	 * @param context
+	 */
 	public InfoView(Context context) {
 		super(context);
+		mLinePaint = new Paint();
+		mLinePaint.setAntiAlias(true);
+		mLinePaint.setColor(0xf0606000);
+		mLinePaint.setStyle(Paint.Style.STROKE);
+		mLinePaint.setStrokeWidth(5);
+		
+		mUserPaint = new Paint();
+		mUserPaint.setAntiAlias(true);
+		mUserPaint.setColor(Color.RED);
+		mUserPaint.setStyle(Paint.Style.FILL);	
+        
+        mTextPaint = new Paint();
+        mTextPaint.setAntiAlias(true);
+        mTextPaint.setTextSize(14);
+        //  mTextPaint.setTypeface(Typeface.SERIF);		
+        mTextPaint.setTypeface(Typeface.DEFAULT_BOLD);    
+        mTextPaint.setColor(Color.BLACK);
+        
+        float[] outerR = new float[] { 5,5,5,5,5,5,5,5};
+        mDrawable = new ShapeDrawable(new RoundRectShape(outerR, null,null));       	
+        
+        
+        left = 10;
+        top = 20;
 	}
 	
+	/**
+	 * 	 * This constructor is used for adding view via static layout
+
+	 * @param context
+	 * @param attrs
+	 */
 	public InfoView (Context context, AttributeSet attrs) {
 		super (context, attrs);
 		mLinePaint = new Paint();

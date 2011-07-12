@@ -18,13 +18,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.PixelFormat;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Config;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 //import android.widget.FrameLayout.LayoutParams;
@@ -39,7 +43,10 @@ import com.t2.R;
 import com.t2.Util;
 
 @SuppressWarnings("deprecation")
-public class BioMapActivity extends Activity implements View.OnTouchListener, SPINEListener {
+public class BioMapActivity extends Activity 
+		implements View.OnTouchListener, 
+		View.OnLongClickListener,
+		SPINEListener {
     private static final String TAG = "BioMap";
 	
 	private SensorManager mSensorManager;
@@ -48,7 +55,6 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
     private InfoView mInfoView; 
     private BioLocation mTarget;
     private Button mBtnView;    
-    private FrameLayout mLayout;
     
     
     private int status;
@@ -58,10 +64,21 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 	private LayoutParams params;
 	
 	float mCompass = 0;
+
+	int mSignalStrength = 0;
+	int mAttention = 0;
 	int mMeditation = 0;
 	int mHeartRate = 0;
-	Vector<BioLocation> currentUsers;
+	private FrameLayout mLayout;
+
 	
+	
+	float touchX, touchY;
+	Vector<BioLocation> currentUsers;
+	Vector<InfoView> infoViews;
+	
+	
+    private InfoView mInfoView1; 
 	
 	
 	
@@ -80,6 +97,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 
         View v1 = findViewById (R.id.staff); 
         v1.setOnTouchListener (this);
+        v1.setOnLongClickListener(this);
         mBioView = (BioView)v1;
         
         currentUsers = Util.setupUsers();        
@@ -119,6 +137,8 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
         
 		
 		
+		
+		
     }
     
 	private final SensorListener mListener = new SensorListener() {
@@ -144,6 +164,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 //            	mInfoView.setText("Heartrate: 86", "SkinTemp: 98.6", "");
             	mInfoView.updateTargetLocation(mTarget);
             }
+
         }
 
         public void onAccuracyChanged(int sensor, int accuracy) {
@@ -171,10 +192,14 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
+		touchX = event.getX();
+		touchY = event.getY();
 		
+		// Note we won't get here because the Bioview takes up the whole screen
+		// We need to specifically query coordinates to see if we're on the info view
 		if (v == mInfoView)
 		{
-            Log.d(TAG, "foun INFO");
+            Log.d(TAG, "Touched info View");
 			
 		}
 		if (v == mBioView)
@@ -187,26 +212,27 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 		switch (action)
 		{
 		case MotionEvent.ACTION_DOWN:
-			status = START_DRAGGING;
 	        if (mInfoView.isPositionMe(event.getX(), event.getY()))
 	        {
-				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
-				Bundle bundle = new Bundle();
-
-				//Add the parameters to bundle as 
-				bundle.putString("TARGET_NAME",mTarget.mName);
-
-				//Add this bundle to the intent
-				i.putExtras(bundle);				
-				
-				
-				this.startActivity(i);	        	
+	    		mInfoView1 = new InfoView(this);
+	    		mInfoView1.setVisibility(View.VISIBLE);
+	    		mInfoView1.setText("fred", "is", "a");
+	    		mLayout.addView(mInfoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
+	        	
+              BioLocation t1 = mTarget;
+//              t1.mLat += 100;
+//              t1.mLon += 100;
+          	mInfoView1.updateTargetLocation(t1);	    		
+	        	
+	        	
 	        	return false;
 	        }
 	        else
 	        {
+	        	
 	        	if (mBioView.isPositionUser(event.getX(), event.getY()))
 	        	{
+					status = START_DRAGGING;
 	        		mBioView.updateUserLocation(event.getX(), event.getY());
 	        		mBioView.invalidate();
 		        	return true;
@@ -223,8 +249,11 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 	
 		case MotionEvent.ACTION_MOVE:
 
-        	mBioView.updateUserLocation(event.getX(), event.getY());
-        	mBioView.invalidate();		        	
+			if (status == START_DRAGGING)
+			{
+	        	mBioView.updateUserLocation(event.getX(), event.getY());
+	        	mBioView.invalidate();		        	
+			}
 			break;
 	
 		}
@@ -232,6 +261,34 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 		return false;
 	}
 
+	@Override
+	public boolean onLongClick(View view) {
+		
+        Log.d(TAG, "***********************************************************************");
+		
+        if (mInfoView.isPositionMe(touchX, touchY))
+        {
+			Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
+			Bundle bundle = new Bundle();
+
+			//Add the parameters to bundle as 
+			bundle.putString("TARGET_NAME",mTarget.mName);
+
+			//Add this bundle to the intent
+			i.putExtras(bundle);				
+			
+			
+			this.startActivity(i);
+        	return false;
+			
+        }
+        else
+        	return false;
+		
+	}
+	
+	
+	
 	@Override
 	public void newNodeDiscovered(Node newNode) {
         Log.d(TAG, "newNodeDiscovered");
@@ -261,7 +318,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 				mHeartRate = ch1Value;				
 				
 
-		        Log.i(TAG,"ch1Value= " + ch1Value);
+//		        Log.i(TAG,"ch1Value= " + ch1Value);
 				break;
 				
 			} // End case SPINEFunctionConstants.FEATURE:
@@ -270,12 +327,20 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
 				Node source = data.getNode();
 				
 				MindsetData mData = (MindsetData) data;
-				if (mData.exeCode == 4)
+				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
 					mMeditation = mData.attention;				
-		        	mInfoView.setText("Heartrate: " + mHeartRate, "Meditation: " + mMeditation, "");
-					
-					Log.i(TAG,"Meditation = " + mData.attention);
+//					Log.i(TAG,"Meditation = " + mData.attention);
+				}
+				if (mData.exeCode == Constants.EXECODE_ATTENTION)
+				{
+					mAttention = mData.attention;				
+//					Log.i(TAG,"Meditation = " + mData.attention);
+				}
+				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
+				{
+					mAttention = mData.poorSignalStrength;				
+//					Log.i(TAG,"Meditation = " + mData.attention);
 				}
 				break;
 				
@@ -313,6 +378,7 @@ public class BioMapActivity extends Activity implements View.OnTouchListener, SP
         Log.d(TAG, "discoveryCompleted");
 		
 	}
+
     
   
 }
