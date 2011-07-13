@@ -17,12 +17,14 @@ import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Config;
 import android.util.Log;
 import android.view.Gravity;
@@ -57,12 +59,16 @@ public class BioMapActivity extends Activity
     private String mPrevioiusTargetName;
     private Button mBtnView;    
 	static final int test_1 = 1;
+    private Vibrator mVibrator;
+	private float mYDiff = 0;
+	private float mXDiff = 0;
 
     
     private int status;
     private ImageView image;
 	private final static int START_DRAGGING = 0;
 	private final static int STOP_DRAGGING = 1;
+	private static final int VIBRATE_DURATION = 35;	
 	private LayoutParams params;
 	
 	float mCompass = 0;
@@ -104,6 +110,7 @@ public class BioMapActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.biomap_layout);
         me = this;
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
         mInfoViews = new Vector<InfoView>();      
 
@@ -143,7 +150,40 @@ public class BioMapActivity extends Activity
 		
 		manager.addListener(this);	   
 		manager.discoveryWsn();
+		
+		 mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);		
     }
+    
+// TODO: Add setting of  mXDiff
+    /**
+     * Checks if the new view will overlap an existing view
+     * If so then set up mYDiff, mXDiff as the amount it needs to be bumped 
+     * so as to not overlap
+     * @param newView
+     * @return
+     */
+    private InfoView targetOverlapsExistingView(InfoView newView)
+    {
+		for (InfoView existingView: mInfoViews)
+		{
+			mYDiff = existingView.top - newView.top;
+			mXDiff = existingView.left - newView.left;
+			if (
+					(Math.abs(mYDiff) < existingView.mHeight) &&
+					(Math.abs(mXDiff) < existingView.mWidth)
+					)
+			{
+				if (mYDiff > 0)
+					mYDiff = existingView.mHeight * -1 + mYDiff;
+				else
+					mYDiff += existingView.mHeight;
+					
+				return existingView;
+			}
+		}    	
+    	return null;
+    }
+    
     
 	private final SensorListener mListener = new SensorListener() {
         
@@ -165,6 +205,12 @@ public class BioMapActivity extends Activity
 	            	mTarget = mBioView.compassChanged(values[0]);
 	            }
 	            
+	            // If the target is active
+	            //	Does view exist for target
+	            //		yes - do nothing
+	            //		no - add a view for the target
+	            // Else (the target is not active
+	            //	Remove all not toggled views
 	            if (mTarget.mActive)
 	            {
 	            	if (mPrevioiusTargetName!= null && (mPrevioiusTargetName == mTarget.mName))
@@ -174,6 +220,7 @@ public class BioMapActivity extends Activity
 	            	mPrevioiusTargetName = mTarget.mName;
 	                Log.i(TAG, "New target, name = " + mTarget.mName);
 
+	                // Remove all non-toggled views
 	            	Iterator<InfoView> iterator = mInfoViews.iterator();
 	    			while (iterator.hasNext()) {
 	    				InfoView v = iterator.next();
@@ -192,19 +239,28 @@ public class BioMapActivity extends Activity
 	    			}
 	            	if (found == false)
 	            	{
+	            		// A view for the target doesn't exist. We need to create it and add it to the layout
 	    	    		InfoView infoView1 = new InfoView(me);
 	    	    		mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
 	    	        	
 	    	    		// Since we know we're on the info view we know that the target location for this valid
 	    	    		// It has stuff like name and type of sensors
-	    	    		infoView1.updateTargetLocation(mTarget);	    		
+	    	    		infoView1.updateTargetLocation(mTarget);	
+	    	    		
+	    	    		// if the new view will overlap an existing view then calculate
+	    	    		// the amount it needs to be bumped then bump it.
+	    	    		if (targetOverlapsExistingView(infoView1) != null)	    	    		
+		    	    		infoView1.bumpXY(0, mYDiff);
+	    	    		
 	    	    		mInfoViews.add(infoView1);
 	    	    		
 	            	}
 	            }
-	            else
+	            else // (!mTarget.mActive)
 	            {
 	            	mPrevioiusTargetName = null;
+	            	
+	                // Remove all non-toggled views
 	            	Iterator<InfoView> iterator = mInfoViews.iterator();
 	    			while (iterator.hasNext()) {
 	    				InfoView v = iterator.next();
@@ -267,6 +323,7 @@ public class BioMapActivity extends Activity
         	else
         	{
         		// Now check to see if we've touched any info views
+        		// if so then toggle them
             	Iterator<InfoView> iterator = mInfoViews.iterator();
     			while (iterator.hasNext()) 
     			{
@@ -276,10 +333,14 @@ public class BioMapActivity extends Activity
         				if (v1.mTarget.mToggled == false)
         				{
         					v1.mTarget.mToggled = true;
+        					v1.invalidate();
         				}
         				else
         				{
         					v1.mTarget.mToggled = false;
+        					mLayout.removeView(v1);
+        					v1.invalidate();
+        					
         				}
     				}
     				
@@ -310,6 +371,7 @@ public class BioMapActivity extends Activity
 	public boolean onLongClick(View view) {
 		
         Log.d(TAG, "***********************************************************************");
+        mVibrator.vibrate(VIBRATE_DURATION);
 		
 		// Now check to see if we've touched any info views
     	Iterator<InfoView> iterator = mInfoViews.iterator();
@@ -366,7 +428,15 @@ public class BioMapActivity extends Activity
 				byte sensor = firsFeat.getSensorCode();
 				byte featCode = firsFeat.getFeatureCode();
 				int ch1Value = firsFeat.getCh1Value();
-				mHeartRate = ch1Value;				
+				mHeartRate = ch1Value;		
+				
+				for (BioLocation user: currentUsers)
+				{
+					if (user.mAddress == source.getPhysicalID().getAsInt())
+					{
+						user.mHeartRate = mHeartRate;
+					}
+				}
 				
 
 //		        Log.i(TAG,"ch1Value= " + ch1Value);
@@ -380,17 +450,41 @@ public class BioMapActivity extends Activity
 				MindsetData mData = (MindsetData) data;
 				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
-					mMeditation = mData.attention;				
+					mMeditation = mData.meditation;		
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mMeditation = mMeditation;
+						}
+					}
+					
 //					Log.i(TAG,"Meditation = " + mData.attention);
 				}
 				if (mData.exeCode == Constants.EXECODE_ATTENTION)
 				{
-					mAttention = mData.attention;				
+					mAttention = mData.attention;	
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mAttention = mAttention;
+						}
+					}
+					
 //					Log.i(TAG,"Meditation = " + mData.attention);
 				}
 				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 				{
-					mSignalStrength = mData.poorSignalStrength;				
+					mSignalStrength = mData.poorSignalStrength;	
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mSignalStrength = mSignalStrength;
+						}
+					}
+					
 //					Log.i(TAG,"Meditation = " + mData.attention);
 				}
 				break;
@@ -406,31 +500,15 @@ public class BioMapActivity extends Activity
 			// Now update the info views (if any)
 			for (InfoView v: mInfoViews)
 			{
-				
-				int[] test = {1,2};
-				int tlen = test.length;
-				int alen = v.mTarget.mSensors.length;
-				
 				String statusLine = "";
-				for (int i = 0; i < v.mTarget.mSensors.length; i++)
+				for (BioLocation user: currentUsers)
 				{
-					switch (v.mTarget.mSensors[i])
+					if (user.mName.equalsIgnoreCase(v.mTarget.mName))
 					{
-					case Constants.DATA_SIGNAL_STRENGTH:
-						statusLine += "Connection = " + mSignalStrength + "\n";
-						break;
-					case Constants.DATA_TYPE_ATTENTION:
-						statusLine += "Attention = " + mAttention + "\n";
-						break;
-					case Constants.DATA_TYPE_MEDITATION:
-						statusLine += "Meditation = " + mMeditation + "\n";
-						break;
-					case Constants.DATA_TYPE_HEARTRATE:
-						statusLine += "Heart Rate = " + mHeartRate + "\n";
-						break;
+						statusLine = user.buildStatusText();
+						
 					}
-					
-				}
+				}						
 				v.setText(statusLine);
 				
 			}
@@ -461,6 +539,16 @@ public class BioMapActivity extends Activity
 	public void discoveryCompleted(Vector activeNodes) {
         Log.d(TAG, "discoveryCompleted");
 		
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 	}
 
     

@@ -11,9 +11,12 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 public class InfoView extends View {
+    private static final String TAG = "BioMap";
+	
 	
 
     public String mOwner = "";
@@ -22,12 +25,14 @@ public class InfoView extends View {
 	private Paint   mLinePaint;	
 	private Paint   mUserPaint;	
 	private float   mX;	
-	private int mHeight = 0;
-	private int mWidth = 0;
+	public int mHeight = 80;
+	public int mWidth = 120;
 	private int mCx = 0;
 	private int mCy = 0;
+
 	
 	float left, top, right, bottom;
+	
 	Bitmap mBitmap = null;	
 	
 	
@@ -171,20 +176,35 @@ public class InfoView extends View {
 		if (target.mActive)
 		{
 			this.setVisibility(VISIBLE);
-			left = mTarget.mLon - 60 - 40;
-			right = mTarget.mLon + 60 - 40;
+			left = mTarget.mLon - mWidth/2 - 40;
+			right = mTarget.mLon + mWidth/2 - 40;
 			top = mTarget.mLat + 5;
-			bottom = mTarget.mLat + 60;
+			bottom = mTarget.mLat + mHeight;
 		}
 		else
 		{
 			this.setVisibility(GONE);
 		}
 		invalidate();
-		
-		
-		
 	}
+
+	public void bumpXY(float X, float Y)
+	{
+		Log.i(TAG, "Bump from " + mTarget.mLat + ", " + mTarget.mLon );
+//		mTarget.mLat += mHeight;
+		mTarget.mLat += Y;
+		mTarget.mLon += X;
+		Log.i(TAG, "Bump to " + mTarget.mLat + ", " + mTarget.mLon );
+		
+			this.setVisibility(VISIBLE);
+			left = mTarget.mLon - mWidth/2 - 40;
+			right = mTarget.mLon + mWidth/2 - 40;
+			top = mTarget.mLat + 5;
+			bottom = mTarget.mLat + mHeight;
+		invalidate();
+	}
+	
+	
 	public void setText(String line)
 	{
 		 StringTokenizer st = new StringTokenizer(line, "\n");

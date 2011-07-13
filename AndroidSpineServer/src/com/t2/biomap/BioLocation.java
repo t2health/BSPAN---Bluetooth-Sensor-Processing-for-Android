@@ -1,5 +1,7 @@
 package com.t2.biomap;
 
+import com.t2.Constants;
+
 public class BioLocation {
 	public float mLat;
 	public float mLon;
@@ -9,6 +11,12 @@ public class BioLocation {
 	public int[] mSensors;
 	public boolean mEnabled;	
 	public boolean mToggled;	
+	public int mAddress;
+	int mSignalStrength = 0;
+	int mAttention = 0;
+	int mMeditation = 0;
+	int mHeartRate = 0;
+	
 	
 	public BioLocation()
 	{
@@ -25,7 +33,7 @@ public class BioLocation {
 		this.mToggled = false;
 	}
 
-	public BioLocation(String name, float lat, float lon, float angle, int[] sensors, boolean enabled)
+	public BioLocation(String name, float lat, float lon, float angle, int[] sensors, boolean enabled, int address)
 	{
 		this.mName = name;
 		this.mLat = lat;
@@ -35,10 +43,11 @@ public class BioLocation {
 		this.mSensors = sensors;
 		this.mEnabled = enabled;
 		this.mToggled = false;
+		this.mAddress = address;
 		
 	}
 
-	public BioLocation(String name, float lat, float lon, int[] sensors, boolean enabled)
+	public BioLocation(String name, float lat, float lon, int[] sensors, boolean enabled, int address)
 	{
 		this.mName = name;
 		this.mLat = lat;
@@ -47,6 +56,7 @@ public class BioLocation {
 		this.mSensors = sensors;
 		this.mEnabled = enabled;
 		this.mToggled = false;
+		this.mAddress = address;
 		
 		
 	}
@@ -64,5 +74,29 @@ public class BioLocation {
 
 	}
 	
+	public String buildStatusText()
+	{
+		String statusLine = mName + ":\n";
+		for (int i = 0; i < mSensors.length; i++)
+		{
+			switch (mSensors[i])
+			{
+			case Constants.DATA_SIGNAL_STRENGTH:
+				statusLine += "Connection = " + mSignalStrength + "\n";
+				break;
+			case Constants.DATA_TYPE_ATTENTION:
+				statusLine += "Attention = " + mAttention + "\n";
+				break;
+			case Constants.DATA_TYPE_MEDITATION:
+				statusLine += "Meditation = " + mMeditation + "\n";
+				break;
+			case Constants.DATA_TYPE_HEARTRATE:
+				
+				statusLine += "Heart Rate = " + mHeartRate + "\n";
+				break;
+			}
+		}
+		return statusLine;
+	}
 	
 }

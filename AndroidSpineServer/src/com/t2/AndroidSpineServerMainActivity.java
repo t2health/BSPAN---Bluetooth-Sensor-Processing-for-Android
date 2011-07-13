@@ -35,6 +35,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -171,6 +172,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         instance = this;
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        
         
         try {
 			// Get target name if one was supplied

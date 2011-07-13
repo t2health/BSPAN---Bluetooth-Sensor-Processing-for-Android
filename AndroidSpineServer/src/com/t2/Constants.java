@@ -9,6 +9,7 @@ public class Constants {
 	public static final String TAG = "BFDemo";
 	public static final int RESERVED_ADDRESS_ZEPHYR = -15;
 	public static final int RESERVED_ADDRESS_MINDSET = -14;
+	public static final int RESERVED_ADDRESS_ARDUINO = 1;
 	
 	
 	public static final int DATA_TYPE_HEARTRATE = 1;

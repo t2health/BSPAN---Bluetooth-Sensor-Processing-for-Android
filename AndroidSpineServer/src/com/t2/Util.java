@@ -77,26 +77,38 @@ public class Util {
 			currentUsers.add(new BioLocation("Dave", 272,333, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+								Constants.DATA_TYPE_MEDITATION}, 
+								true,
+								Constants.RESERVED_ADDRESS_MINDSET))	;
 			currentUsers.add(new BioLocation("Bob", 272,363, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+								Constants.DATA_TYPE_MEDITATION}, 
+								true,
+								Constants.RESERVED_ADDRESS_MINDSET))	;
 			currentUsers.add(new BioLocation("Scott", 126,340, 
-					new int[] {Constants.DATA_TYPE_HEARTRATE}, true))	;
+					new int[] {Constants.DATA_TYPE_HEARTRATE}, 
+					true,
+					Constants.RESERVED_ADDRESS_ARDUINO))	;
 		}
 		else
 		{
 			currentUsers.add(new BioLocation("Dave", 240,283, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+								Constants.DATA_TYPE_MEDITATION}, 
+								true,
+								Constants.RESERVED_ADDRESS_MINDSET))	;
 			currentUsers.add(new BioLocation("Bob", 240,308, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, true))	;
+								Constants.DATA_TYPE_MEDITATION}, 
+								true,
+								Constants.RESERVED_ADDRESS_MINDSET))	;
 			currentUsers.add(new BioLocation("Scott", 110,300, 
-					new int[] {Constants.DATA_TYPE_HEARTRATE}, true))	;
+					new int[] {Constants.DATA_TYPE_HEARTRATE}, 
+					true,
+					Constants.RESERVED_ADDRESS_ARDUINO))	;
 			
 		}
 				
