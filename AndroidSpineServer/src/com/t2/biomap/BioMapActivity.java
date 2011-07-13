@@ -1,5 +1,6 @@
 package com.t2.biomap;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 import spine.SPINEFactory;
@@ -53,6 +54,7 @@ public class BioMapActivity extends Activity
     private float[] mValues;
     private BioView mBioView; 
     private BioLocation mTarget;
+    private String mPrevioiusTargetName;
     private Button mBtnView;    
 	static final int test_1 = 1;
 
@@ -76,8 +78,10 @@ public class BioMapActivity extends Activity
 	float touchX, touchY;
 	Vector<BioLocation> currentUsers;
 
-	private InfoView mInfoView; 
-	private Vector<InfoView> mToggledInfoViews;
+	private Vector<InfoView> mInfoViews;
+	BioMapActivity me;
+	private static Object mInfoViewsLock = new Object();
+	
 	
 	
 	
@@ -91,7 +95,7 @@ public class BioMapActivity extends Activity
     @Override
 	protected void onDestroy() {
 		super.onDestroy();
-		mToggledInfoViews.clear();
+		mInfoViews.clear();
 	}
 
 	/** Called when the activity is first created. */
@@ -99,8 +103,9 @@ public class BioMapActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.biomap_layout);
+        me = this;
         
-        mToggledInfoViews = new Vector<InfoView>();      
+        mInfoViews = new Vector<InfoView>();      
 
         View v1 = findViewById (R.id.staff); 
         v1.setOnTouchListener (this);
@@ -110,8 +115,6 @@ public class BioMapActivity extends Activity
         currentUsers = Util.setupUsers();        
         mBioView.setPeers(currentUsers);
 
-        View v2 = findViewById (R.id.info); 
-        mInfoView = (InfoView)v2;
         
         mLayout = (FrameLayout) findViewById(R.id.frameLayout1);
 
@@ -140,37 +143,80 @@ public class BioMapActivity extends Activity
 		
 		manager.addListener(this);	   
 		manager.discoveryWsn();
-		
-        
-		
-		
-		
-		
     }
     
 	private final SensorListener mListener = new SensorListener() {
         
         public void onSensorChanged(int sensor, float[] values) {
         	
-        	
-//        	// Get rid of "chatter" by only looking for changes ? delta
-//        	if (Math.abs(values[0] - mCompass) < 1)
-//        		return;
-        	mCompass = values[0];     	
-        	
-            mValues = values;
-            
-            
-            // If a valid target has been established
-            // mTarget will be active, otherwise it will be inactive
-            if (mBioView != null) {
-            	mTarget = mBioView.compassChanged(values[0]);
-            }
-            
-            if (mInfoView != null) {
-            	mInfoView.updateTargetLocation(mTarget);
-            }
+        	synchronized(mInfoViewsLock)
+        	{
+	//        	// Get rid of "chatter" by only looking for changes ? delta
+	//        	if (Math.abs(values[0] - mCompass) < 1)
+	//        		return;
+	        	mCompass = values[0];     	
+	        	
+	            mValues = values;
+	            
+	            
+	            // If a valid target has been established
+	            // mTarget will be active, otherwise it will be inactive
+	            if (mBioView != null) {
+	            	mTarget = mBioView.compassChanged(values[0]);
+	            }
+	            
+	            if (mTarget.mActive)
+	            {
+	            	if (mPrevioiusTargetName!= null && (mPrevioiusTargetName == mTarget.mName))
+	            	{
+	            		return;
+	            	}
+	            	mPrevioiusTargetName = mTarget.mName;
+	                Log.i(TAG, "New target, name = " + mTarget.mName);
 
+	            	Iterator<InfoView> iterator = mInfoViews.iterator();
+	    			while (iterator.hasNext()) {
+	    				InfoView v = iterator.next();
+	    				if (v.mTarget.mToggled == false)
+	    				{
+	    					mLayout.removeView(v);
+		    				iterator.remove();
+	    				}
+	    			}	            	
+	            	
+	            	boolean found = false;
+	    			for (InfoView v: mInfoViews)
+	    			{
+	    				if (mTarget.mName.equalsIgnoreCase(v.mTarget.mName))
+	    					found = true;
+	    			}
+	            	if (found == false)
+	            	{
+	    	    		InfoView infoView1 = new InfoView(me);
+	    	    		mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
+	    	        	
+	    	    		// Since we know we're on the info view we know that the target location for this valid
+	    	    		// It has stuff like name and type of sensors
+	    	    		infoView1.updateTargetLocation(mTarget);	    		
+	    	    		mInfoViews.add(infoView1);
+	    	    		
+	            	}
+	            }
+	            else
+	            {
+	            	mPrevioiusTargetName = null;
+	            	Iterator<InfoView> iterator = mInfoViews.iterator();
+	    			while (iterator.hasNext()) {
+	    				InfoView v = iterator.next();
+	    				if (v.mTarget.mToggled == false)
+	    				{
+	    					mLayout.removeView(v);
+		    				iterator.remove();
+	    				}
+	    			}	            	
+	            	
+	            }
+        }
         }
 
         public void onAccuracyChanged(int sensor, int accuracy) {
@@ -201,16 +247,9 @@ public class BioMapActivity extends Activity
 		touchX = event.getX();
 		touchY = event.getY();
 		
-		// Note we won't get here because the Bioview takes up the whole screen
-		// We need to specifically query coordinates to see if we're on the info view
-		if (v == mInfoView)
-		{
-            Log.d(TAG, "Touched info View");
-			
-		}
 		if (v == mBioView)
 		{
-            Log.i(TAG, "X = " + event.getX() + " , Y = " + event.getY());
+//            Log.i(TAG, "X = " + event.getX() + " , Y = " + event.getY());
 			
 		}
 
@@ -218,37 +257,37 @@ public class BioMapActivity extends Activity
 		switch (action)
 		{
 		case MotionEvent.ACTION_DOWN:
-	        if (mInfoView.isPositionMe(event.getX(), event.getY()))
-	        {
-	        	
-	    		InfoView infoView1 = new InfoView(this);
-	    		infoView1.setVisibility(View.VISIBLE);
-	    		mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
-	        	
-	    		// Since we know we're on the info view we know that the target location for this valid
-	    		// It has stuff like name and type of sensors
-	    		infoView1.updateTargetLocation(mTarget);	    		
-	    		mToggledInfoViews.add(infoView1);
-	        	
-	        	
-	        	return false;
-	        }
-	        else
-	        {
-	        	
-	        	if (mBioView.isPositionUser(event.getX(), event.getY()))
-	        	{
-					status = START_DRAGGING;
-	        		mBioView.updateUserLocation(event.getX(), event.getY());
-	        		mBioView.invalidate();
-		        	return true;
-	        	}
-	        	else
-	        	{
-	        		return false;
-	        	}
-	        }
-	
+        	if (mBioView.isPositionUser(event.getX(), event.getY()))
+        	{
+				status = START_DRAGGING;
+        		mBioView.updateUserLocation(event.getX(), event.getY());
+        		mBioView.invalidate();
+	        	return true;
+        	}
+        	else
+        	{
+        		// Now check to see if we've touched any info views
+            	Iterator<InfoView> iterator = mInfoViews.iterator();
+    			while (iterator.hasNext()) 
+    			{
+    				InfoView v1 = iterator.next();
+    				if (v1.isPositionMe(event.getX(), event.getY()))
+    				{
+        				if (v1.mTarget.mToggled == false)
+        				{
+        					v1.mTarget.mToggled = true;
+        				}
+        				else
+        				{
+        					v1.mTarget.mToggled = false;
+        				}
+    				}
+    				
+    			}        		
+        		
+        		return false;
+        	}
+
 		case MotionEvent.ACTION_UP:
 			status = STOP_DRAGGING;			
 			break;
@@ -272,24 +311,30 @@ public class BioMapActivity extends Activity
 		
         Log.d(TAG, "***********************************************************************");
 		
-        if (mInfoView.isPositionMe(touchX, touchY))
-        {
-			Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
-			Bundle bundle = new Bundle();
-
-			//Add the parameters to bundle as 
-			bundle.putString("TARGET_NAME",mTarget.mName);
-
-			//Add this bundle to the intent
-			i.putExtras(bundle);				
+		// Now check to see if we've touched any info views
+    	Iterator<InfoView> iterator = mInfoViews.iterator();
+		while (iterator.hasNext()) 
+		{
+			InfoView v1 = iterator.next();
+			if (v1.isPositionMe(touchX, touchY))
+			{
+				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
+				Bundle bundle = new Bundle();
+	
+				//Add the parameters to bundle as 
+				bundle.putString("TARGET_NAME",mTarget.mName);
+	
+				//Add this bundle to the intent
+				i.putExtras(bundle);				
+				
+				
+				this.startActivity(i);
+	        	return false;
+			}
 			
-			
-			this.startActivity(i);
-        	return false;
-			
-        }
-        else
-        	return false;
+		}        		
+        
+        return false;
 		
 	}
 	
@@ -359,7 +404,7 @@ public class BioMapActivity extends Activity
 			if (mTarget == null)
 				return;
 			// Now update the info views (if any)
-			for (InfoView v: mToggledInfoViews)
+			for (InfoView v: mInfoViews)
 			{
 				
 				int[] test = {1,2};
@@ -390,20 +435,20 @@ public class BioMapActivity extends Activity
 				
 			}
 			
-			if (mInfoView != null && mTarget != null) {
-	        	
-	        	if (mTarget.mName.equalsIgnoreCase("scott"))
-	        	{
-		        	mInfoView.setText("Heartrate: " + mHeartRate, "", "");
-	        		
-	        	}
-	        	else
-	        	{
-		        	mInfoView.setText("Meditation: " + mMeditation, "", "");
-	        		
-	        	}
-	        	mInfoView.invalidate();
-	        }
+//			if (mInfoView != null && mTarget != null) {
+//	        	
+//	        	if (mTarget.mName.equalsIgnoreCase("scott"))
+//	        	{
+//		        	mInfoView.setText("Heartrate: " + mHeartRate, "", "");
+//	        		
+//	        	}
+//	        	else
+//	        	{
+//		        	mInfoView.setText("Meditation: " + mMeditation, "", "");
+//	        		
+//	        	}
+//	        	mInfoView.invalidate();
+//	        }
 
 			
 			

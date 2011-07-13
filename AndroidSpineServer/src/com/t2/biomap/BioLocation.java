@@ -8,6 +8,7 @@ public class BioLocation {
 	boolean mActive;
 	public int[] mSensors;
 	public boolean mEnabled;	
+	public boolean mToggled;	
 	
 	public BioLocation()
 	{
@@ -21,6 +22,7 @@ public class BioLocation {
 		this.mLon = lon;
 		this.mAngle = angle;
 		this.mActive = false;
+		this.mToggled = false;
 	}
 
 	public BioLocation(String name, float lat, float lon, float angle, int[] sensors, boolean enabled)
@@ -32,6 +34,7 @@ public class BioLocation {
 		this.mActive = false;
 		this.mSensors = sensors;
 		this.mEnabled = enabled;
+		this.mToggled = false;
 		
 	}
 
@@ -43,6 +46,8 @@ public class BioLocation {
 		this.mActive = false;
 		this.mSensors = sensors;
 		this.mEnabled = enabled;
+		this.mToggled = false;
+		
 		
 	}
 
@@ -55,6 +60,8 @@ public class BioLocation {
 		this.mSensors = l.mSensors;
 		this.mEnabled = l.mEnabled;
 		this.mActive = true;
+		this.mToggled = l.mToggled;
+
 	}
 	
 	
