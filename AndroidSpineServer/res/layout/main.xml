@@ -14,13 +14,14 @@
     <ImageView android:gravity="left" android:layout_width="wrap_content" android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/targetImage"></ImageView>
     <Button 
     	android:onClick="T2ButtonHandler"
-    	android:text="Return to Map View" 
+    	android:text="Return to\n Map View" 
     	android:layout_width="wrap_content" 
     	android:id="@+id/button1" 
     	android:gravity="right" 
     	android:layout_height="wrap_content" 
     	android:layout_alignParentRight="true">
     </Button>
+    <Button android:id="@+id/button2" android:text="Button" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_below="@+id/button1" android:layout_alignLeft="@+id/button1" android:layout_alignRight="@+id/button1"></Button>
     <Button android:onClick="T2LogButtonHandler" android:layout_width="wrap_content" android:text="Log:OFF" android:layout_height="wrap_content" android:id="@+id/buttonLogging" android:gravity="left" android:layout_toLeftOf="@+id/button1" android:layout_alignTop="@+id/button1" android:layout_alignBottom="@+id/button1"></Button>
 		</RelativeLayout>	
 

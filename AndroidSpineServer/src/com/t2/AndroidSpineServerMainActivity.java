@@ -771,8 +771,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     		        File gpxfile = new File(root, "BioData.txt");
     		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
     		        mLogWriter = new BufferedWriter(gpxwriter);
-//    		        mFileOut.write("Hello world");
-//    		        mFileOut.close();
+    		        // Put a visual marker in
+    		        mLogWriter.write("----------------------------------------------");
+
     		    }
     		} catch (IOException e) {
     		    Log.e(TAG, "Could not write file " + e.getMessage());
