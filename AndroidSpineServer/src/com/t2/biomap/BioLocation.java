@@ -12,10 +12,10 @@ public class BioLocation {
 	public boolean mEnabled;	
 	public boolean mToggled;	
 	public int mAddress;
-	int mSignalStrength = 0;
-	int mAttention = 0;
-	int mMeditation = 0;
-	int mHeartRate = 0;
+	public int mSignalStrength = 0;
+	public int mAttention = 0;
+	public int mMeditation = 0;
+	public int mHeartRate = 0;
 	
 	
 	public BioLocation()

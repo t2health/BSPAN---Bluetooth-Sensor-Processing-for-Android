@@ -1,5 +1,7 @@
 package com.t2;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import org.achartengine.ChartFactory;
@@ -123,6 +125,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	
 	Vector<BioLocation> currentUsers;
 	
+	private static Timer mDataUpdateTimer;	
+	
 	
 	// Charting stuff
 	private final static int SPINE_CHART_SIZE = 20;
@@ -136,7 +140,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
-	private EditText deviceLog;
 	private EditText detailLog;
 	
 	int mSpineChartX = 0;
@@ -212,7 +215,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 //            }
 //        });        
         
-        deviceLog = (EditText) findViewById(R.id.deviceLog);
         detailLog = (EditText) findViewById(R.id.detailLog);
         
 		// Initialize SPINE by passing the fileName with the configuration properties
@@ -320,12 +322,27 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		catch (NameNotFoundException e) {
 			   	Log.e(TAG, e.toString());
 		}
+		currentUsers = Util.setupUsers();
+		
+		mDataUpdateTimer = new Timer();
+		mDataUpdateTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				TimerMethod();
+			}
+
+		}, 0, 1000);		
+		
 		
 		if (firstTime) 
 		{
 
-			
-			currentUsers = Util.setupUsers();
+			if (mDataUpdateTimer != null)
+			{
+				mDataUpdateTimer.purge();
+		    	mDataUpdateTimer.cancel();
+				
+			}
 			
 			
 			firstTime = false;
@@ -338,6 +355,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		
 		
+		
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
@@ -345,6 +363,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	super.onDestroy();
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
+    	
+    	if (mDataUpdateTimer != null)
+    	{
+	    	mDataUpdateTimer.purge();
+	    	mDataUpdateTimer.cancel();
+    	}
+	    	
     	doUnbindService();    	
 	}
 
@@ -403,6 +428,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			
 		case R.id.biomap:
 
+	    	mDataUpdateTimer.purge();
+	    	mDataUpdateTimer.cancel();
+
 			Intent i = new Intent(this, BioMapActivity.class);
 			this.startActivity(i);
 			return true;
@@ -459,10 +487,17 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				byte featCode = firsFeat.getFeatureCode();
 				int ch1Value = firsFeat.getCh1Value();
 				String result = Integer.toString(ch1Value);
-		    	deviceLog.setText(result);
+				
+				// Look up the id of this view and update the owners data
+				// that corresponds to this address
+				for (BioLocation user: currentUsers)
+				{
+					if (user.mAddress == source.getPhysicalID().getAsInt())
+					{
+						user.mHeartRate = ch1Value;
+					}
+				}				
 		    	
-		    	updateDetailLog(result, Constants.DATA_TYPE_HEARTRATE);
-
 				if (mTargetName.equalsIgnoreCase("scott"))
 				{
 			    	if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
@@ -492,10 +527,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				double skinTempF = (skinTemp * 9 / 5) + 32;				
 				Log.i(TAG,"heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
 				
-				String text = deviceLog.getText().toString();
-				text = heartRate + "\n" + text;
-				deviceLog.setText(text);		
-
 				if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
 				{
 					mMindsetAttentionSeries.remove(0);
@@ -515,16 +546,34 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 				{
 					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
-					int b = mData.poorSignalStrength &  0xff;
-					String result = Integer.toHexString(b);					
-					deviceLog.setText(result);
-			    	updateDetailLog(result, Constants.DATA_SIGNAL_STRENGTH);
-
+//					int b = mData.poorSignalStrength &  0xff;
+//					String result = Integer.toHexString(b);					
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mSignalStrength = mData.poorSignalStrength;
+						}
+					}					
+					
+	
 				}
 				if (mData.exeCode == Constants.EXECODE_ATTENTION)
 				{
 					Log.i(TAG, "attention= "  + mData.attention);
 
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mAttention = mData.attention;
+						}
+					}					
+					
 					if (!mTargetName.equalsIgnoreCase("scott"))
 					{
 						if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
@@ -537,9 +586,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						
 						mMindsetAttentionSeries.add(mSpineChartX, mData.attention);
 						mSpineChartX++;
-				    	updateDetailLog(Integer.toString(mData.attention), Constants.DATA_TYPE_ATTENTION);
-	
-	
 						
 						if (mDeviceChartView != null) {
 				            mDeviceChartView.repaint();
@@ -549,6 +595,16 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
 					Log.i(TAG, "meditation= "  + mData.meditation);
+					
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mMeditation = mData.meditation;
+						}
+					}					
 
 					if (!mTargetName.equalsIgnoreCase("scott"))
 					{					
@@ -560,8 +616,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	//					mMeditationChartX++;
 						mMindsetMeditationSeries.add(mSpineChartX, mData.meditation);
 						mSpineChartX++;
-				    	updateDetailLog(Integer.toString(mData.meditation), Constants.DATA_TYPE_MEDITATION);
-						
 	
 						
 						if (mDeviceChartView != null) {
@@ -579,8 +633,20 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				case SPINEFunctionConstants.ALARM:
 					Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
 					break;
-			}
-		}
+			} // End switch (data.getFunctionCode())
+			
+			String statusLine = "";
+			for (BioLocation user: currentUsers)
+			{
+				if (user.mName.equalsIgnoreCase(mTargetName))
+				{
+					statusLine = user.buildStatusText();
+						detailLog.setText(statusLine);					
+					
+				}
+			}			
+			
+		} // End if (data != null)
 	}
 	
 	@Override
@@ -596,25 +662,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			
 	}
 
-//	@Override
-//	// This is only used when the message server sends data directly to the application.
-//	// (It should only send via Spine path)
-//	public void onZephyrDataReceived(ZephyrData bfmd) {
-////		//int data = byteArrayToInt(new byte[] {bfmd.msgBytes[12], bfmd.msgBytes[13]});;  // Heart rate		
-////		int data = byteArrayToInt(new byte[] {bfmd.msgBytes[16], bfmd.msgBytes[17]})/10;		// Skin temp
-////		String text = deviceLog.getText().toString();
-////		text = data + "\n" + text;
-////		deviceLog.setText(text);		
-////		
-////		if (mCurrentDeviceSeries.getItemCount() > SPINE_CHART_SIZE)
-////		{
-////			mCurrentDeviceSeries.remove(0);
-////		}
-////		mCurrentDeviceSeries.add(mDeviceChartX++, data);
-////        if (mDeviceChartView != null) {
-////            mDeviceChartView.repaint();
-////        }        
-//	}
+
 
 	/**
 	 * Converts a byte array to an integer
@@ -741,5 +789,44 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		this.startActivity(i);
 		
 	}
+	
+	private void TimerMethod()
+	{
+		//This method is called directly by the timer
+		//and runs in the same thread as the timer.
+
+		//We call the method that will work with the UI
+		//through the runOnUiThread method.
+		this.runOnUiThread(Timer_Tick);
+	}
+
+	private Runnable Timer_Tick = new Runnable() {
+		public void run() {
+
+		//This method runs in the same thread as the UI.    	       
+
+		//Do something to the UI thread here
+			Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+			
+
+		}
+	};
+
+
+
+	@Override
+	protected void onPause() {
+		Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+		// TODO Auto-generated method stub
+		super.onPause();
+	}
+
+	@Override
+	protected void onStop() {
+		Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+		// TODO Auto-generated method stub
+		super.onStop();
+	}	
+	
 	
 }

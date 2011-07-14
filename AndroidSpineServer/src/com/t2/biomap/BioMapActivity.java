@@ -441,6 +441,8 @@ public class BioMapActivity extends Activity
 				int ch1Value = firsFeat.getCh1Value();
 				mHeartRate = ch1Value;		
 				
+				// Look up the id of this view and update the owners data
+				// that corresponds to this address
 				for (BioLocation user: currentUsers)
 				{
 					if (user.mAddress == source.getPhysicalID().getAsInt())
@@ -461,6 +463,8 @@ public class BioMapActivity extends Activity
 				MindsetData mData = (MindsetData) data;
 				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
 					mMeditation = mData.meditation;		
 					for (BioLocation user: currentUsers)
 					{
@@ -475,6 +479,8 @@ public class BioMapActivity extends Activity
 				if (mData.exeCode == Constants.EXECODE_ATTENTION)
 				{
 					mAttention = mData.attention;	
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
 					for (BioLocation user: currentUsers)
 					{
 						if (user.mAddress == source.getPhysicalID().getAsInt())
@@ -488,6 +494,8 @@ public class BioMapActivity extends Activity
 				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 				{
 					mSignalStrength = mData.poorSignalStrength;	
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
 					for (BioLocation user: currentUsers)
 					{
 						if (user.mAddress == source.getPhysicalID().getAsInt())
@@ -523,27 +531,7 @@ public class BioMapActivity extends Activity
 				v.setText(statusLine);
 				
 			}
-			
-//			if (mInfoView != null && mTarget != null) {
-//	        	
-//	        	if (mTarget.mName.equalsIgnoreCase("scott"))
-//	        	{
-//		        	mInfoView.setText("Heartrate: " + mHeartRate, "", "");
-//	        		
-//	        	}
-//	        	else
-//	        	{
-//		        	mInfoView.setText("Meditation: " + mMeditation, "", "");
-//	        		
-//	        	}
-//	        	mInfoView.invalidate();
-//	        }
-
-			
-			
-			
 		} // end if (data != null)
-		
 	}
 
 	@Override

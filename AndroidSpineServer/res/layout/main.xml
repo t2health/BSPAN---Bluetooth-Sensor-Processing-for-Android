@@ -35,16 +35,6 @@
 		android:layout_width="fill_parent"
 		android:layout_height="250dip">	
 	
-		<EditText 
-			android:id="@+id/deviceLog" android:layout_gravity="top"
-			android:layout_width="0dip"
-			android:layout_height="fill_parent"
-			android:background="#00FFFFFF"
-			android:textColor="#FFFFFFFF"
-			android:gravity="left"
-			android:editable="false" >
-		</EditText>
-			
 		<LinearLayout android:id="@+id/deviceChart" 
 			android:gravity="right"
 			android:orientation="horizontal"
