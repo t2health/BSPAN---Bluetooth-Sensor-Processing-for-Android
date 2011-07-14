@@ -1,5 +1,13 @@
 package com.t2;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -44,7 +52,10 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -151,6 +162,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	String mVersionName = "";
 	Vector<String>  mDeviceDetailContent = new Vector<String>();
 	
+	
+	BufferedWriter mLogWriter = null;
+	boolean mLoggingEnabled = false;
 	
 	
 	/**
@@ -263,11 +277,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			})
 			.setMessage("Connecting...")
 			.create();
-
-
-        
-   
-
         
         // Set up Device data chart
         if (mDeviceChartView == null) 
@@ -322,8 +331,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		catch (NameNotFoundException e) {
 			   	Log.e(TAG, e.toString());
 		}
+		
+		// Load users from the database
 		currentUsers = Util.setupUsers();
 		
+		// Set up a timer to do graphical updates
 		mDataUpdateTimer = new Timer();
 		mDataUpdateTimer.schedule(new TimerTask() {
 			@Override
@@ -337,12 +349,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		if (firstTime) 
 		{
 
-			if (mDataUpdateTimer != null)
-			{
-				mDataUpdateTimer.purge();
-		    	mDataUpdateTimer.cancel();
-				
-			}
 			
 			
 			firstTime = false;
@@ -352,6 +358,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		}
 		
 		manager.discoveryWsn();
+		
+
+		
 		
 		
 		
@@ -364,11 +373,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
     	
-    	if (mDataUpdateTimer != null)
-    	{
-	    	mDataUpdateTimer.purge();
-	    	mDataUpdateTimer.cancel();
-    	}
 	    	
     	doUnbindService();    	
 	}
@@ -428,9 +432,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			
 		case R.id.biomap:
 
-	    	mDataUpdateTimer.purge();
-	    	mDataUpdateTimer.cancel();
-
 			Intent i = new Intent(this, BioMapActivity.class);
 			this.startActivity(i);
 			return true;
@@ -486,7 +487,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				byte sensor = firsFeat.getSensorCode();
 				byte featCode = firsFeat.getFeatureCode();
 				int ch1Value = firsFeat.getCh1Value();
-				String result = Integer.toString(ch1Value);
 				
 				// Look up the id of this view and update the owners data
 				// that corresponds to this address
@@ -497,20 +497,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						user.mHeartRate = ch1Value;
 					}
 				}				
-		    	
-				if (mTargetName.equalsIgnoreCase("scott"))
-				{
-			    	if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
-					{
-						mCurrentSpineSeries.remove(0);
-					}
-
-			    	mCurrentSpineSeries.add(mSpineChartX++, ch1Value);
-					if (mDeviceChartView != null) {
-			            mDeviceChartView.repaint();
-			        }   			    	
-				}
 		        Log.i(TAG,"ch1Value= " + ch1Value);
+		    	
 				break;
 			}				
 			case SPINEFunctionConstants.ZEPHYR: {
@@ -574,23 +562,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						}
 					}					
 					
-					if (!mTargetName.equalsIgnoreCase("scott"))
-					{
-						if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
-						{
-							mMindsetAttentionSeries.remove(0);
-						}
-						
-	//					mMindsetAttentionSeries.add(mAttentionChartX, mData.attention);
-	//					mAttentionChartX++;
-						
-						mMindsetAttentionSeries.add(mSpineChartX, mData.attention);
-						mSpineChartX++;
-						
-						if (mDeviceChartView != null) {
-				            mDeviceChartView.repaint();
-				        }
-					}
 				}
 				if (mData.exeCode == Constants.EXECODE_MEDITATION)
 				{
@@ -605,23 +576,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							user.mMeditation = mData.meditation;
 						}
 					}					
-
-					if (!mTargetName.equalsIgnoreCase("scott"))
-					{					
-						if (mMindsetMeditationSeries.getItemCount() > SPINE_CHART_SIZE)
-						{
-							mMindsetMeditationSeries.remove(0);
-						}
-	//					mMindsetMeditationSeries.add(mMeditationChartX, mData.meditation);
-	//					mMeditationChartX++;
-						mMindsetMeditationSeries.add(mSpineChartX, mData.meditation);
-						mSpineChartX++;
-	
-						
-						if (mDeviceChartView != null) {
-				            mDeviceChartView.repaint();
-				        }
-					}
 				}
 				break;
 				
@@ -642,7 +596,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				{
 					statusLine = user.buildStatusText();
 						detailLog.setText(statusLine);					
-					
 				}
 			}			
 			
@@ -790,6 +743,52 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 	
+	public void T2LogButtonHandler(View target)
+	{
+        final Button discoveryButton = (Button) findViewById(R.id.buttonLogging);
+        if (mLoggingEnabled == true)
+        {
+        	mLoggingEnabled = false;
+        	discoveryButton.setText("Log:OFF");
+//        	discoveryButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+        	discoveryButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+        	
+            try {
+            	if (mLogWriter != null)
+            		mLogWriter.close();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}        	
+        }
+        else
+        {
+        	
+    		// Open a file for saving data
+    		try {
+    		    File root = Environment.getExternalStorageDirectory();
+    		    if (root.canWrite()){
+    		        File gpxfile = new File(root, "BioData.txt");
+    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+    		        mLogWriter = new BufferedWriter(gpxwriter);
+//    		        mFileOut.write("Hello world");
+//    		        mFileOut.close();
+    		    }
+    		} catch (IOException e) {
+    		    Log.e(TAG, "Could not write file " + e.getMessage());
+    		}		
+    		        	
+        	
+        	
+        	mLoggingEnabled = true;
+        	discoveryButton.setText("Log:ON");
+        	discoveryButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+        	
+        	
+        }
+		
+	}
+	
 	private void TimerMethod()
 	{
 		//This method is called directly by the timer
@@ -800,14 +799,78 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		this.runOnUiThread(Timer_Tick);
 	}
 
+	//This method runs in the same thread as the UI.    	       
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-		//This method runs in the same thread as the UI.    	       
+			Log.i(TAG, "Timer tick");
+//	        mFileOut.write("Hello world");
+			String logData = "" + mTargetName + ", "; 
 
-		//Do something to the UI thread here
-			Log.i(TAG, "Spine server Test Application Version " + mVersionName);
 			
+			//String statusLine = "";
+			for (BioLocation user: currentUsers)
+			{
+				if (user.mName.equalsIgnoreCase(mTargetName))
+				{
+			    	
+			    	
+					for (int i = 0; i < user.mSensors.length; i++)
+					{
+						switch (user.mSensors[i])
+						{
+						case Constants.DATA_TYPE_ATTENTION:
+							mMindsetAttentionSeries.add(mSpineChartX, user.mAttention);
+							logData += "ATTN, " + user.mAttention + ",";
+							break;
+						case Constants.DATA_TYPE_MEDITATION:
+							mMindsetMeditationSeries.add(mSpineChartX, user.mMeditation);
+							logData += "MED, " + user.mMeditation + ",";
+							break;
+						case Constants.DATA_TYPE_HEARTRATE:
+							mCurrentSpineSeries.add(mSpineChartX, user.mHeartRate);
+							logData += "HR, " + user.mHeartRate + ",";
+							break;
+						}
+					}			    	
+			    	
+			    	
+					mSpineChartX++;
+			    	if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
+						mCurrentSpineSeries.remove(0);
+			    	if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
+			    		mMindsetAttentionSeries.remove(0);
+			    	if (mMindsetMeditationSeries.getItemCount() > SPINE_CHART_SIZE)
+			    		mMindsetMeditationSeries.remove(0);
+			    	
+
+					if (mDeviceChartView != null) {
+			            mDeviceChartView.repaint();
+			        }   			    	
+
+				
+				}
+			}			
+			
+			if (mLoggingEnabled == true)
+			{
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+				
+				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+				currentDateTimeString = sdf.format(new Date());
+				
+				
+				
+				logData = currentDateTimeString + ", " + logData + "\n";
+				
+		        try {
+		        	if (mLogWriter != null)
+		        		mLogWriter.write(logData);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}			
 
 		}
 	};
@@ -816,14 +879,25 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "Spine server Test Application Version " + mVersionName);
-		// TODO Auto-generated method stub
+		Log.i(TAG, "Application Pausing");
+		mDataUpdateTimer.purge();
+    	mDataUpdateTimer.cancel();
+    	
+        try {
+        	if (mLogWriter != null)
+        		mLogWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		    	
+
 		super.onPause();
 	}
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+		Log.i(TAG, "Application Stopping");
 		// TODO Auto-generated method stub
 		super.onStop();
 	}	

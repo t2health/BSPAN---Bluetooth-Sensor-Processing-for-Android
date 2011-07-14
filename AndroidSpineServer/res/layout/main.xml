@@ -21,6 +21,7 @@
     	android:layout_height="wrap_content" 
     	android:layout_alignParentRight="true">
     </Button>
+    <Button android:onClick="T2LogButtonHandler" android:layout_width="wrap_content" android:text="Log:OFF" android:layout_height="wrap_content" android:id="@+id/buttonLogging" android:gravity="left" android:layout_toLeftOf="@+id/button1" android:layout_alignTop="@+id/button1" android:layout_alignBottom="@+id/button1"></Button>
 		</RelativeLayout>	
 
 

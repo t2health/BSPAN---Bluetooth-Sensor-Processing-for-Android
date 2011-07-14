@@ -1,5 +1,13 @@
 package com.t2.biomap;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -25,6 +33,7 @@ import android.content.res.Resources;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Vibrator;
 import android.util.Config;
 import android.util.Log;
@@ -66,7 +75,7 @@ public class BioMapActivity extends Activity
 
 	private final static int START_DRAGGING = 0;
 	private final static int STOP_DRAGGING = 1;
-	private static final int VIBRATE_DURATION = 35;	
+	private static final int VIBRATE_DURATION = 100;	
 	private LayoutParams params;
 	
 	float mCompass = 0;
@@ -76,6 +85,8 @@ public class BioMapActivity extends Activity
 	int mMeditation = 0;
 	int mHeartRate = 0;
 	private FrameLayout mLayout;
+    private static boolean firstTime = true;
+
 
 	
 	
@@ -86,8 +97,9 @@ public class BioMapActivity extends Activity
 	BioMapActivity me;
 	private static Object mInfoViewsLock = new Object();
 	
-	
-	
+
+
+
 	
 	/**
      * The Spine manager contains the bulk of the Spine server. 
@@ -100,7 +112,6 @@ public class BioMapActivity extends Activity
 	protected void onDestroy() {
 		super.onDestroy();
 		mInfoViews.clear();
-		saveState();
 		
 	}
 
@@ -156,8 +167,15 @@ public class BioMapActivity extends Activity
 		
 		mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);	
 		restoreState();
+		
+		
+		
+
+		
 		 
     }
+    
+    
     
 // TODO: Add setting of  mXDiff
     /**
@@ -327,35 +345,36 @@ public class BioMapActivity extends Activity
         	}
         	else
         	{
-        		// Now check to see if we've touched any info views
-        		// if so then toggle them
-            	Iterator<InfoView> iterator = mInfoViews.iterator();
-    			while (iterator.hasNext()) 
-    			{
-    				InfoView v1 = iterator.next();
-    				if (v1.isPositionMe(event.getX(), event.getY()))
-    				{
-        				if (v1.mTarget.mToggled == false)
-        				{
-        					v1.mTarget.mToggled = true;
-        					v1.invalidate();
-        				}
-        				else
-        				{
-        					v1.mTarget.mToggled = false;
-        					mLayout.removeView(v1);
-        					v1.invalidate();
-        					
-        				}
-    				}
-    				
-    			}        		
         		
         		return false;
         	}
 
 		case MotionEvent.ACTION_UP:
-			mDragStatus = STOP_DRAGGING;			
+			mDragStatus = STOP_DRAGGING;	
+    		// Now check to see if we've touched any info views
+    		// if so then toggle them
+        	Iterator<InfoView> iterator = mInfoViews.iterator();
+			while (iterator.hasNext()) 
+			{
+				InfoView v1 = iterator.next();
+				if (v1.isPositionMe(event.getX(), event.getY()))
+				{
+    				if (v1.mTarget.mToggled == false)
+    				{
+    					v1.mTarget.mToggled = true;
+    					v1.invalidate();
+    				}
+    				else
+    				{
+    					v1.mTarget.mToggled = false;
+    					mLayout.removeView(v1);
+    					v1.invalidate();
+    					
+    				}
+				}
+				
+			}        		
+			
 			break;
 	
 		case MotionEvent.ACTION_MOVE:
@@ -388,20 +407,32 @@ public class BioMapActivity extends Activity
 				
 				// Un-toggle the current view (because it would have been
 				// toggled by the initial press of this long press
-				v1.mTarget.mToggled = false;
-				saveState();
+//				v1.mTarget.mToggled = false;
+//				saveState();
 
 				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
 				Bundle bundle = new Bundle();
 	
 				//Add the parameters to bundle as 
-				bundle.putString("TARGET_NAME",mTarget.mName);
+//				bundle.putString("TARGET_NAME",mTarget.mName);
+				bundle.putString("TARGET_NAME",v1.mTarget.mName);
 	
 				//Add this bundle to the intent
 				i.putExtras(bundle);				
 				
 				
 				this.startActivity(i);
+
+				// This will ensure that that only the first Biomap will be saves on the history stack
+				if (firstTime) 
+				{
+					firstTime = false;				
+				}
+				else
+				{
+					this.finish();
+				}
+					
 	        	return false;
 			}
 			
@@ -664,6 +695,13 @@ public class BioMapActivity extends Activity
 //		super.onSaveInstanceState(outState);
 //	}
 
-    
+	protected void onPause() {
+		Log.i(TAG, "Application Pausing");
+
+
+		saveState();
+		super.onPause();
+	}
+   
   
 }
