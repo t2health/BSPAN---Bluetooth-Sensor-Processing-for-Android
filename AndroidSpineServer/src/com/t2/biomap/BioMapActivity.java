@@ -3,6 +3,8 @@ package com.t2.biomap;
 import java.util.Iterator;
 import java.util.Vector;
 
+
+
 import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
 import spine.SPINEListener;
@@ -20,18 +22,14 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.PixelFormat;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Config;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 //import android.widget.FrameLayout.LayoutParams;
@@ -64,8 +62,8 @@ public class BioMapActivity extends Activity
 	private float mXDiff = 0;
 
     
-    private int status;
-    private ImageView image;
+    private int mDragStatus;
+
 	private final static int START_DRAGGING = 0;
 	private final static int STOP_DRAGGING = 1;
 	private static final int VIBRATE_DURATION = 35;	
@@ -102,6 +100,8 @@ public class BioMapActivity extends Activity
 	protected void onDestroy() {
 		super.onDestroy();
 		mInfoViews.clear();
+		saveState();
+		
 	}
 
 	/** Called when the activity is first created. */
@@ -110,8 +110,11 @@ public class BioMapActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.biomap_layout);
         me = this;
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         
+        mDragStatus = STOP_DRAGGING;	
+        
+        Log.i("arnie", "onCreate");
         mInfoViews = new Vector<InfoView>();      
 
         View v1 = findViewById (R.id.staff); 
@@ -151,7 +154,9 @@ public class BioMapActivity extends Activity
 		manager.addListener(this);	   
 		manager.discoveryWsn();
 		
-		 mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);		
+		mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);	
+		restoreState();
+		 
     }
     
 // TODO: Add setting of  mXDiff
@@ -315,7 +320,7 @@ public class BioMapActivity extends Activity
 		case MotionEvent.ACTION_DOWN:
         	if (mBioView.isPositionUser(event.getX(), event.getY()))
         	{
-				status = START_DRAGGING;
+				mDragStatus = START_DRAGGING;
         		mBioView.updateUserLocation(event.getX(), event.getY());
         		mBioView.invalidate();
 	        	return true;
@@ -350,12 +355,12 @@ public class BioMapActivity extends Activity
         	}
 
 		case MotionEvent.ACTION_UP:
-			status = STOP_DRAGGING;			
+			mDragStatus = STOP_DRAGGING;			
 			break;
 	
 		case MotionEvent.ACTION_MOVE:
 
-			if (status == START_DRAGGING)
+			if (mDragStatus == START_DRAGGING)
 			{
 	        	mBioView.updateUserLocation(event.getX(), event.getY());
 	        	mBioView.invalidate();		        	
@@ -380,6 +385,12 @@ public class BioMapActivity extends Activity
 			InfoView v1 = iterator.next();
 			if (v1.isPositionMe(touchX, touchY))
 			{
+				
+				// Un-toggle the current view (because it would have been
+				// toggled by the initial press of this long press
+				v1.mTarget.mToggled = false;
+				saveState();
+
 				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
 				Bundle bundle = new Bundle();
 	
@@ -541,15 +552,129 @@ public class BioMapActivity extends Activity
 		
 	}
 
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-	}
+	void restoreToggledView(float lat, float lon, String name)
+	{
+		if (!name.equalsIgnoreCase(""))
+		{
+			BioLocation target = new BioLocation(name, lat, lon, 0);
+			
+			for (BioLocation user: currentUsers)
+			{
+				if (user.mName.equalsIgnoreCase(name))
+				{
+        			target.set(user);
+				}
+			}
+			
+			
+			
+			target.mActive = true;
 
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
+			// A view for the target doesn't exist. We need to create it and add it to the layout
+			InfoView infoView1 = new InfoView(me);
+			mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
+	    	
+			// Since we know we're on the info view we know that the target location for this valid
+			// It has stuff like name and type of sensors
+			infoView1.updateTargetLocation(target);	
+			infoView1.mTarget.mToggled = true;			
+			// if the new view will overlap an existing view then calculate
+			// the amount it needs to be bumped then bump it.
+			if (targetOverlapsExistingView(infoView1) != null)	    	    		
+	    		infoView1.bumpXY(0, mYDiff);
+			
+			mInfoViews.add(infoView1);
+		}
+		
+		
 	}
+	void restoreState()
+	{
+		String name;
+		float lat = SharedPref.getFloat(this, "UserLat", 0);
+		float lon = SharedPref.getFloat(this, "UserLon", 0);
+		mBioView.updateUserLocation(lat,lon);
+		mBioView.invalidate();
+		
+		lat = SharedPref.getFloat(this, "V1Lat", 0);
+		lon = SharedPref.getFloat(this, "V1Lon", 0);
+		name = SharedPref.getString(this, "V1Name", "");
+		restoreToggledView(lat, lon, name);
+		
+		lat = SharedPref.getFloat(this, "V2Lat", 0);
+		lon = SharedPref.getFloat(this, "V2Lon", 0);
+		name = SharedPref.getString(this, "V2Name", "");
+		restoreToggledView(lat, lon, name);
+		
+		lat = SharedPref.getFloat(this, "V3Lat", 0);
+		lon = SharedPref.getFloat(this, "V3Lon", 0);
+		name = SharedPref.getString(this, "V3Name", "");
+		restoreToggledView(lat, lon, name);
+		mPrevioiusTargetName = "";		
+		
+	}
+	
+	void saveState()
+	{
+
+		 SharedPref.putFloat(this, "UserLat", mBioView.mUser.mLat);		 
+		 SharedPref.putFloat(this, "UserLon", mBioView.mUser.mLon);	
+
+		 // Clear out the names in case 
+		 SharedPref.putString(this, "V1Name", "");
+		 SharedPref.putString(this, "V2Name", "");
+		 SharedPref.putString(this, "V3Name", "");
+		 
+		 
+		 
+		 // Hack - manually save up to three views
+		 int i = 0;
+		 for (InfoView view : mInfoViews)
+		 {
+			 if (view.mTarget.mToggled)
+			 {
+				 switch (i++)
+				 {
+				 case 0:
+					 SharedPref.putFloat(this, "V1Lat", view.mTarget.mLat);
+					 SharedPref.putFloat(this, "V1Lon", view.mTarget.mLon);
+					 SharedPref.putString(this, "V1Name", view.mTarget.mName);
+				 break;
+				 case 1:
+					 SharedPref.putFloat(this, "V2Lat", view.mTarget.mLat);
+					 SharedPref.putFloat(this, "V2Lon", view.mTarget.mLon);
+					 SharedPref.putString(this, "V2Name", view.mTarget.mName);
+				 break;
+				 case 2:
+					 SharedPref.putFloat(this, "V3Lat", view.mTarget.mLat);
+					 SharedPref.putFloat(this, "V3Lon", view.mTarget.mLon);
+					 SharedPref.putString(this, "V4Name", view.mTarget.mName);
+				 break;
+				 default:
+					 break;
+				 
+				 }
+			 }
+		 }
+		
+		
+	}
+//	@Override
+//	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//		super.onRestoreInstanceState(savedInstanceState);
+//		float lat = savedInstanceState.getFloat("UserLat");
+//		float lon = savedInstanceState.getFloat("UserLon");
+//		mBioView.updateUserLocation(lon,lat);
+//		
+//	}
+//
+//	@Override
+//	protected void onSaveInstanceState(Bundle outState) {
+//		outState.putFloat("UserLat", mBioView.mUser.mLat);
+//		outState.putFloat("UserLon", mBioView.mUser.mLon);
+//		
+//		super.onSaveInstanceState(outState);
+//	}
 
     
   

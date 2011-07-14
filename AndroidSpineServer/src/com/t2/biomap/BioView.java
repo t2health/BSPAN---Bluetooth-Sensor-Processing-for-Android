@@ -77,6 +77,9 @@ public class BioView extends View
 		int quadrant;
 		mUser.mLat =  lon;
 		mUser.mLon =  lat;
+		Log.i("arnie", " *************Old user latlon: " + mUser.mLat + ", " + mUser.mLon);
+		Log.i("arnie", " *************user latlon: " + lat + ", " + lon);
+		
         for (BioLocation peer: mPeers )
         {
         	int x = (int) (peer.mLat - mUser.mLat);
@@ -264,11 +267,11 @@ public class BioView extends View
 		mCx = mWidth/2;
 		mCy = mHeight/2;
 		
-		mUser.mLat = mCx;
-		mUser.mLon = mCy;
+//		mUser.mLat = mCx;
+//		mUser.mLon = mCy;
 		
 		setMeasuredDimension(mWidth,mHeight);
-		updateUserLocation(mCx, mCy);
+//		updateUserLocation(mCx, mCy);
 		//super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 	}
 	
