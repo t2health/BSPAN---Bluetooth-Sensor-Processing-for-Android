@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+    <RelativeLayout android:id="@+id/relativeLayout1" android:layout_height="fill_parent" android:layout_width="wrap_content">
+        <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_alignParentLeft="true">
+            <Button android:text="Cancel" android:layout_gravity="left" android:layout_height="wrap_content" android:id="@+id/buttonCancel" android:layout_width="wrap_content"></Button>
+            <Button android:text="Save Note to Log" android:layout_gravity="right" android:layout_height="wrap_content" android:id="@+id/buttonSave" android:layout_width="wrap_content"></Button>
+        </LinearLayout>
+        <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/linearLayout2" android:layout_below="@+id/linearLayout1" android:layout_alignLeft="@+id/linearLayout1" android:layout_alignRight="@+id/linearLayout1">
+            <EditText android:layout_width="fill_parent" android:id="@+id/edit_text_logmarker" android:layout_height="200dip"></EditText>
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

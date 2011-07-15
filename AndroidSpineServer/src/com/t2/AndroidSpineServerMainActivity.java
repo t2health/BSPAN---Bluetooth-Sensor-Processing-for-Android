@@ -23,6 +23,7 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
+import com.t2.biomap.LogNoteActivity;
 import com.t2.Constants;
 
 import spine.datamodel.Node;
@@ -165,6 +166,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	
 	BufferedWriter mLogWriter = null;
 	boolean mLoggingEnabled = false;
+	boolean mPaused = false;
+	
+	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
+	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
+	
 	
 	
 	/**
@@ -417,6 +423,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
 			return true;
 			
+		case R.id.discover:
+			manager.discoveryWsn();
+
+			return true;
+			
 		case R.id.about:
 			String content = "National Center for Telehealth and Technology (T2)\n\n";
 			content += "Spine Server Test Application\n";
@@ -479,127 +490,147 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 		if (data != null)
 		{
-			switch (data.getFunctionCode()) {
-			case SPINEFunctionConstants.FEATURE: {
-				Node source = data.getNode();
-				Feature[] feats = ((FeatureData)data).getFeatures();
-				Feature firsFeat = feats[0];
-				byte sensor = firsFeat.getSensorCode();
-				byte featCode = firsFeat.getFeatureCode();
-				int ch1Value = firsFeat.getCh1Value();
+			if (!mPaused == true)
+			{
+				switch (data.getFunctionCode()) {
+				case SPINEFunctionConstants.FEATURE: {
+					Node source = data.getNode();
+					Feature[] feats = ((FeatureData)data).getFeatures();
+					Feature firsFeat = feats[0];
+					byte sensor = firsFeat.getSensorCode();
+					byte featCode = firsFeat.getFeatureCode();
+					int ch1Value = firsFeat.getCh1Value();
+					
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
+					for (BioLocation user: currentUsers)
+					{
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mHeartRate = ch1Value;
+						}
+					}				
+			        Log.i(TAG,"ch1Value= " + ch1Value);
+			    	
+					break;
+				}				
+				case SPINEFunctionConstants.ZEPHYR: {
+					Node source = data.getNode();
+					Feature[] feats = ((FeatureData)data).getFeatures();
+					Feature firsFeat = feats[0];
+					
+					byte sensor = firsFeat.getSensorCode();
+					byte featCode = firsFeat.getFeatureCode();
+					int batLevel = firsFeat.getCh1Value();
+					int heartRate = firsFeat.getCh2Value();
+					double respRate = firsFeat.getCh3Value() / 10;
+					int skinTemp = firsFeat.getCh4Value() / 10;
+					double skinTempF = (skinTemp * 9 / 5) + 32;				
+					Log.i(TAG,"heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+					
+					if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
+					{
+						mMindsetAttentionSeries.remove(0);
+					}
+	
+					mMindsetAttentionSeries.add(mSpineChartX++, heartRate);
+			        if (mDeviceChartView != null) {
+			            mDeviceChartView.repaint();
+			        }        
+					break;
+				}
 				
-				// Look up the id of this view and update the owners data
-				// that corresponds to this address
+				case SPINEFunctionConstants.MINDSET: {
+					Node source = data.getNode();
+					
+					MindsetData mData = (MindsetData) data;
+					if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
+					{
+						Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+	//					int b = mData.poorSignalStrength &  0xff;
+	//					String result = Integer.toHexString(b);					
+						// Look up the id of this view and update the owners data
+						// that corresponds to this address
+						for (BioLocation user: currentUsers)
+						{
+							if (user.mAddress == source.getPhysicalID().getAsInt())
+							{
+								user.mSignalStrength = mData.poorSignalStrength;
+							}
+						}					
+						
+		
+					}
+					if (mData.exeCode == Constants.EXECODE_ATTENTION)
+					{
+						Log.i(TAG, "attention= "  + mData.attention);
+	
+						// Look up the id of this view and update the owners data
+						// that corresponds to this address
+						for (BioLocation user: currentUsers)
+						{
+							if (user.mAddress == source.getPhysicalID().getAsInt())
+							{
+								user.mAttention = mData.attention;
+							}
+						}					
+						
+					}
+					if (mData.exeCode == Constants.EXECODE_MEDITATION)
+					{
+						Log.i(TAG, "meditation= "  + mData.meditation);
+						
+						// Look up the id of this view and update the owners data
+						// that corresponds to this address
+						for (BioLocation user: currentUsers)
+						{
+							if (user.mAddress == source.getPhysicalID().getAsInt())
+							{
+								user.mMeditation = mData.meditation;
+							}
+						}					
+					}
+					break;
+					
+				}			
+					case SPINEFunctionConstants.ONE_SHOT:
+						Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
+						break;
+						
+					case SPINEFunctionConstants.ALARM:
+						Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
+						break;
+				} // End switch (data.getFunctionCode())
+				
+				
+				// Now display the current user's data
+				String statusLine = "";
 				for (BioLocation user: currentUsers)
 				{
-					if (user.mAddress == source.getPhysicalID().getAsInt())
+					if (user.mName.equalsIgnoreCase(mTargetName))
 					{
-						user.mHeartRate = ch1Value;
+						statusLine = user.buildStatusText();
+							detailLog.setText(statusLine);					
 					}
-				}				
-		        Log.i(TAG,"ch1Value= " + ch1Value);
-		    	
-				break;
-			}				
-			case SPINEFunctionConstants.ZEPHYR: {
-				Node source = data.getNode();
-				Feature[] feats = ((FeatureData)data).getFeatures();
-				Feature firsFeat = feats[0];
-				
-				byte sensor = firsFeat.getSensorCode();
-				byte featCode = firsFeat.getFeatureCode();
-				int batLevel = firsFeat.getCh1Value();
-				int heartRate = firsFeat.getCh2Value();
-				double respRate = firsFeat.getCh3Value() / 10;
-				int skinTemp = firsFeat.getCh4Value() / 10;
-				double skinTempF = (skinTemp * 9 / 5) + 32;				
-				Log.i(TAG,"heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
-				
-				if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
-				{
-					mMindsetAttentionSeries.remove(0);
-				}
-
-				mMindsetAttentionSeries.add(mSpineChartX++, heartRate);
-		        if (mDeviceChartView != null) {
-		            mDeviceChartView.repaint();
-		        }        
-				break;
-			}
-			
-			case SPINEFunctionConstants.MINDSET: {
-				Node source = data.getNode();
-				
-				MindsetData mData = (MindsetData) data;
-				if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
-				{
-					Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
-//					int b = mData.poorSignalStrength &  0xff;
-//					String result = Integer.toHexString(b);					
-					// Look up the id of this view and update the owners data
-					// that corresponds to this address
-					for (BioLocation user: currentUsers)
-					{
-						if (user.mAddress == source.getPhysicalID().getAsInt())
-						{
-							user.mSignalStrength = mData.poorSignalStrength;
-						}
-					}					
-					
-	
-				}
-				if (mData.exeCode == Constants.EXECODE_ATTENTION)
-				{
-					Log.i(TAG, "attention= "  + mData.attention);
-
-					// Look up the id of this view and update the owners data
-					// that corresponds to this address
-					for (BioLocation user: currentUsers)
-					{
-						if (user.mAddress == source.getPhysicalID().getAsInt())
-						{
-							user.mAttention = mData.attention;
-						}
-					}					
-					
-				}
-				if (mData.exeCode == Constants.EXECODE_MEDITATION)
-				{
-					Log.i(TAG, "meditation= "  + mData.meditation);
-					
-					// Look up the id of this view and update the owners data
-					// that corresponds to this address
-					for (BioLocation user: currentUsers)
-					{
-						if (user.mAddress == source.getPhysicalID().getAsInt())
-						{
-							user.mMeditation = mData.meditation;
-						}
-					}					
-				}
-				break;
-				
-			}			
-				case SPINEFunctionConstants.ONE_SHOT:
-					Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
-					break;
-					
-				case SPINEFunctionConstants.ALARM:
-					Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
-					break;
-			} // End switch (data.getFunctionCode())
-			
-			String statusLine = "";
-			for (BioLocation user: currentUsers)
+				}			
+			} // End if (!mPaused == true)
+			else
 			{
-				if (user.mName.equalsIgnoreCase(mTargetName))
+				// We're paused, simpley display the last data
+				String statusLine = "** PAUSED** ";
+				for (BioLocation user: currentUsers)
 				{
-					statusLine = user.buildStatusText();
-						detailLog.setText(statusLine);					
-				}
-			}			
-			
+					if (user.mName.equalsIgnoreCase(mTargetName))
+					{
+						statusLine += user.buildStatusText();
+							detailLog.setText(statusLine);					
+					}
+				}			
+				
+				
+			}
 		} // End if (data != null)
+
 	}
 	
 	@Override
@@ -736,24 +767,48 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 
+	public void T2LogAddMarkerButtonHandler(View target)
+	{
+		Intent i = new Intent(this, LogNoteActivity.class);
+		this.startActivityForResult(i, ANDROID_SPINE_SERVER_ACTIVITY);
+	}
+	
 	public void T2ButtonHandler(View target)
 	{
 		Intent i = new Intent(this, BioMapActivity.class);
 		this.startActivity(i);
 		
 	}
+
+	public void T2PauseButtonHandler(View target)
+	{
+        final Button pauseButton = (Button) findViewById(R.id.buttonPause);
+		if (mPaused == true)
+		{
+			mPaused = false;
+			pauseButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+			
+		}
+		else
+		{
+			mPaused = true;
+			pauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+			
+		}
+	}
 	
 	public void T2LogButtonHandler(View target)
 	{
         final Button discoveryButton = (Button) findViewById(R.id.buttonLogging);
+        final Button logMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         if (mLoggingEnabled == true)
         {
         	mLoggingEnabled = false;
-        	discoveryButton.setText("Log:OFF");
-//        	discoveryButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+        	discoveryButton.setText("Log:\nOFF");
         	discoveryButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-        	
-            try {
+        	logMarkerButton.setVisibility(View.GONE);
+
+        	try {
             	if (mLogWriter != null)
             		mLogWriter.close();
     		} catch (IOException e) {
@@ -782,8 +837,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         	
         	
         	mLoggingEnabled = true;
-        	discoveryButton.setText("Log:ON");
+        	discoveryButton.setText("Log:\nON");
         	discoveryButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+        	logMarkerButton.setVisibility(View.VISIBLE);
+        	
         	
         	
         }
@@ -805,6 +862,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		public void run() {
 
 			Log.i(TAG, "Timer tick");
+			
+			if (mPaused == true)
+				return;
 //	        mFileOut.write("Hello world");
 			String logData = "" + mTargetName + ", "; 
 
@@ -868,8 +928,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		        	if (mLogWriter != null)
 		        		mLogWriter.write(logData);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e(TAG, e.toString());
 				}
 			}			
 
@@ -902,6 +961,28 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// TODO Auto-generated method stub
 		super.onStop();
 	}	
+
 	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode) { 
+	    case (ANDROID_SPINE_SERVER_ACTIVITY) :  
+	      if (resultCode == RESULT_OK) {
+	    	  String note = data.getStringExtra(ANDROID_SPINE_SERVER_ACTIVITY_RESULT);
+		      try {
+		    	  if (mLogWriter != null)
+		    		  mLogWriter.write(note);
+		      } catch (IOException e) {
+		    	  Log.e(TAG, e.toString());
+		      }
+	    	  
+	      } 
+	      break; 
+	    } 
+		
+		
+	}	
 	
 }

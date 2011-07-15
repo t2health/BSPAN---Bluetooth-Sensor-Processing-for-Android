@@ -2,8 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
+    android:layout_height="fill_parent">
     <ImageView 
     	android:layout_height="wrap_content" 
     	android:id="@+id/imageView1" 
@@ -11,18 +10,18 @@
     	android:src="@drawable/biomobile" android:layout_gravity="center_vertical|center_horizontal">
     </ImageView>
 		<RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/relativeLayout1">
-    <ImageView android:gravity="left" android:layout_width="wrap_content" android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/targetImage"></ImageView>
     <Button 
     	android:onClick="T2ButtonHandler"
-    	android:text="Return to\n Map View" 
+    	android:text="Map" 
     	android:layout_width="wrap_content" 
     	android:id="@+id/button1" 
     	android:gravity="right" 
-    	android:layout_height="wrap_content" 
-    	android:layout_alignParentRight="true">
+    	android:layout_alignParentRight="true" android:layout_height="wrap_content" android:lines="3">
     </Button>
-    <Button android:id="@+id/button2" android:text="Button" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_below="@+id/button1" android:layout_alignLeft="@+id/button1" android:layout_alignRight="@+id/button1"></Button>
-    <Button android:onClick="T2LogButtonHandler" android:layout_width="wrap_content" android:text="Log:OFF" android:layout_height="wrap_content" android:id="@+id/buttonLogging" android:gravity="left" android:layout_toLeftOf="@+id/button1" android:layout_alignTop="@+id/button1" android:layout_alignBottom="@+id/button1"></Button>
+    <Button android:onClick="T2PauseButtonHandler" android:layout_width="wrap_content" android:text="Pause" android:layout_height="wrap_content" android:id="@+id/buttonPause" android:gravity="left" android:layout_toLeftOf="@+id/button1" android:layout_alignTop="@+id/button1" android:layout_alignBottom="@+id/button1"></Button>
+    <Button android:onClick="T2LogButtonHandler" android:layout_width="wrap_content" android:text="Log:\nOFF" android:layout_height="wrap_content" android:id="@+id/buttonLogging" android:gravity="left" android:layout_toLeftOf="@+id/buttonPause" android:layout_alignTop="@+id/button1" android:layout_alignBottom="@+id/button1"></Button>
+    <Button android:onClick="T2LogAddMarkerButtonHandler" android:text="Mark\nLog" android:visibility="gone" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_toLeftOf="@+id/buttonLogging" android:layout_alignTop="@+id/buttonLogging" android:layout_alignBottom="@+id/buttonLogging" android:id="@+id/LogMarkerButton"></Button>
+    <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:layout_width="wrap_content" android:id="@+id/targetImage" android:layout_alignParentLeft="true"></ImageView>
 		</RelativeLayout>	
 
 
@@ -49,7 +48,7 @@
 		<EditText 
 			android:id="@+id/detailLog" 	
 			android:layout_width="fill_parent" 
-			android:layout_height="100dip" android:editable="false" android:inputType="none">
+			android:layout_height="100dip" android:cursorVisible="false" android:inputType="none" android:clickable="false" android:focusable="false" android:focusableInTouchMode="false" android:linksClickable="false" android:longClickable="false">
 		</EditText>
 		
 </LinearLayout>
