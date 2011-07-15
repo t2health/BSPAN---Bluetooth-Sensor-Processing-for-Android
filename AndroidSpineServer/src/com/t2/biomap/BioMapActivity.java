@@ -168,11 +168,6 @@ public class BioMapActivity extends Activity
 		mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);	
 		restoreState();
 		
-		
-		
-
-		
-		 
     }
     
     
@@ -350,30 +345,35 @@ public class BioMapActivity extends Activity
         	}
 
 		case MotionEvent.ACTION_UP:
-			mDragStatus = STOP_DRAGGING;	
-    		// Now check to see if we've touched any info views
-    		// if so then toggle them
-        	Iterator<InfoView> iterator = mInfoViews.iterator();
-			while (iterator.hasNext()) 
+			if (mDragStatus == START_DRAGGING)
 			{
-				InfoView v1 = iterator.next();
-				if (v1.isPositionMe(event.getX(), event.getY()))
+				mDragStatus = STOP_DRAGGING;	
+			}
+			else
+			{
+	    		// Now check to see if we've touched any info views
+	    		// if so then toggle them
+	        	Iterator<InfoView> iterator = mInfoViews.iterator();
+				while (iterator.hasNext()) 
 				{
-    				if (v1.mTarget.mToggled == false)
-    				{
-    					v1.mTarget.mToggled = true;
-    					v1.invalidate();
-    				}
-    				else
-    				{
-    					v1.mTarget.mToggled = false;
-    					mLayout.removeView(v1);
-    					v1.invalidate();
-    					
-    				}
+					InfoView v1 = iterator.next();
+					if (v1.isPositionMe(event.getX(), event.getY()))
+					{
+	    				if (v1.mTarget.mToggled == false)
+	    				{
+	    					v1.mTarget.mToggled = true;
+	    					v1.invalidate();
+	    				}
+	    				else
+	    				{
+	    					v1.mTarget.mToggled = false;
+	    					mLayout.removeView(v1);
+	    					v1.invalidate();
+	    					
+	    				}
+					}
 				}
-				
-			}        		
+			}
 			
 			break;
 	
