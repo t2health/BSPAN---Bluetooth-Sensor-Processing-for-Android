@@ -30,21 +30,11 @@
         			android:excludeFromRecents="true"
         			
         			android:label="">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity android:name=".biomap.LogNoteActivity" 
         			android:excludeFromRecents="true"
         			android:label="">
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW"></action>
-				<category android:name="android.intent.category.DEFAULT"></category>
-			</intent-filter>            
-        			
-        			
         </activity>
 
 

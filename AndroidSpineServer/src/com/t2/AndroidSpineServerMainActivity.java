@@ -206,6 +206,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			mTargetName = "";
+		    firstTime = true;
+
 			
 		}
         
@@ -352,16 +354,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		}, 0, 1000);		
 		
 		
-		if (firstTime) 
-		{
-
-			
-			
-			firstTime = false;
-//			Intent i = new Intent(this, BioDetailActivity.class);
-			Intent i = new Intent(this, BioMapActivity.class);
-			this.startActivity(i);
-		}
 		
 		manager.discoveryWsn();
 		
@@ -386,6 +378,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	protected void onStart() {
 		super.onStart();
+		Log.i(TAG, "OnStart, FirstTime = " + firstTime);
 		
 		// Tell the AndroidBTService to start up
 		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
@@ -404,9 +397,18 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		//filter.addAction("com.t2.biofeedback.service.zephyrdata.BROADCAST");
 		
 		this.registerReceiver(this.receiver,filter);
-		
+		if (firstTime) 
+		{
 
-		
+			Log.i(TAG, "--------------------Starting Map Activity -----------------------");
+			
+			
+			firstTime = false;
+//			Intent i = new Intent(this, BioDetailActivity.class);
+			Intent i = new Intent(this, BioMapActivity.class);
+			this.startActivity(i);
+		}
+
         		
 	}
     
@@ -861,8 +863,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			Log.i(TAG, "Timer tick");
-			
 			if (mPaused == true)
 				return;
 //	        mFileOut.write("Hello world");
