@@ -69,6 +69,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 /**
  * Main (test) activity for Spine server.
@@ -104,11 +105,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	 */
 	private SpineReceiver receiver;
 	
-	/**
-	 * Dialog used to indicate that the AndroidBTService is trying to connect to a sensor node
-	 */
-	private AlertDialog connectingDialog;
-
 	/**
 	 * Static instance of this activity
 	 */
@@ -152,7 +148,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
-	private EditText detailLog;
+	private EditText mDetailLog;
 	
 	int mSpineChartX = 0;
 	int mAttentionChartX = 0;
@@ -197,7 +193,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         instance = this;
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
-        
+        // If we were called from the Biomap activity then it will have
+        // sent us a target to focus on
         try {
 			// Get target name if one was supplied
 			Bundle bundle = getIntent().getExtras();
@@ -207,8 +204,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			e1.printStackTrace();
 			mTargetName = "";
 		    firstTime = true;
-
-			
 		}
         
         if (mTargetName == null)
@@ -229,15 +224,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
         
-        final Button discoveryButton = (Button) findViewById(R.id.button1);
-//        discoveryButton.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-////				manager.discoveryWsn();
-//				
-//            }
-//        });        
-        
-        detailLog = (EditText) findViewById(R.id.detailLog);
+        // Set up member variables to UI Elements
+        mDetailLog = (EditText) findViewById(R.id.detailLog);
         
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
@@ -266,25 +254,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
 		// See public void received(Data data)
         this.receiver = new SpineReceiver(this);
-        
-        // Create a connecting dialog.
-        this.connectingDialog = new AlertDialog.Builder(this)
-        	// Close the app if connecting was not finished.
-	        .setOnCancelListener(new OnCancelListener() {
-				@Override
-				public void onCancel(DialogInterface dialog) {
-					finish();
-				}
-			})
-			// Allow the biofeedback device settings to be used.
-			.setPositiveButton("BioFeedback Settings", new OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					startActivity(new Intent("com.t2.biofeedback.MANAGER"));
-				}
-			})
-			.setMessage("Connecting...")
-			.create();
         
         // Set up Device data chart
         if (mDeviceChartView == null) 
@@ -463,13 +432,22 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	public void onStatusReceived(BioFeedbackStatus bfs) {
 		if(bfs.messageId.equals("CONN_CONNECTING")) {
-			Log.i(TAG, "Received command : CONN_CONNECTING" );		
-			this.connectingDialog.show();
-			
-		} else if(bfs.messageId.equals("CONN_ANY_CONNECTED")) {
+			Log.i(TAG, "Received command : CONN_CONNECTING" );
+			Toast.makeText (getApplicationContext(), "**** Connecting to Sensor Node ****", Toast.LENGTH_SHORT).show ();
+		} 
+		else if(bfs.messageId.equals("CONN_ANY_CONNECTED")) {
+			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );
+			// Something has connected - discover what it was
+			manager.discoveryWsn();
+			Toast.makeText (getApplicationContext(), "**** Sensor Node Connected ****", Toast.LENGTH_SHORT).show ();
+		} 
+		else if(bfs.messageId.equals("CONN_CONNECTION_LOST")) {
 			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );		
-			this.connectingDialog.hide();
+			Toast.makeText (getApplicationContext(), "**** Sensor Node Connection lost ****", Toast.LENGTH_SHORT).show ();
 		}
+		
+				
+		
 	}
 
 	@Override
@@ -612,7 +590,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					if (user.mName.equalsIgnoreCase(mTargetName))
 					{
 						statusLine = user.buildStatusText();
-							detailLog.setText(statusLine);					
+							mDetailLog.setText(statusLine);					
 					}
 				}			
 			} // End if (!mPaused == true)
@@ -625,7 +603,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					if (user.mName.equalsIgnoreCase(mTargetName))
 					{
 						statusLine += user.buildStatusText();
-							detailLog.setText(statusLine);					
+							mDetailLog.setText(statusLine);					
 					}
 				}			
 				
@@ -731,7 +709,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		if (mTargetName.equalsIgnoreCase("scott"))
 		{
 			if (dataType == Constants.DATA_TYPE_HEARTRATE)
-				detailLog.setText("Heart Rate: " + text);
+				mDetailLog.setText("Heart Rate: " + text);
 				
 		}
 		else
@@ -745,7 +723,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			
 						
 			
-			detailLog.setText(	"Signal Strength: " + mLastSignalStrength + "\n" + 
+			mDetailLog.setText(	"Signal Strength: " + mLastSignalStrength + "\n" + 
 								"Meditation: " + mLastMeditation + "\n" + 
 								"Attention: " + mLastAttention);
 			
