@@ -40,12 +40,9 @@ import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.DialogInterface.OnCancelListener;
-import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -54,7 +51,6 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
@@ -167,7 +163,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 	
-	
+    private Button mPauseButton;
+    private Button mToggleLogButton;
+    private Button mLlogMarkerButton;
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -209,7 +207,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         if (mTargetName == null)
         	mTargetName = "";
         
-        
         ImageView image = (ImageView) findViewById(R.id.targetImage);
         
         if (mTargetName.equalsIgnoreCase("Scott"))
@@ -226,7 +223,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         
         // Set up member variables to UI Elements
         mDetailLog = (EditText) findViewById(R.id.detailLog);
-        
+        mPauseButton = (Button) findViewById(R.id.buttonPause);
+        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
+        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
+
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
 			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
@@ -279,14 +279,12 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mDeviceDataset.addSeries(mMindsetAttentionSeries);
         mDeviceDataset.addSeries(mMindsetMeditationSeries);
         mDeviceDataset.addSeries(mCurrentSpineSeries);
-
         
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         
         renderer = new XYSeriesRenderer();
         renderer.setColor(Color.GREEN); // White
         mDeviceRenderer.addSeriesRenderer(renderer);
-
         
         renderer = new XYSeriesRenderer();
         renderer.setColor(Color.YELLOW); // White
@@ -295,7 +293,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         renderer = new XYSeriesRenderer();
         renderer.setColor(Color.WHITE); // White
         mDeviceRenderer.addSeriesRenderer(renderer);
-        
         
 		try {
 			PackageManager packageManager = this.getPackageManager();
@@ -322,16 +319,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 		}, 0, 1000);		
 		
-		
-		
 		manager.discoveryWsn();
-		
-
-		
-		
-		
-		
-		
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
@@ -339,9 +327,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	super.onDestroy();
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
-    	
+		Log.i(TAG, "MainActivity onDestroy");
 	    	
-    	doUnbindService();    	
+  //  	doUnbindService();    	
 	}
 
 	@Override
@@ -371,14 +359,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 			Log.i(TAG, "--------------------Starting Map Activity -----------------------");
 			
-			
 			firstTime = false;
-//			Intent i = new Intent(this, BioDetailActivity.class);
 			Intent i = new Intent(this, BioMapActivity.class);
 			this.startActivity(i);
 		}
-
-        		
 	}
     
 	@Override
@@ -410,7 +394,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			alert.setMessage(content);	
 			alert.show();			
 			return true;
-
 			
 		case R.id.biomap:
 
@@ -445,9 +428,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );		
 			Toast.makeText (getApplicationContext(), "**** Sensor Node Connection lost ****", Toast.LENGTH_SHORT).show ();
 		}
-		
-				
-		
 	}
 
 	@Override
@@ -490,10 +470,11 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							user.mHeartRate = ch1Value;
 						}
 					}				
-			        Log.i(TAG,"ch1Value= " + ch1Value);
+//			        Log.i(TAG,"ch1Value= " + ch1Value);
 			    	
 					break;
-				}				
+				} // End case SPINEFunctionConstants.FEATURE:
+				
 				case SPINEFunctionConstants.ZEPHYR: {
 					Node source = data.getNode();
 					Feature[] feats = ((FeatureData)data).getFeatures();
@@ -518,7 +499,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			            mDeviceChartView.repaint();
 			        }        
 					break;
-				}
+				} // End case SPINEFunctionConstants.ZEPHYR:
 				
 				case SPINEFunctionConstants.MINDSET: {
 					Node source = data.getNode();
@@ -538,8 +519,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 								user.mSignalStrength = mData.poorSignalStrength;
 							}
 						}					
-						
-		
 					}
 					if (mData.exeCode == Constants.EXECODE_ATTENTION)
 					{
@@ -554,7 +533,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 								user.mAttention = mData.attention;
 							}
 						}					
-						
 					}
 					if (mData.exeCode == Constants.EXECODE_MEDITATION)
 					{
@@ -571,8 +549,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						}					
 					}
 					break;
-					
-				}			
+					} // End case SPINEFunctionConstants.MINDSET:
+				
 					case SPINEFunctionConstants.ONE_SHOT:
 						Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
 						break;
@@ -581,7 +559,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
 						break;
 				} // End switch (data.getFunctionCode())
-				
 				
 				// Now display the current user's data
 				String statusLine = "";
@@ -606,11 +583,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							mDetailLog.setText(statusLine);					
 					}
 				}			
-				
-				
 			}
 		} // End if (data != null)
-
 	}
 	
 	@Override
@@ -625,8 +599,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		}
 			
 	}
-
-
 
 	/**
 	 * Converts a byte array to an integer
@@ -705,7 +677,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	
 	void updateDetailLog(String text, int dataType)
 	{
-		
 		if (mTargetName.equalsIgnoreCase("scott"))
 		{
 			if (dataType == Constants.DATA_TYPE_HEARTRATE)
@@ -728,103 +699,75 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 								"Attention: " + mLastAttention);
 			
 		}
-//		if (mDeviceDetailContent.size() > 4)
-//			mDeviceDetailContent.remove(0);
-//		mDeviceDetailContent.add(text);
-//		String buf = new String();;
-//		
-//		int i = 0;
-//		for (String entry: mDeviceDetailContent )
-//		{
-//	    	buf = buf + mDeviceDetailContent.elementAt(i++) + "\n";			
-//			
-//		}
-//		detailLog.setText(buf);			
-		
-	}
-	void startBiomap()
-	{
-		
-	}
-
-	public void T2LogAddMarkerButtonHandler(View target)
-	{
-		Intent i = new Intent(this, LogNoteActivity.class);
-		this.startActivityForResult(i, ANDROID_SPINE_SERVER_ACTIVITY);
 	}
 	
-	public void T2ButtonHandler(View target)
+	public void onButtonClick(View v)
 	{
-		Intent i = new Intent(this, BioMapActivity.class);
-		this.startActivity(i);
-		
-	}
+		 final int id = v.getId();
+		    switch (id) {
+		    case R.id.button1:
+				Intent i = new Intent(this, BioMapActivity.class);
+				this.startActivity(i);
+		    	
+		    	break;
+		    		    
+		    case R.id.buttonPause:
+				if (mPaused == true)
+				{
+					mPaused = false;
+					mPauseButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+				}
+				else
+				{
+					mPaused = true;
+					mPauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
+				}
+		        break;
+		        
+		    case R.id.buttonLogging:
+		        if (mLoggingEnabled == true)
+		        {
+		        	mLoggingEnabled = false;
+		        	mToggleLogButton.setText("Log:\nOFF");
+		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+		        	mLlogMarkerButton.setVisibility(View.GONE);
 
-	public void T2PauseButtonHandler(View target)
-	{
-        final Button pauseButton = (Button) findViewById(R.id.buttonPause);
-		if (mPaused == true)
-		{
-			mPaused = false;
-			pauseButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-			
-		}
-		else
-		{
-			mPaused = true;
-			pauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
-			
-		}
-	}
-	
-	public void T2LogButtonHandler(View target)
-	{
-        final Button discoveryButton = (Button) findViewById(R.id.buttonLogging);
-        final Button logMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
-        if (mLoggingEnabled == true)
-        {
-        	mLoggingEnabled = false;
-        	discoveryButton.setText("Log:\nOFF");
-        	discoveryButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-        	logMarkerButton.setVisibility(View.GONE);
+		        	try {
+		            	if (mLogWriter != null)
+		            		mLogWriter.close();
+		    		} catch (IOException e) {
+		    			// TODO Auto-generated catch block
+		    			e.printStackTrace();
+		    		}        	
+		        }
+		        else
+		        {
+		    		// Open a file for saving data
+		    		try {
+		    		    File root = Environment.getExternalStorageDirectory();
+		    		    if (root.canWrite()){
+		    		        File gpxfile = new File(root, "BioData.txt");
+		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+		    		        mLogWriter = new BufferedWriter(gpxwriter);
+		    		        // Put a visual marker in
+		    		        mLogWriter.write("----------------------------------------------");
 
-        	try {
-            	if (mLogWriter != null)
-            		mLogWriter.close();
-    		} catch (IOException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}        	
-        }
-        else
-        {
-        	
-    		// Open a file for saving data
-    		try {
-    		    File root = Environment.getExternalStorageDirectory();
-    		    if (root.canWrite()){
-    		        File gpxfile = new File(root, "BioData.txt");
-    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-    		        mLogWriter = new BufferedWriter(gpxwriter);
-    		        // Put a visual marker in
-    		        mLogWriter.write("----------------------------------------------");
+		    		    }
+		    		} catch (IOException e) {
+		    		    Log.e(TAG, "Could not write file " + e.getMessage());
+		    		}		
+		        	mLoggingEnabled = true;
+		        	mToggleLogButton.setText("Log:\nON");
+		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
+		        }
+		    	break;
 
-    		    }
-    		} catch (IOException e) {
-    		    Log.e(TAG, "Could not write file " + e.getMessage());
-    		}		
-    		        	
-        	
-        	
-        	mLoggingEnabled = true;
-        	discoveryButton.setText("Log:\nON");
-        	discoveryButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
-        	logMarkerButton.setVisibility(View.VISIBLE);
-        	
-        	
-        	
-        }
-		
+		    case R.id.LogMarkerButton:
+				Intent i1 = new Intent(this, LogNoteActivity.class);
+				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
+		    	break;
+		    } // End switch		
 	}
 	
 	private void TimerMethod()
@@ -843,9 +786,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 			if (mPaused == true)
 				return;
-//	        mFileOut.write("Hello world");
 			String logData = "" + mTargetName + ", "; 
-
 			
 			//String statusLine = "";
 			for (BioLocation user: currentUsers)
@@ -873,7 +814,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 						}
 					}			    	
 			    	
-			    	
 					mSpineChartX++;
 			    	if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
 						mCurrentSpineSeries.remove(0);
@@ -886,8 +826,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					if (mDeviceChartView != null) {
 			            mDeviceChartView.repaint();
 			        }   			    	
-
-				
 				}
 			}			
 			
@@ -898,8 +836,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
 				currentDateTimeString = sdf.format(new Date());
 				
-				
-				
 				logData = currentDateTimeString + ", " + logData + "\n";
 				
 		        try {
@@ -909,15 +845,12 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					Log.e(TAG, e.toString());
 				}
 			}			
-
 		}
 	};
 
-
-
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "Application Pausing");
+		Log.i(TAG, "MainActivity onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
     	
@@ -928,14 +861,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		    	
 
 		super.onPause();
 	}
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "Application Stopping");
+		Log.i(TAG, "MainActivity onStop");
 		// TODO Auto-generated method stub
 		super.onStop();
 	}	
@@ -959,8 +891,5 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	      } 
 	      break; 
 	    } 
-		
-		
-	}	
-	
+	}
 }

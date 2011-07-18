@@ -1,13 +1,5 @@
 package com.t2.biomap;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -33,9 +25,7 @@ import android.content.res.Resources;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Vibrator;
-import android.util.Config;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -111,6 +101,8 @@ public class BioMapActivity extends Activity
     @Override
 	protected void onDestroy() {
 		super.onDestroy();
+        Log.i("BFDemo", "BioMap onDestroy");
+		
 		mInfoViews.clear();
 		
 	}
@@ -125,7 +117,7 @@ public class BioMapActivity extends Activity
         
         mDragStatus = STOP_DRAGGING;	
         
-        Log.i("arnie", "onCreate");
+        Log.i("BFDemo", "BioMap onCreate");
         mInfoViews = new Vector<InfoView>();      
 
         View v1 = findViewById (R.id.staff); 
@@ -300,19 +292,41 @@ public class BioMapActivity extends Activity
     @Override
     protected void onResume()
     {
-        if (Config.LOGD) Log.d(TAG, "onResume");
+        
         super.onResume();
+        Log.i("BFDemo", "BioMap onResume");
         mSensorManager.registerListener(mListener, 
         		SensorManager.SENSOR_ORIENTATION,
         		SensorManager.SENSOR_DELAY_GAME);
+        
+        Resources resources = this.getResources();
+        AssetManager assetManager = resources.getAssets();        
+        
+		// Initialize SPINE by passing the fileName with the configuration properties
+		try {
+			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
+		} catch (InstantiationException e) {
+			Log.e(TAG, "Exception creating SPINE manager: " + e.toString());
+			e.printStackTrace();
+		}        
+		        
+		Node mindsetNode = null;
+		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
+		manager.getActiveNodes().add(mindsetNode);
+		
+		manager.addListener(this);	   
+		manager.discoveryWsn();        
+        
+        
     }
     
     @Override
     protected void onStop()
     {
-        if (Config.LOGD) Log.d(TAG, "onStop");
         mSensorManager.unregisterListener(mListener);
         super.onStop();
+        Log.i("BFDemo", "BioMap onStop");
+        
     }
     
 	@Override
@@ -430,7 +444,7 @@ public class BioMapActivity extends Activity
 				}
 				else
 				{
-					this.finish();
+//					this.finish();
 				}
 					
 	        	return false;
@@ -696,9 +710,7 @@ public class BioMapActivity extends Activity
 //	}
 
 	protected void onPause() {
-		Log.i(TAG, "Application Pausing");
-
-
+		Log.i("BFDemo", "BioMap onPause");
 		saveState();
 		super.onPause();
 	}

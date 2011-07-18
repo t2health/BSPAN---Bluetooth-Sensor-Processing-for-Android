@@ -6,8 +6,6 @@ import com.t2.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.View.OnKeyListener;
 import android.view.View;
@@ -17,9 +15,6 @@ import android.widget.EditText;
 public class LogNoteActivity extends Activity implements OnKeyListener, OnClickListener{
 
 	private EditText mLogNoteEditText;
-	
-	
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -28,20 +23,15 @@ public class LogNoteActivity extends Activity implements OnKeyListener, OnClickL
 
         this.findViewById(R.id.buttonSave).setOnClickListener(this);
         mLogNoteEditText = (EditText)this.findViewById(R.id.edit_text_logmarker);
-        
-        
-		
 	}
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 	}
 
 	@Override
 	public boolean onKey(View arg0, int arg1, KeyEvent arg2) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
