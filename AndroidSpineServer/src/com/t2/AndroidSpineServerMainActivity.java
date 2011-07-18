@@ -24,6 +24,7 @@ import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
+import com.t2.biomap.SharedPref;
 import com.t2.Constants;
 
 import spine.datamodel.Node;
@@ -61,6 +62,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -166,6 +168,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     private Button mPauseButton;
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
+    
+    private String mLogMarkerNote = null;
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -189,6 +193,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         instance = this;
+    
+//		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
         // If we were called from the Biomap activity then it will have
@@ -309,22 +316,16 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// Load users from the database
 		currentUsers = Util.setupUsers();
 		
-		// Set up a timer to do graphical updates
-		mDataUpdateTimer = new Timer();
-		mDataUpdateTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				TimerMethod();
-			}
-
-		}, 0, 1000);		
-		
 		manager.discoveryWsn();
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
+    	
+    	mLoggingEnabled = false;
+    	saveState();
+    	
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.receiver);
 		Log.i(TAG, "MainActivity onDestroy");
@@ -336,6 +337,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	protected void onStart() {
 		super.onStart();
 		Log.i(TAG, "OnStart, FirstTime = " + firstTime);
+		
 		
 		// Tell the AndroidBTService to start up
 		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
@@ -363,6 +365,18 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			Intent i = new Intent(this, BioMapActivity.class);
 			this.startActivity(i);
 		}
+		
+		// Set up a timer to do graphical updates
+		mDataUpdateTimer = new Timer();
+		mDataUpdateTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				TimerMethod();
+			}
+
+		}, 0, 1000);		
+		
+		
 	}
     
 	@Override
@@ -507,7 +521,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					MindsetData mData = (MindsetData) data;
 					if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 					{
-						Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
+//						Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
 	//					int b = mData.poorSignalStrength &  0xff;
 	//					String result = Integer.toHexString(b);					
 						// Look up the id of this view and update the owners data
@@ -522,7 +536,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					}
 					if (mData.exeCode == Constants.EXECODE_ATTENTION)
 					{
-						Log.i(TAG, "attention= "  + mData.attention);
+//						Log.i(TAG, "attention= "  + mData.attention);
 	
 						// Look up the id of this view and update the owners data
 						// that corresponds to this address
@@ -536,7 +550,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					}
 					if (mData.exeCode == Constants.EXECODE_MEDITATION)
 					{
-						Log.i(TAG, "meditation= "  + mData.meditation);
+//						Log.i(TAG, "meditation= "  + mData.meditation);
 						
 						// Look up the id of this view and update the owners data
 						// that corresponds to this address
@@ -750,7 +764,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
 		    		        mLogWriter = new BufferedWriter(gpxwriter);
 		    		        // Put a visual marker in
-		    		        mLogWriter.write("----------------------------------------------");
+		    		        mLogWriter.write("----------------------------------------------\n");
 
 		    		    }
 		    		} catch (IOException e) {
@@ -853,6 +867,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		Log.i(TAG, "MainActivity onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
+
+    	saveState();
+    	
     	
         try {
         	if (mLogWriter != null)
@@ -868,11 +885,27 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	protected void onStop() {
 		Log.i(TAG, "MainActivity onStop");
-		// TODO Auto-generated method stub
 		super.onStop();
 	}	
 
 	
+	@Override
+	protected void onRestart() {
+		Log.i(TAG, "MainActivity onRestart");
+		super.onRestart();
+	}
+
+	@Override
+	protected void onResume() {
+		Log.i(TAG, "MainActivity onResume");
+		
+		restoreState();
+		
+		
+		
+		super.onResume();
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -880,16 +913,50 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		switch(requestCode) { 
 	    case (ANDROID_SPINE_SERVER_ACTIVITY) :  
 	      if (resultCode == RESULT_OK) {
-	    	  String note = data.getStringExtra(ANDROID_SPINE_SERVER_ACTIVITY_RESULT);
-		      try {
-		    	  if (mLogWriter != null)
-		    		  mLogWriter.write(note);
-		      } catch (IOException e) {
-		    	  Log.e(TAG, e.toString());
-		      }
+	    	  
+
+	    	  // We can't write the note yet because we may not have been re-initialized
+	    	  // since the not dialog put us into pause.
+	    	  // We'll save the note and write it at restore
+	    	  mLogMarkerNote = data.getStringExtra(ANDROID_SPINE_SERVER_ACTIVITY_RESULT);
 	    	  
 	      } 
 	      break; 
 	    } 
 	}
+
+	void saveState()
+	{
+		 SharedPref.putBoolean(this, "LoggingEnabled", 	mLoggingEnabled);
+	}
+	void restoreState()
+	{
+		mLoggingEnabled = SharedPref.getBoolean(this, "LoggingEnabled", false);	
+		if (mLoggingEnabled)
+		{
+    		// Open a file for saving data
+    		try {
+    		    File root = Environment.getExternalStorageDirectory();
+    		    if (root.canWrite()){
+    		        File gpxfile = new File(root, "BioData.txt");
+    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+    		        mLogWriter = new BufferedWriter(gpxwriter);
+    		        // Put a visual marker in
+    		        mLogWriter.write("----------------------------------------------\n");
+    		        if (mLogMarkerNote != null)
+    		        {
+        		        mLogWriter.write(mLogMarkerNote + "\n");
+        		        mLogMarkerNote = null;
+    		        }
+
+    		    }
+    		} catch (IOException e) {
+    		    Log.e(TAG, "Could not write file " + e.getMessage());
+    		}
+		}
+		
+	}
+
 }
+
+

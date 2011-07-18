@@ -29,6 +29,7 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 //import android.widget.FrameLayout.LayoutParams;
@@ -114,6 +115,8 @@ public class BioMapActivity extends Activity
         setContentView(R.layout.biomap_layout);
         me = this;
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+//		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
         
         mDragStatus = STOP_DRAGGING;	
         

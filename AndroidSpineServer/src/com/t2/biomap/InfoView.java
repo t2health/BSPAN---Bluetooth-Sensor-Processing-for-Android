@@ -216,7 +216,7 @@ public class InfoView extends View {
 				 break;
 		 }	
 		 mNumLines = i;
-		 mHeight = 20 * mNumLines;
+//		 mHeight = 20 * mNumLines;
 		 
 			left = mTarget.mLon - mWidth/2 - 40;
 			right = mTarget.mLon + mWidth/2 - 40;

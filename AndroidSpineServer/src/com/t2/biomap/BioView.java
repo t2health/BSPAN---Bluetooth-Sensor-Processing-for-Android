@@ -24,7 +24,7 @@ public class BioView extends View
 	private int mCy = 0;
     private double BuildingAngleDegrees = 23;
 	float left, top, right, bottom;
-	boolean mDebug = false;
+	boolean mDebug = true;
     
     float mCompass;
     
@@ -82,7 +82,9 @@ public class BioView extends View
 		
         for (BioLocation peer: mPeers )
         {
-        	int x = (int) (peer.mLat - mUser.mLat);
+        	int x = (int) (peer.mLat - mUser.mLat - 5);
+            // TOTO change (mUser.mName.length() * 3) to mCorrectionToCenter and put in class
+//        	int y = (int) (peer.mLon - mUser.mLon + (mUser.mName.length() * 3));
         	int y = (int) (peer.mLon - mUser.mLon);
 
         	if (y >= 0)
@@ -156,7 +158,7 @@ public class BioView extends View
 //        		Log.i("fred", "delta= " + delta + ", Target = " + mTarget.name);
         		
         		// Onnly set if within 5 degrees
-        		if (delta <= 10)
+        		if (delta <= 10 || delta > 350)
         			mTarget.set(peer);
         		else
         			mTarget.mActive = false;
@@ -187,7 +189,9 @@ public class BioView extends View
         p.setColor(Color.RED);
         
         if (mTarget.mActive)
-        	canvas.drawLine(mUser.mLat,mUser.mLon,mTarget.mLat, mTarget.mLon,p);
+        	canvas.drawLine(mUser.mLat,mUser.mLon,mTarget.mLat, mTarget.mLon - 5,p);
+//    	canvas.drawLine(mUser.mLat,mUser.mLon,mTarget.mLat + (mUser.mName.length() * 3), mTarget.mLon - 5,p);
+        // TOTO change (mUser.mName.length() * 3) to mCorrectionToCenter and put in class
         
         // Draw User
         canvas.drawCircle(mUser.mLat, mUser.mLon, 10, mUserPaint);
