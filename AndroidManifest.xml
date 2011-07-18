@@ -31,11 +31,6 @@
         	android:label="@string/app_name" android:name=".activity.BTServiceManager">
             
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            
-            <intent-filter>
             	<action android:name="com.t2.biofeedback.MANAGER" />
             	<category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

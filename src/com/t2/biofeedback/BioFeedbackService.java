@@ -30,6 +30,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	private static final String TAG = Constants.TAG;
 	
 	/**
+	 * The interval between succesive scans of Bluetooth devices
+	 *  Normal operation is 10000 (10 seconds)
+	 */
+	static final int DEVICE_SCAN_INTERVAL = 2000;
+	
+	
+	/**
 	 * Broadcast message used send status messages to the Spine server
 	 * @author scott.coleman
 	 *
@@ -230,7 +237,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 				manageHandler.sendEmptyMessage(1);
 				
 				try {
-					Thread.sleep(10000);
+					Thread.sleep(DEVICE_SCAN_INTERVAL);
 				} catch (InterruptedException e) {
 				}
 			}
