@@ -24,12 +24,14 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+//import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 //import android.widget.FrameLayout.LayoutParams;
@@ -46,6 +48,7 @@ import com.t2.Util;
 @SuppressWarnings("deprecation")
 public class BioMapActivity extends Activity 
 		implements View.OnTouchListener, 
+		LocationListener,
 		View.OnLongClickListener,
 		SPINEListener {
     private static final String TAG = "BioMap";
@@ -77,6 +80,9 @@ public class BioMapActivity extends Activity
 	int mHeartRate = 0;
 	private FrameLayout mLayout;
     private static boolean firstTime = true;
+//    LocationManager mLocationManager;   
+//	private static Timer mDataUpdateTimer;	
+    
 
 
 	
@@ -141,10 +147,20 @@ public class BioMapActivity extends Activity
         
         params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);    
         
-        Resources resources = this.getResources();
-        AssetManager assetManager = resources.getAssets();
+		restoreState();
         
         
+    }
+    
+    
+    
+@Override
+	protected void onStart() {
+
+		Resources resources = this.getResources();
+		AssetManager assetManager = resources.getAssets();
+
+		Log.i(TAG, "Initializing Spine");
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
 			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
@@ -153,6 +169,12 @@ public class BioMapActivity extends Activity
 			e.printStackTrace();
 		}        
 		        
+		// Since zepher is a static node we have to manually put it in the active node list
+		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
+		Node zepherNode = null;
+		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
+		manager.getActiveNodes().add(zepherNode);		
+		
 		Node mindsetNode = null;
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
 		manager.getActiveNodes().add(mindsetNode);
@@ -160,14 +182,16 @@ public class BioMapActivity extends Activity
 		manager.addListener(this);	   
 		manager.discoveryWsn();
 		
-		mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);	
-		restoreState();
+		mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		
-    }
-    
-    
-    
-// TODO: Add setting of  mXDiff
+	//	mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		
+		
+		
+		super.onStart();
+	}
+
+	// TODO: Add setting of  mXDiff
     /**
      * Checks if the new view will overlap an existing view
      * If so then set up mYDiff, mXDiff as the amount it needs to be bumped 
@@ -319,6 +343,24 @@ public class BioMapActivity extends Activity
 		
 		manager.addListener(this);	   
 		manager.discoveryWsn();        
+		
+//		try {
+//			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10f, this);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+		
+//		mDataUpdateTimer = new Timer();
+//		mDataUpdateTimer.schedule(new TimerTask() {
+//			@Override
+//			public void run() {
+//				TimerMethod();
+//			}
+//
+//		}, 0, 1000);		
+		
         
         
     }
@@ -496,6 +538,14 @@ public class BioMapActivity extends Activity
 					if (user.mAddress == source.getPhysicalID().getAsInt())
 					{
 						user.mHeartRate = mHeartRate;
+						for (InfoView v: mInfoViews)
+						{
+							if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+							{
+								String statusLine = user.buildStatusText();		
+								v.setText(statusLine);								
+							}
+						}
 					}
 				}
 				
@@ -505,6 +555,43 @@ public class BioMapActivity extends Activity
 				
 			} // End case SPINEFunctionConstants.FEATURE:
 			
+			case SPINEFunctionConstants.ZEPHYR: {
+				Node source = data.getNode();
+				Feature[] feats = ((FeatureData)data).getFeatures();
+				Feature firsFeat = feats[0];
+				
+				byte sensor = firsFeat.getSensorCode();
+				byte featCode = firsFeat.getFeatureCode();
+				int batLevel = firsFeat.getCh1Value();
+				int heartRate = firsFeat.getCh2Value();
+				double respRate = firsFeat.getCh3Value() / 10;
+				int skinTemp = firsFeat.getCh4Value() / 10;
+				double skinTempF = (skinTemp * 9 / 5) + 32;				
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+				
+				// Look up the id of this view and update the owners data
+				// that corresponds to this address
+				for (BioLocation user: currentUsers)
+				{
+					if (user.mAddress == source.getPhysicalID().getAsInt())
+					{
+						user.mZBattLevel = batLevel;
+						user.mZRespRate = (int)respRate;
+						user.mZHeartRate = heartRate;
+						user.mZSkinTemp = skinTemp;
+						for (InfoView v: mInfoViews)
+						{
+							if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+							{
+								String statusLine = user.buildStatusText();		
+								v.setText(statusLine);								
+							}
+						}						
+					}
+				}				
+				
+				break;
+			} // End case SPINEFunctionConstants.ZEPHYR:			
 			case SPINEFunctionConstants.MINDSET: {
 				Node source = data.getNode();
 				
@@ -519,6 +606,14 @@ public class BioMapActivity extends Activity
 						if (user.mAddress == source.getPhysicalID().getAsInt())
 						{
 							user.mMeditation = mMeditation;
+							for (InfoView v: mInfoViews)
+							{
+								if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+								{
+									String statusLine = user.buildStatusText();		
+									v.setText(statusLine);								
+								}
+							}							
 						}
 					}
 					
@@ -534,6 +629,14 @@ public class BioMapActivity extends Activity
 						if (user.mAddress == source.getPhysicalID().getAsInt())
 						{
 							user.mAttention = mAttention;
+							for (InfoView v: mInfoViews)
+							{
+								if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+								{
+									String statusLine = user.buildStatusText();		
+									v.setText(statusLine);								
+								}
+							}							
 						}
 					}
 					
@@ -549,6 +652,14 @@ public class BioMapActivity extends Activity
 						if (user.mAddress == source.getPhysicalID().getAsInt())
 						{
 							user.mSignalStrength = mSignalStrength;
+							for (InfoView v: mInfoViews)
+							{
+								if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+								{
+									String statusLine = user.buildStatusText();		
+									v.setText(statusLine);								
+								}
+							}							
 						}
 					}
 					
@@ -564,21 +675,22 @@ public class BioMapActivity extends Activity
 			
 			if (mTarget == null)
 				return;
-			// Now update the info views (if any)
-			for (InfoView v: mInfoViews)
-			{
-				String statusLine = "";
-				for (BioLocation user: currentUsers)
-				{
-					if (user.mName.equalsIgnoreCase(v.mTarget.mName))
-					{
-						statusLine = user.buildStatusText();
-						
-					}
-				}						
-				v.setText(statusLine);
-				
-			}
+
+			
+//			// Now update the info views (if any)
+//			for (InfoView v: mInfoViews)
+//			{
+//				String statusLine = "";
+//				for (BioLocation user: currentUsers)
+//				{
+//					if (user.mName.equalsIgnoreCase(v.mTarget.mName))
+//					{
+//						statusLine = user.buildStatusText();
+//						
+//					}
+//				}						
+//				v.setText(statusLine);
+//			}
 		} // end if (data != null)
 	}
 
@@ -608,12 +720,13 @@ public class BioMapActivity extends Activity
 
 			// A view for the target doesn't exist. We need to create it and add it to the layout
 			InfoView infoView1 = new InfoView(me);
-			mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
 	    	
 			// Since we know we're on the info view we know that the target location for this valid
 			// It has stuff like name and type of sensors
 			infoView1.updateTargetLocation(target);	
 			infoView1.mTarget.mToggled = true;			
+
+			mLayout.addView(infoView1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));		
 			// if the new view will overlap an existing view then calculate
 			// the amount it needs to be bumped then bump it.
 			if (targetOverlapsExistingView(infoView1) != null)	    	    		
@@ -695,22 +808,6 @@ public class BioMapActivity extends Activity
 		
 		
 	}
-//	@Override
-//	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-//		super.onRestoreInstanceState(savedInstanceState);
-//		float lat = savedInstanceState.getFloat("UserLat");
-//		float lon = savedInstanceState.getFloat("UserLon");
-//		mBioView.updateUserLocation(lon,lat);
-//		
-//	}
-//
-//	@Override
-//	protected void onSaveInstanceState(Bundle outState) {
-//		outState.putFloat("UserLat", mBioView.mUser.mLat);
-//		outState.putFloat("UserLon", mBioView.mUser.mLon);
-//		
-//		super.onSaveInstanceState(outState);
-//	}
 
 	protected void onPause() {
 		Log.i("BFDemo", "BioMap onPause");
@@ -718,5 +815,51 @@ public class BioMapActivity extends Activity
 		super.onPause();
 	}
    
-  
+//	private void TimerMethod()
+//	{
+//		this.runOnUiThread(Timer_Tick);
+//	}
+//
+//	private Runnable Timer_Tick = new Runnable() {
+//		public void run() {
+//			Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//			if (loc != null)
+//			{
+//	    		double y = Util.latToY(loc.getLatitude());
+//	    		double x = Util.lonToX(loc.getLongitude());
+//	    		mBioView.updateUserLocation((float) x,(float) y);
+//	       		mBioView.invalidate();
+//			}
+//
+//		}
+//	};
+//
+//
+//
+	@Override
+	public void onLocationChanged(Location arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderEnabled(String arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+ 
+	
+	
 }

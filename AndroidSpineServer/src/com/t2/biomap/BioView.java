@@ -24,7 +24,7 @@ public class BioView extends View
 	private int mCy = 0;
     private double BuildingAngleDegrees = 23;
 	float left, top, right, bottom;
-	boolean mDebug = true;
+	boolean mDebug = false;
     
     float mCompass;
     

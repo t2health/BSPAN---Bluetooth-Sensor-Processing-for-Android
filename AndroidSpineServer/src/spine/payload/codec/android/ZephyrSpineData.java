@@ -75,6 +75,9 @@ public class ZephyrSpineData extends SpineCodec {
 
 	public SpineObject decode(Node node, byte[] payload) {
 
+		if (node == null)
+			return null;
+		
 		byte[] dataTmp = new byte[MAX_MSG_LENGHT];
 		short dtIndex = 0;
 		short pldIndex = 0;

@@ -62,7 +62,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -95,13 +94,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	/**
      * The Spine manager contains the bulk of the Spine server. 
      */
-    private static SPINEManager manager;
+    private static SPINEManager mManager;
 
     /**
 	 * This is a broadcast receiver. Note that this is used ONLY for command/status messages from the AndroidBTService
 	 * All data from the service goes through the mail SPINE mechanism (received(Data data)).
 	 */
-	private SpineReceiver receiver;
+	private SpineReceiver mCommandReceiver;
 	
 	/**
 	 * Static instance of this activity
@@ -143,6 +142,9 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private XYSeries mMindsetAttentionSeries;
 	private XYSeries mMindsetMeditationSeries;
 	private XYSeries mCurrentSpineSeries;
+	private XYSeries mZephyrHeartRateSeries;
+	private XYSeries mZephyrRespRateSeries;
+	private XYSeries mZephyrSkinTempSeries;
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
@@ -205,8 +207,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			Bundle bundle = getIntent().getExtras();
 			mTargetName = bundle.getString("TARGET_NAME");
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 			mTargetName = "";
 		    firstTime = true;
 		}
@@ -236,7 +236,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
-			manager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
+			mManager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
 		} catch (InstantiationException e) {
 			Log.e(TAG, "Exception creating SPINE manager: " + e.toString());
 			e.printStackTrace();
@@ -246,21 +246,21 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
 		Node zepherNode = null;
 		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
-		manager.getActiveNodes().add(zepherNode);
+		mManager.getActiveNodes().add(zepherNode);
 		
 		Node mindsetNode = null;
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
-		manager.getActiveNodes().add(mindsetNode);
+		mManager.getActiveNodes().add(mindsetNode);
 				
 		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
 		// to receive sensor node data from the Spine server
 		// (I register myself since I'm a SPINEListener implementation!)
-		manager.addListener(this);	        
+		mManager.addListener(this);	        
                 
 		// Create a broadcast receiver. Note that this is used ONLY for command messages from the service
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
 		// See public void received(Data data)
-        this.receiver = new SpineReceiver(this);
+        this.mCommandReceiver = new SpineReceiver(this);
         
         // Set up Device data chart
         if (mDeviceChartView == null) 
@@ -282,11 +282,19 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         mMindsetAttentionSeries = new XYSeries("Attention");
         mMindsetMeditationSeries = new XYSeries("Meditation");
         mCurrentSpineSeries = new XYSeries("Test Data");
-
+        mZephyrHeartRateSeries = new XYSeries("HeartRate");
+        mZephyrRespRateSeries = new XYSeries("RespRate");
+        mZephyrSkinTempSeries = new XYSeries("SkinTemp");
+        
+        
         mDeviceDataset.addSeries(mMindsetAttentionSeries);
         mDeviceDataset.addSeries(mMindsetMeditationSeries);
         mDeviceDataset.addSeries(mCurrentSpineSeries);
-        
+
+        mDeviceDataset.addSeries(mZephyrHeartRateSeries);
+        mDeviceDataset.addSeries(mZephyrRespRateSeries);
+        mDeviceDataset.addSeries(mZephyrSkinTempSeries);
+
         XYSeriesRenderer renderer = new XYSeriesRenderer();
         
         renderer = new XYSeriesRenderer();
@@ -299,6 +307,18 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
         
         renderer = new XYSeriesRenderer();
         renderer.setColor(Color.WHITE); // White
+        mDeviceRenderer.addSeriesRenderer(renderer);
+        
+        renderer = new XYSeriesRenderer();
+        renderer.setColor(Color.BLUE); 
+        mDeviceRenderer.addSeriesRenderer(renderer);
+        
+        renderer = new XYSeriesRenderer();
+        renderer.setColor(Color.MAGENTA); 
+        mDeviceRenderer.addSeriesRenderer(renderer);
+        
+        renderer = new XYSeriesRenderer();
+        renderer.setColor(Color.CYAN); 
         mDeviceRenderer.addSeriesRenderer(renderer);
         
 		try {
@@ -316,7 +336,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// Load users from the database
 		currentUsers = Util.setupUsers();
 		
-		manager.discoveryWsn();
+		mManager.discoveryWsn();
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
@@ -327,7 +347,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     	saveState();
     	
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
-    	this.unregisterReceiver(this.receiver);
+    	this.unregisterReceiver(this.mCommandReceiver);
 		Log.i(TAG, "MainActivity onDestroy");
 	    	
   //  	doUnbindService();    	
@@ -355,7 +375,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		//filter.addAction("com.t2.biofeedback.service.data.BROADCAST");
 		//filter.addAction("com.t2.biofeedback.service.zephyrdata.BROADCAST");
 		
-		this.registerReceiver(this.receiver,filter);
+		this.registerReceiver(this.mCommandReceiver,filter);
 		if (firstTime) 
 		{
 
@@ -393,7 +413,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			return true;
 			
 		case R.id.discover:
-			manager.discoveryWsn();
+			mManager.discoveryWsn();
 
 			return true;
 			
@@ -435,7 +455,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		else if(bfs.messageId.equals("CONN_ANY_CONNECTED")) {
 			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );
 			// Something has connected - discover what it was
-			manager.discoveryWsn();
+			mManager.discoveryWsn();
 			Toast.makeText (getApplicationContext(), "**** Sensor Node Connected ****", Toast.LENGTH_SHORT).show ();
 		} 
 		else if(bfs.messageId.equals("CONN_CONNECTION_LOST")) {
@@ -484,7 +504,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							user.mHeartRate = ch1Value;
 						}
 					}				
-//			        Log.i(TAG,"ch1Value= " + ch1Value);
+			        Log.i("SensorData","ch1Value= " + ch1Value);
 			    	
 					break;
 				} // End case SPINEFunctionConstants.FEATURE:
@@ -501,17 +521,21 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					double respRate = firsFeat.getCh3Value() / 10;
 					int skinTemp = firsFeat.getCh4Value() / 10;
 					double skinTempF = (skinTemp * 9 / 5) + 32;				
-					Log.i(TAG,"heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+					Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
 					
-					if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
+					// Look up the id of this view and update the owners data
+					// that corresponds to this address
+					for (BioLocation user: currentUsers)
 					{
-						mMindsetAttentionSeries.remove(0);
-					}
-	
-					mMindsetAttentionSeries.add(mSpineChartX++, heartRate);
-			        if (mDeviceChartView != null) {
-			            mDeviceChartView.repaint();
-			        }        
+						if (user.mAddress == source.getPhysicalID().getAsInt())
+						{
+							user.mZBattLevel = batLevel;
+							user.mZRespRate = (int)respRate;
+							user.mZHeartRate = heartRate;
+							user.mZSkinTemp = skinTemp;
+						}
+					}				
+					
 					break;
 				} // End case SPINEFunctionConstants.ZEPHYR:
 				
@@ -536,7 +560,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					}
 					if (mData.exeCode == Constants.EXECODE_ATTENTION)
 					{
-//						Log.i(TAG, "attention= "  + mData.attention);
+						Log.i("SensorData", "attention= "  + mData.attention);
 	
 						// Look up the id of this view and update the owners data
 						// that corresponds to this address
@@ -550,7 +574,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 					}
 					if (mData.exeCode == Constants.EXECODE_MEDITATION)
 					{
-//						Log.i(TAG, "meditation= "  + mData.meditation);
+						Log.i("SensorData", "meditation= "  + mData.meditation);
 						
 						// Look up the id of this view and update the owners data
 						// that corresponds to this address
@@ -587,7 +611,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			} // End if (!mPaused == true)
 			else
 			{
-				// We're paused, simpley display the last data
+				// We're paused, simply display the last data
 				String statusLine = "** PAUSED** ";
 				for (BioLocation user: currentUsers)
 				{
@@ -825,6 +849,25 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							mCurrentSpineSeries.add(mSpineChartX, user.mHeartRate);
 							logData += "HR, " + user.mHeartRate + ",";
 							break;
+							
+						case Constants.DATA_ZEPHYR_HEARTRATE:
+							mZephyrHeartRateSeries.add(mSpineChartX, user.mZHeartRate);
+							logData += "ZHR, " + user.mHeartRate + ",";
+							break;
+							
+						case Constants.DATA_ZEPHYR_RESPRATE:
+							mZephyrRespRateSeries.add(mSpineChartX, user.mZRespRate);
+							logData += "ZRR, " + user.mHeartRate + ",";
+							break;
+							
+						case Constants.DATA_ZEPHYR_SKINTEMP:
+							mZephyrSkinTempSeries.add(mSpineChartX, user.mZSkinTemp);
+							logData += "ZST, " + user.mHeartRate + ",";
+							break;
+							
+							
+							
+							
 						}
 					}			    	
 			    	

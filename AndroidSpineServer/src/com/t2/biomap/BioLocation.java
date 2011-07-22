@@ -16,6 +16,10 @@ public class BioLocation {
 	public int mAttention = 0;
 	public int mMeditation = 0;
 	public int mHeartRate = 0;
+	public int mZHeartRate = 0;
+	public int mZRespRate = 0;
+	public int mZSkinTemp = 0;
+	public int mZBattLevel = 0;
 	
 	
 	public BioLocation()
@@ -76,7 +80,8 @@ public class BioLocation {
 	
 	public String buildStatusText()
 	{
-		String statusLine = mName + ":\n";
+		String statusLine = "";
+//		String statusLine = mName + ":\n";
 		for (int i = 0; i < mSensors.length; i++)
 		{
 			switch (mSensors[i])
@@ -91,8 +96,19 @@ public class BioLocation {
 				statusLine += "Meditation = " + mMeditation + "\n";
 				break;
 			case Constants.DATA_TYPE_HEARTRATE:
-				
 				statusLine += "Heart Rate = " + mHeartRate + "\n";
+				break;
+//			case Constants.DATA_ZEPHYR_BATTLEVEL:
+//				statusLine += "zBatt Level = " + mZBattLevel + "\n";
+//				break;
+			case Constants.DATA_ZEPHYR_HEARTRATE:
+				statusLine += "zHeart Rate = " + mZHeartRate + "\n";
+				break;
+			case Constants.DATA_ZEPHYR_RESPRATE:
+				statusLine += "zResp Rate = " + mZRespRate + "\n";
+				break;
+			case Constants.DATA_ZEPHYR_SKINTEMP:
+				statusLine += "zSkin Temp = " + mZSkinTemp + "\n";
 				break;
 			}
 		}

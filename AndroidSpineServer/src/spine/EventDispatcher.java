@@ -220,8 +220,12 @@ class EventDispatcher {
 							 }
 							 
 							 // Invoking decode and setting SpineObject data
-							 o = EventDispatcher.this.spineManager.spineCodec.decode(EventDispatcher.this.spineManager.getNodeByPhysicalID(nodeID), payload);
-//							 o = null;
+							 Node node = EventDispatcher.this.spineManager.getNodeByPhysicalID(nodeID);
+							 if (node != null)
+							 {
+								 // Don't try to decode unless we have a valid node
+								 o = EventDispatcher.this.spineManager.spineCodec.decode(node, payload);
+							 }
 							
 						} catch (PacketDecodingException e) {
 							e.printStackTrace();

@@ -564,6 +564,7 @@ public class SPINEManager {
 			if(curr.getPhysicalID().equals(id))
 				return curr;
 		}
+		l.log(Logger.INFO, "Could not find sensor in active nodes" );
 		return null;
 	}
 	

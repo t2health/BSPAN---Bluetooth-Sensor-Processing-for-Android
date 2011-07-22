@@ -26,7 +26,7 @@ public class InfoView extends View {
 	private Paint   mUserPaint;	
 	private float   mX;	
 	public int mHeight = 80;
-	public int mWidth = 120;
+	public int mWidth = 124;
 	private int mCx = 0;
 	private int mCy = 0;
 
@@ -123,31 +123,23 @@ public class InfoView extends View {
 	@Override
 	public void draw(Canvas canvas) {
 		
-//		if (mBitmap != null)
-//		{
-//			canvas.drawBitmap(mBitmap, left + 5, top + 15, mLinePaint);
-//		}
-//		else
-//		{
-	        mDrawable.getPaint().setColor(0xD0ff0000);
-	        mDrawable.setBounds((int)left, (int)top, (int)right, (int)bottom);
-	        
-	        mDrawable.draw(canvas);
+        mDrawable.getPaint().setColor(0xD0ff0000);
+        mDrawable.setBounds((int)left, (int)top, (int)right, (int)bottom);
+        
+        mDrawable.draw(canvas);
 
-	        float x = left + 5;
-	        float y = top + 15;
+//        lines[0] = mTarget.mName;
+        float x = left + 5;
+        float y = top + 15;
+        
+        // Always draw name
+        int count = 0;
+        canvas.drawText(mTarget.mName, x, y + (LINE_HEIGHT * count++), mTextPaint);
+        for (int i = 0; i < mNumLines; i++)
+        {
+			canvas.drawText(lines[i], x, y + (LINE_HEIGHT * count++), mTextPaint);
+        }
 	        
-	        for (int i = 0; i < mNumLines; i++)
-	        {
-				canvas.drawText(lines[i], x, y + (LINE_HEIGHT * i), mTextPaint);
-	        }
-	        
-//			canvas.drawText(mLine1, left + 5, top + 15, mTextPaint);
-//			canvas.drawText(mLine2, left + 5, top + 30, mTextPaint);
-//			canvas.drawText(mLine3, left + 5, top + 45, mTextPaint);
-			
-//		}
-		
 		super.draw(canvas);
 		
 	}	

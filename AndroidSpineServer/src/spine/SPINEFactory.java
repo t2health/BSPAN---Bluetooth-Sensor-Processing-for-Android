@@ -57,9 +57,12 @@ public class SPINEFactory {
 	 *             and PLATFORM variables have not been defined.
 	 **/
 	public static SPINEManager createSPINEManager(String appPropertiesFile, Resources resources) throws InstantiationException {
-//		if (managerInstance != null)
+		if (managerInstance != null)
+		{
+			
+		}
 //			throw new InstantiationException("SPINEManager already initialized");
-//		else {
+		else {
 			Properties.setResources(resources);
 			Properties appProp = Properties.getProperties(appPropertiesFile);
 
@@ -73,7 +76,7 @@ public class SPINEFactory {
 				throw new InstantiationException(APP_PROP_MISSING_MSG);
 			
 			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
-//		}
+		}
 		return managerInstance;
 
 	}

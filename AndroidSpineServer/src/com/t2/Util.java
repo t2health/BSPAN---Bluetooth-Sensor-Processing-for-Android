@@ -14,7 +14,20 @@ import android.util.Log;
  */
 public class Util {
     private static final String TAG = "BioMap";
+    
+    
+    
+    static double mLonTopLeft = -122.542614;
+    static double mLatTopLeft = 47.103102;
+    static double mLonBottomRight = -122.542335;
+    static double mLatBottomRight = 47.102753;
+    static double mXBottomRight = 309;
+    static double mYBottomRight = 463;
 	
+    static double mScaleLat = mLatBottomRight - mLatTopLeft;
+    static double mScaleLon = mLonBottomRight - mLonTopLeft;
+    
+    
 	/**
 	 * Writes a formatted hex string (created from supplied byte array to the log
 	 * @param TAG				Logging tag to use
@@ -79,7 +92,7 @@ public class Util {
 								Constants.DATA_TYPE_ATTENTION,
 								Constants.DATA_TYPE_MEDITATION}, 
 								true,
-								Constants.RESERVED_ADDRESS_MINDSET))	;
+								Constants.RESERVED_ADDRESS_ZEPHYR))	;
 			currentUsers.add(new BioLocation("Bob", 272,363, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
@@ -94,11 +107,11 @@ public class Util {
 		else
 		{
 			currentUsers.add(new BioLocation("Dave", 240,283, 
-					new int[] {Constants.DATA_SIGNAL_STRENGTH,
-								Constants.DATA_TYPE_ATTENTION,
-								Constants.DATA_TYPE_MEDITATION}, 
+					new int[] {Constants.DATA_ZEPHYR_HEARTRATE,
+								Constants.DATA_ZEPHYR_RESPRATE,
+								Constants.DATA_ZEPHYR_SKINTEMP}, 
 								true,
-								Constants.RESERVED_ADDRESS_MINDSET))	;
+								Constants.RESERVED_ADDRESS_ZEPHYR))	;
 			currentUsers.add(new BioLocation("Bob", 240,308, 
 					new int[] {Constants.DATA_SIGNAL_STRENGTH,
 								Constants.DATA_TYPE_ATTENTION,
@@ -113,12 +126,22 @@ public class Util {
 		}
 				
 		
-		
 		return currentUsers;
 		
 	}
 
 	
+	static public double latToY(double lat)
+	{
+		double d = (((lat) - mLatTopLeft) * mYBottomRight) / mScaleLat;
+		return d;
+	}
+	static public double lonToX(double lon)
+	{
+		double d = (((-lon) + mLonTopLeft) * mXBottomRight) / mScaleLon;
+		return d * -1;
+		
+	}
 	
 	
 }
