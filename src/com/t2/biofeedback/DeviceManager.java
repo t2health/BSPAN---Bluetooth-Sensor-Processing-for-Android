@@ -144,6 +144,38 @@ public class DeviceManager {
 		}
 		else
 		{
+			
+			// We need to reset the list of available devices (in case something changed)
+			deviceManager.availableDevices.clear();
+			
+			// Display option A
+			// Use this block if you want to list all bonded BT devices regardless of their BT Address
+			Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
+			Iterator bit = deviceBondedDevices.iterator();
+			while(bit.hasNext())
+			{
+				BioFeedbackDevice d;
+				BluetoothDevice bt = (BluetoothDevice) bit.next();
+				String name = bt.getName();
+				if (name.equalsIgnoreCase("BH ZBH002095"))
+				{
+					d = new ZephyrBH(serverListeners);
+					
+				}
+				else if (name.equalsIgnoreCase("MINDSET")) 
+				{
+					d = new NeuroskyBH(serverListeners);
+				}
+				else
+				{
+					d = new SpineBH(serverListeners);
+				}
+				d.setDevice(bt.getAddress());
+				deviceManager.availableDevices.put(d.getAddress(),d);			
+			}
+						
+			
+			
 			// There is already a device manager.
 			// Update listeners if a new set of listeners is presented
 			// Listeners are the mechanism through which the service sends data (not commands)

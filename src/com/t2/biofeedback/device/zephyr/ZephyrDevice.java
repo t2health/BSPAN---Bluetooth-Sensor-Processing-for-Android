@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**
@@ -20,6 +21,7 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  */
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
+	boolean mDebug = false;	
 	
 	ZephyrDevice(ArrayList<Messenger> serverListeners)
 	{
@@ -108,7 +110,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		// messages for now we'll only send data messages
 		if(msg.msgId == 0x20) {
 
-//			Util.logHexByteString(TAG, msg.payload);
+			if (mDebug)	Util.logHexByteString(TAG,   msg.payload);
 			
 			// Use this to send the message directly to the main aplication
 			//this.onDeviceMessage(msg.payload);			
@@ -186,8 +188,11 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 			
 //			this.onSpineMessage(zepherMessage);		// Old method of sending data to server
 			if (mServerListeners != null)
-			{			
+			{		
+//				if (mDebug)	Log.i(TAG, "1");
+
 		        for (i = mServerListeners.size()-1; i >= 0; i--) {
+//					if (mDebug)	Log.i(TAG, "2");
 			        try {
 						Bundle b = new Bundle();
 						b.putByteArray("message", zepherMessage);
