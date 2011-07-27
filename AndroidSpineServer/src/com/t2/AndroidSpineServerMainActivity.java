@@ -572,6 +572,10 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 							}
 						}					
 					}
+					if (mData.exeCode == Constants.EXECODE_SPECTRAL)
+					{
+						Log.i("SensorData", "Spectral = "  + mData.delta);
+					}
 					if (mData.exeCode == Constants.EXECODE_MEDITATION)
 					{
 						Log.i("SensorData", "meditation= "  + mData.meditation);
