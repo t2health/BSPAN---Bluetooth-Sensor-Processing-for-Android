@@ -532,12 +532,19 @@ public abstract class SerialBTDevice {
 				}
 				
 				try {
-					bytes = this.inputStream.read(buffer);
+					
+					// ** Note - we must send the connected message BEFORE the inputstream.read()
+					// because some devices will block on .read() therefore the connected
+					// message will never get sent
+					
 					if(!this.isConnected) {
 						threadHandler.sendEmptyMessage(MSG_CONNECTED);
 						pushQueuedBytes();
 					}
 					this.isConnected = true;
+
+					
+					bytes = this.inputStream.read(buffer);
 					
 					if(bytes > 0) {
 						byte[] newBytes = new byte[bytes];

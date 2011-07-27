@@ -16,6 +16,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
+import com.t2.biofeedback.device.Mobi.MobiBH;
 import com.t2.biofeedback.device.Spine.SpineBH;
 import com.t2.biofeedback.device.neurosky.NeuroskyBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
@@ -108,6 +109,10 @@ public class DeviceManager {
 			{
 				d = new NeuroskyBH(mServerListeners);
 			}
+			else if (name.startsWith("NeXus")) 
+			{
+				d = new MobiBH(mServerListeners);
+			}
 			else
 			{
 				d = new SpineBH(mServerListeners);
@@ -165,6 +170,10 @@ public class DeviceManager {
 				else if (name.equalsIgnoreCase("MINDSET")) 
 				{
 					d = new NeuroskyBH(serverListeners);
+				}
+				else if (name.startsWith("NeXus")) 
+				{
+					d = new MobiBH(serverListeners);
 				}
 				else
 				{

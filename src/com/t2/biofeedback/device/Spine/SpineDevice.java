@@ -9,6 +9,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**

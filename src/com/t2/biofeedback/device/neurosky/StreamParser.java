@@ -207,8 +207,10 @@ public class StreamParser {
 			code = payload[i++] & 0xFF;
 			
 			/* Parse value length */
-			if( code >= 0x80 ) numBytes = payload[i++] & 0xFF;
-			else               numBytes = 1;
+			if( code >= 0x80 ) 
+				numBytes = payload[i++] & 0xFF;
+			else               
+				numBytes = 1;
 			
 			/* Call the callback function to handle the DataRow value */
 			byte[] valueBytes = new byte[numBytes];

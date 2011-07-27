@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**
@@ -18,7 +20,36 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  */
 public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataListener{
 	private static final String TAG = Constants.TAG;
+	boolean mTestData = false;
 
+	byte[] mTestDataBytes = {
+			0x01, 0x02, 0x03, 
+			0x04, 0x05, 0x06, 
+			0x07, 0x08, 0x09, 
+			0x0a, 0x0b, 0x0c, 
+			0x11, 0x12, 0x13, 
+			0x14, 0x15, 0x16, 
+			0x17, 0x18, 0x19, 
+			0x1a, 0x1b, 0x1c, 
+			};	
+	
+
+	/**
+	 * Message format:
+	 * Byte				Contents
+	 * -----------------------------
+	 * 0 - 8			Spine Header
+	 * 9				MINDSET_FUNCT_CODE (0x0A)		<-- Payload
+	 * 10				MINDSET_SENSOR_CODE (0x0D)
+	 * 11				Exe Code 
+	 * 12				Signal Quality                    	<--- EXECODE_POOR_SIG_QUALITY_POS
+	 * 13				Attention							<--- EXECODE_ATTENTION_POS
+	 * 14				Meditation							<--- EXECODE_MEDITATION_POS
+	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
+	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
+	 * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
+	 */
+	
 	/**
 	 * Parses byte stream coming from Neurosky device into complete messages
 	 */
@@ -32,22 +63,31 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	private int mMessageIndex = 0;
 	
 	
-	static final byte EXECODE_POOR_SIG_QUALITY = 2;
-	static final byte EXECODE_ATTENTION = 4;
-	static final byte EXECODE_MEDITATION = 5;
-	static final byte EXECODE_BLINK_STRENGTH = 0x16;
-	static final byte EXECODE_RAW_WAVE = (byte) 0x80;
-	static final byte EXECODE_SPECTRAL = (byte) 0x83;
+	static final int EXECODE_POOR_SIG_QUALITY = 2;
+	static final int EXECODE_ATTENTION = 4;
+	static final int EXECODE_MEDITATION = 5;
+	static final int EXECODE_BLINK_STRENGTH = 0x16;
+	static final int EXECODE_RAW_WAVE = 0x80;
+	static final int EXECODE_SPECTRAL = 0x83;
 
 	static final int MINDSET_FUNCT_CODE						= 0x0A;
 	static final int MINDSET_SENSOR_CODE 					= 0x0D;
 	static final int SPINE_HEADER_SIZE 						= 9;
-	static final int MINDSET_MSG_SIZE 						= 33;		
+
 	
-	static final byte EXECODE_POOR_SIG_QUALITY_POS = SPINE_HEADER_SIZE + 3 + 0; 
-	static final byte EXECODE_ATTENTION_POS = SPINE_HEADER_SIZE + 3  + 1; 
-	static final byte EXECODE_MEDITATION_POS = SPINE_HEADER_SIZE + 3  + 2; 
-	static final byte EXECODE_BLINK_STRENGTH_POS = SPINE_HEADER_SIZE + 3  + 3; 
+	static final int MINDSET_PREMSG_SIZE 				    = 3;   // 	3 bytes in front of every payload, MINDSET_FUNCT_CODE, MINDSET_SENSOR_CODE, EXECode)	
+	static final int MINDSET_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE;		
+	
+	
+	// Note that each Spine mindset message has all of the mindset attribuites
+	// Define the hard positions in the Mindset message of each of the attributes
+	static final byte PAYLOAD_POS = SPINE_HEADER_SIZE; 
+	static final byte EXECODE_POOR_SIG_QUALITY_POS = PAYLOAD_POS + MINDSET_PREMSG_SIZE + 0; 
+	static final byte EXECODE_ATTENTION_POS = EXECODE_POOR_SIG_QUALITY_POS + 1; 
+	static final byte EXECODE_MEDITATION_POS = EXECODE_ATTENTION_POS + 1; 
+	static final byte EXECODE_BLINK_STRENGTH_POS = EXECODE_MEDITATION_POS + 1; 
+	static final byte EXECODE_RAW_POS = EXECODE_BLINK_STRENGTH_POS + 1; 
+	static final byte EXECODE_SPECTRAL_POS = EXECODE_RAW_POS + 2; 
 	
 	/**
 	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
@@ -88,6 +128,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	 */
 	protected void onBytesReceived(byte[] bytes) 
 	{
+	//	Util.logHexByteString(TAG, "Found message:", bytes);
 		// Transfer bytes to parser one by one
 		// Each time updating the state machine
 		// then checking for a value header
@@ -158,19 +199,23 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		// For now we'll ignore all extended codes
 		if (extendedCodeLevel != 0)
 		{
+			Log.i(TAG, "Extended code: -----------------------------" + extendedCodeLevel);
 			return;
 		}
 		
 // TODO: re-do coding scheme to only send bytes necessary for the exe code received
+		//Log.i(TAG, "code: " + code);
 		switch (code)
 		{
 		case EXECODE_POOR_SIG_QUALITY:
+			//Log.i(TAG, "siq Q");
 			startMessage();
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_POOR_SIG_QUALITY_POS] = valueBytes[0];
 			break;
 			
 		case EXECODE_ATTENTION:
+			//Log.i(TAG, "Atten");
 			startMessage();
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_ATTENTION_POS] = valueBytes[0];
@@ -191,17 +236,24 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 			return;
 		
 		case EXECODE_SPECTRAL:
+			//Log.i(TAG, "Spectral");
+
 			startMessage();
 			mMindsetMessage[mMessageIndex++] = (byte) code;	
-			int j = 0;
-			byte messageLength = valueBytes[j++];
-
+			int valueSize = valueBytes.length;
+			
+			
 			// this code should ONLY have 24 bytes length, if not don't do anything
-			if (messageLength == 24)
+			if (numBytes == 24 && valueSize == 24)
 			{
-				for (int i = 0; i < messageLength; i++)
+				for (int i = 0; i < numBytes; i++)
 				{
-					mMindsetMessage[mMessageIndex++] = valueBytes[j++];
+					if (!mTestData) {
+						mMindsetMessage[EXECODE_SPECTRAL_POS + i] = valueBytes[i];
+					}
+					else {
+						mMindsetMessage[EXECODE_SPECTRAL_POS + i] = mTestDataBytes[i];
+					}
 				}
 			}
 			break;
