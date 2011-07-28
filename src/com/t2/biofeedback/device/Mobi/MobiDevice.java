@@ -2,17 +2,12 @@ package com.t2.biofeedback.device.Mobi;
 
 import java.util.ArrayList;
 
-import android.os.Bundle;
-import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
-import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Mobi.Structures.FrontEndInfo;
-import com.t2.biofeedback.device.zephyr.ZephyrMessage;
 
 /**
  * Encapsulates methods necessary to communicate with a Bluetooth Neurosky device
