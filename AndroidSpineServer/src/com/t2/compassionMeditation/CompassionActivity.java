@@ -1,31 +1,38 @@
-package com.t2;
+package com.t2.compassionMeditation;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+import com.t2.AndroidSpineConnector;
+import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.CompassionActivity;
+
+
+//import com.t2.vas.activity.ABSResultsActivity.KeyItem;
+//import com.t2.vas.activity.ABSResultsActivity.KeyItem;
 import com.t2.Constants;
 
 import spine.datamodel.Node;
@@ -35,8 +42,6 @@ import spine.SPINEListener;
 import spine.SPINEManager;
 import spine.datamodel.Address;
 import spine.datamodel.Data;
-import spine.datamodel.Feature;
-import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
@@ -45,6 +50,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -59,15 +65,27 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+
+
+//Need the following import to get access to the app resources, since this
+//class is in a sub-package.
+
+import com.t2.R;
 
 /**
  * Main (test) activity for Spine server.
@@ -85,11 +103,11 @@ import android.widget.Toast;
  * @author scott.coleman
  *
  */
-public class AndroidSpineServerMainActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
-	private static final String TAG = Constants.TAG;
+public class CompassionActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
+	private static final String TAG = "CompassionActivity";
 
     private static AndroidSpineConnector spineConnector;
-    private static boolean firstTime = true;
+    
     
 
 	/**
@@ -106,7 +124,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	/**
 	 * Static instance of this activity
 	 */
-	private static AndroidSpineServerMainActivity instance;
+	private static CompassionActivity instance;
 
 	/**
 	 * Service connection used to communicate data messages with the AndroidBTService
@@ -124,12 +142,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	 */
 	boolean mIsBound = false;
 	
-	String mTargetName = "";
-	String mLastMeditation = "";
-	String mLastAttention = "";
-	String mLastSignalStrength = "";
 	
-	Vector<BioLocation> currentUsers;
 	
 	private static Timer mDataUpdateTimer;	
 	
@@ -138,22 +151,13 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private final static int SPINE_CHART_SIZE = 20;
 	
 	private GraphicalView mDeviceChartView;
-	private XYMultipleSeriesDataset mDeviceDataset = new XYMultipleSeriesDataset();
-	private XYMultipleSeriesRenderer mDeviceRenderer = new XYMultipleSeriesRenderer();
-	private XYSeries mMindsetAttentionSeries;
-	private XYSeries mMindsetMeditationSeries;
-	private XYSeries mCurrentSpineSeries;
-	private XYSeries mZephyrHeartRateSeries;
-	private XYSeries mZephyrRespRateSeries;
-	private XYSeries mZephyrSkinTempSeries;
+
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
 	private EditText mDetailLog;
 	
 	int mSpineChartX = 0;
-	int mAttentionChartX = 0;
-	int mMeditationChartX = 0;
 	
 	String mPackageName = "";
 	int mVersionCode;
@@ -173,6 +177,17 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     private Button mLlogMarkerButton;
     
     private String mLogMarkerNote = null;
+    
+
+	protected SharedPreferences sharedPref;
+	private static final String KEY_NAME = "results_visible_ids_";	
+	private KeyItem delta = new KeyItem(MindsetData.DELTA_ID, "Delta", "Delta");
+	private KeyItem theta = new KeyItem(MindsetData.THETA_ID, "Theta", "Theta");
+	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
+	MindsetData currentMindsetData = new MindsetData();
+	
+    int testData1 = 0;
+    int testData2 = 0;
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -185,7 +200,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	/**
 	 * @return Static instance of this activity
 	 */
-	public static AndroidSpineServerMainActivity getInstance() 
+	public static CompassionActivity getInstance() 
 	{
 	   return instance;
 	}
@@ -194,37 +209,16 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.compassion);
         instance = this;
     
-//		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
+        keyItems.add(delta);
+        keyItems.add(theta);
         
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
-        // If we were called from the Biomap activity then it will have
-        // sent us a target to focus on
-        try {
-			// Get target name if one was supplied
-			Bundle bundle = getIntent().getExtras();
-			mTargetName = bundle.getString("TARGET_NAME");
-		} catch (Exception e1) {
-			mTargetName = "";
-		    firstTime = true;
-		}
         
-        if (mTargetName == null)
-        	mTargetName = "";
-        
-        ImageView image = (ImageView) findViewById(R.id.targetImage);
-        
-        if (mTargetName.equalsIgnoreCase("Scott"))
-            image.setImageResource(R.drawable.scott);        
-        if (mTargetName.equalsIgnoreCase("dave"))
-            image.setImageResource(R.drawable.dave);        
-        if (mTargetName.equalsIgnoreCase("bob"))
-            image.setImageResource(R.drawable.bob);        
-        
-        AndroidSpineConnector.setMainActivityInstance(instance);
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
@@ -243,12 +237,8 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			e.printStackTrace();
 		}        
 		
-		// Since zepher is a static node we have to manually put it in the active node list
+		// Since Mindset is a static node we have to manually put it in the active node list
 		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
-		Node zepherNode = null;
-		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
-		mManager.getActiveNodes().add(zepherNode);
-		
 		Node mindsetNode = null;
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
 		mManager.getActiveNodes().add(mindsetNode);
@@ -263,64 +253,50 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		// See public void received(Data data)
         this.mCommandReceiver = new SpineReceiver(this);
         
+        
+        // Set up chart
+    	XYMultipleSeriesDataset deviceDataset = new XYMultipleSeriesDataset();
+    	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
+        
         // Set up Device data chart
         if (mDeviceChartView == null) 
         {
           LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);
-          mDeviceChartView = ChartFactory.getLineChartView(this, mDeviceDataset, mDeviceRenderer);
+          mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
           layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
-        mDeviceRenderer.setShowLabels(false);
-        mDeviceRenderer.setMargins(new int[] {0,0,0,0});
-        mDeviceRenderer.setShowAxes(true);
-        mDeviceRenderer.setShowLegend(true);
+        deviceRenderer.setShowLabels(false);
+        deviceRenderer.setMargins(new int[] {0,0,0,0});
+        deviceRenderer.setShowAxes(true);
+        deviceRenderer.setShowLegend(true);
         
-        mDeviceRenderer.setZoomEnabled(false, false);
-        mDeviceRenderer.setPanEnabled(false, false);
-        mDeviceRenderer.setYAxisMin(0);
-        mDeviceRenderer.setYAxisMax(255);
-        
-        mMindsetAttentionSeries = new XYSeries("Attention");
-        mMindsetMeditationSeries = new XYSeries("Meditation");
-        mCurrentSpineSeries = new XYSeries("Test Data");
-        mZephyrHeartRateSeries = new XYSeries("HeartRate");
-        mZephyrRespRateSeries = new XYSeries("RespRate");
-        mZephyrSkinTempSeries = new XYSeries("SkinTemp");
+        deviceRenderer.setZoomEnabled(false, false);
+        deviceRenderer.setPanEnabled(false, false);
+        deviceRenderer.setYAxisMin(0);
+        deviceRenderer.setYAxisMax(255);
         
         
-        mDeviceDataset.addSeries(mMindsetAttentionSeries);
-        mDeviceDataset.addSeries(mMindsetMeditationSeries);
-        mDeviceDataset.addSeries(mCurrentSpineSeries);
-
-        mDeviceDataset.addSeries(mZephyrHeartRateSeries);
-        mDeviceDataset.addSeries(mZephyrRespRateSeries);
-        mDeviceDataset.addSeries(mZephyrSkinTempSeries);
-
-        XYSeriesRenderer renderer = new XYSeriesRenderer();
+        int keyCount = keyItems.size();
+		for(int i = 0; i < keyItems.size(); ++i) {
+			KeyItem item = keyItems.get(i);
+			
+			if(!item.visible) {
+				continue;
+			}
+			
+			deviceDataset.addSeries(item.series);
+			item.color = getKeyColor(i, keyCount);
+			
+			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+			seriesRenderer.setColor(item.color);
+//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//			seriesRenderer.setFillPoints(true);
+//			seriesRenderer.setLineWidth(2 * displayMetrics.density);
+			
+			deviceRenderer.addSeriesRenderer(seriesRenderer);
+		}        
         
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.GREEN); // White
-        mDeviceRenderer.addSeriesRenderer(renderer);
         
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.YELLOW); // White
-        mDeviceRenderer.addSeriesRenderer(renderer);
-        
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.WHITE); // White
-        mDeviceRenderer.addSeriesRenderer(renderer);
-        
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.BLUE); 
-        mDeviceRenderer.addSeriesRenderer(renderer);
-        
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.MAGENTA); 
-        mDeviceRenderer.addSeriesRenderer(renderer);
-        
-        renderer = new XYSeriesRenderer();
-        renderer.setColor(Color.CYAN); 
-        mDeviceRenderer.addSeriesRenderer(renderer);
         
 		try {
 			PackageManager packageManager = this.getPackageManager();
@@ -328,14 +304,12 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			mPackageName = info.packageName;
 			mVersionCode = info.versionCode;
 			mVersionName = info.versionName;
-			Log.i(TAG, "Spine server Test Application Version " + mVersionName);
+			Log.i(TAG, "Compassion Meditation Application Version " + mVersionName);
 		} 
 		catch (NameNotFoundException e) {
 			   	Log.e(TAG, e.toString());
 		}
 		
-		// Load users from the database
-		currentUsers = Util.setupUsers();
 		
 		mManager.discoveryWsn();
     } // End onCreate(Bundle savedInstanceState)
@@ -357,36 +331,14 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.i(TAG, "OnStart, FirstTime = " + firstTime);
+		Log.i(TAG, "OnStart");
 		
 		
-		// Tell the AndroidBTService to start up
-		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
 		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
-
-		// These are only used when the AndroidBTService sends sensor data directly to this 
-		// activity.
-		// Currently all sensor data comesin throuugh the service connection that is set up
-		// to the AndroidBTService.
-		
-		//filter.addAction("com.t2.biofeedback.service.spinedata.BROADCAST");
-		//filter.addAction("com.t2.biofeedback.service.data.BROADCAST");
-		//filter.addAction("com.t2.biofeedback.service.zephyrdata.BROADCAST");
-		
 		this.registerReceiver(this.mCommandReceiver,filter);
-		if (firstTime) 
-		{
-
-			Log.i(TAG, "--------------------Starting Map Activity -----------------------");
-			
-			firstTime = false;
-//			Intent i = new Intent(this, BioMapActivity.class);
-			Intent i = new Intent(this, CompassionActivity.class);
-			this.startActivity(i);
-		}
 		
 		// Set up a timer to do graphical updates
 		mDataUpdateTimer = new Timer();
@@ -489,144 +441,53 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 			if (!mPaused == true)
 			{
 				switch (data.getFunctionCode()) {
-				case SPINEFunctionConstants.FEATURE: {
-					Node source = data.getNode();
-					Feature[] feats = ((FeatureData)data).getFeatures();
-					Feature firsFeat = feats[0];
-					byte sensor = firsFeat.getSensorCode();
-					byte featCode = firsFeat.getFeatureCode();
-					int ch1Value = firsFeat.getCh1Value();
-					
-					// Look up the id of this view and update the owners data
-					// that corresponds to this address
-					for (BioLocation user: currentUsers)
-					{
-						if (user.mAddress == source.getPhysicalID().getAsInt())
-						{
-							user.mHeartRate = ch1Value;
-						}
-					}				
-			        Log.i("SensorData","ch1Value= " + ch1Value);
-			    	
-					break;
-				} // End case SPINEFunctionConstants.FEATURE:
+
 				
-				case SPINEFunctionConstants.ZEPHYR: {
-					Node source = data.getNode();
-					Feature[] feats = ((FeatureData)data).getFeatures();
-					Feature firsFeat = feats[0];
-					
-					byte sensor = firsFeat.getSensorCode();
-					byte featCode = firsFeat.getFeatureCode();
-					int batLevel = firsFeat.getCh1Value();
-					int heartRate = firsFeat.getCh2Value();
-					double respRate = firsFeat.getCh3Value() / 10;
-					int skinTemp = firsFeat.getCh4Value() / 10;
-					double skinTempF = (skinTemp * 9 / 5) + 32;				
-					Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
-					
-					// Look up the id of this view and update the owners data
-					// that corresponds to this address
-					for (BioLocation user: currentUsers)
-					{
-						if (user.mAddress == source.getPhysicalID().getAsInt())
-						{
-							user.mZBattLevel = batLevel;
-							user.mZRespRate = (int)respRate;
-							user.mZHeartRate = heartRate;
-							user.mZSkinTemp = skinTemp;
-						}
-					}				
-					
-					break;
-				} // End case SPINEFunctionConstants.ZEPHYR:
-				
+
 				case SPINEFunctionConstants.MINDSET: {
-					Node source = data.getNode();
+						Node source = data.getNode();
 					
-					MindsetData mData = (MindsetData) data;
-					if (mData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
-					{
-//						Log.i(TAG, "poorSignalStrength= "  + mData.poorSignalStrength);
-	//					int b = mData.poorSignalStrength &  0xff;
-	//					String result = Integer.toHexString(b);					
-						// Look up the id of this view and update the owners data
-						// that corresponds to this address
-						for (BioLocation user: currentUsers)
+						MindsetData mindsetData = (MindsetData) data;
+						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 						{
-							if (user.mAddress == source.getPhysicalID().getAsInt())
-							{
-								user.mSignalStrength = mData.poorSignalStrength;
-							}
-						}					
-					}
-					if (mData.exeCode == Constants.EXECODE_ATTENTION)
-					{
-						//Log.i("SensorData", "attention= "  + mData.attention);
-	
-						// Look up the id of this view and update the owners data
-						// that corresponds to this address
-						for (BioLocation user: currentUsers)
+						}
+						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL)
 						{
-							if (user.mAddress == source.getPhysicalID().getAsInt())
-							{
-								user.mAttention = mData.attention;
-							}
-						}					
-					}
-					if (mData.exeCode == Constants.EXECODE_SPECTRAL)
-					{
-//						Log.i("SensorData", "Spectral = "  + mData.delta);
-					}
-					if (mData.exeCode == Constants.EXECODE_MEDITATION)
-					{
-						//Log.i("SensorData", "meditation= "  + mData.meditation);
+							//currentMindsetData = mindsetData;
+							currentMindsetData.delta = mindsetData.delta;
+							currentMindsetData.theta = mindsetData.theta;
+							currentMindsetData.lowAlpha = mindsetData.lowAlpha;
+							currentMindsetData.highAlpha = mindsetData.highAlpha;
+							currentMindsetData.lowBeta = mindsetData.lowBeta;
+							currentMindsetData.highBeta = mindsetData.highBeta;
+							currentMindsetData.lowGamma = mindsetData.lowGamma;
+							currentMindsetData.midGamma = mindsetData.midGamma;
+						}
 						
-						// Look up the id of this view and update the owners data
-						// that corresponds to this address
-						for (BioLocation user: currentUsers)
+						
+						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
 						{
-							if (user.mAddress == source.getPhysicalID().getAsInt())
-							{
-								user.mMeditation = mData.meditation;
-							}
-						}					
-					}
-					break;
+							currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+						}
+						if (mindsetData.exeCode == Constants.EXECODE_ATTENTION)
+						{
+							currentMindsetData.attention= mindsetData.attention;
+						}
+						if (mindsetData.exeCode == Constants.EXECODE_MEDITATION)
+						{						
+							currentMindsetData.meditation= mindsetData.meditation;
+						}						
+						
+						break;
 					} // End case SPINEFunctionConstants.MINDSET:
 				
-					case SPINEFunctionConstants.ONE_SHOT:
-						Log.i(TAG, "SPINEFunctionConstants.ONE_SHOT"  );
-						break;
-						
-					case SPINEFunctionConstants.ALARM:
-						Log.i(TAG, "SPINEFunctionConstants.ALARM"  );
-						break;
 				} // End switch (data.getFunctionCode())
 				
-				// Now display the current user's data
-				String statusLine = "";
-				for (BioLocation user: currentUsers)
-				{
-					if (user.mName.equalsIgnoreCase(mTargetName))
-					{
-						statusLine = user.buildStatusText();
-							mDetailLog.setText(statusLine);					
-					}
-				}			
+			
 			} // End if (!mPaused == true)
 			else
 			{
-				// We're paused, simply display the last data
-				String statusLine = "** PAUSED** ";
-				for (BioLocation user: currentUsers)
-				{
-					if (user.mName.equalsIgnoreCase(mTargetName))
-					{
-						statusLine += user.buildStatusText();
-							mDetailLog.setText(statusLine);					
-					}
-				}			
+		
 			}
 		} // End if (data != null)
 	}
@@ -721,35 +582,15 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	
 	void updateDetailLog(String text, int dataType)
 	{
-		if (mTargetName.equalsIgnoreCase("scott"))
-		{
-			if (dataType == Constants.DATA_TYPE_HEARTRATE)
-				mDetailLog.setText("Heart Rate: " + text);
-				
-		}
-		else
-		{
-			if (dataType == Constants.DATA_TYPE_MEDITATION)
-				mLastMeditation = text;
-			if (dataType == Constants.DATA_TYPE_ATTENTION)
-				mLastAttention = text;
-			if (dataType == Constants.DATA_SIGNAL_STRENGTH)
-				mLastSignalStrength = text;
+
 			
-						
-			
-			mDetailLog.setText(	"Signal Strength: " + mLastSignalStrength + "\n" + 
-								"Meditation: " + mLastMeditation + "\n" + 
-								"Attention: " + mLastAttention);
-			
-		}
 	}
 	
 	public void onButtonClick(View v)
 	{
 		 final int id = v.getId();
 		    switch (id) {
-		    case R.id.button1:
+		    case R.id.buttonBack:
 				Intent i = new Intent(this, BioMapActivity.class);
 				this.startActivity(i);
 		    	
@@ -828,86 +669,43 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			if (mPaused == true)
+			if (mPaused == true || currentMindsetData == null)
 				return;
-			String logData = "" + mTargetName + ", "; 
-			
-			//String statusLine = "";
-			for (BioLocation user: currentUsers)
-			{
-				if (user.mName.equalsIgnoreCase(mTargetName))
-				{
-			    	
-			    	
-					for (int i = 0; i < user.mSensors.length; i++)
-					{
-						switch (user.mSensors[i])
-						{
-						case Constants.DATA_TYPE_ATTENTION:
-							mMindsetAttentionSeries.add(mSpineChartX, user.mAttention);
-							logData += "ATTN, " + user.mAttention + ",";
-							break;
-						case Constants.DATA_TYPE_MEDITATION:
-							mMindsetMeditationSeries.add(mSpineChartX, user.mMeditation);
-							logData += "MED, " + user.mMeditation + ",";
-							break;
-						case Constants.DATA_TYPE_HEARTRATE:
-							mCurrentSpineSeries.add(mSpineChartX, user.mHeartRate);
-							logData += "HR, " + user.mHeartRate + ",";
-							break;
-							
-						case Constants.DATA_ZEPHYR_HEARTRATE:
-							mZephyrHeartRateSeries.add(mSpineChartX, user.mZHeartRate);
-							logData += "ZHR, " + user.mHeartRate + ",";
-							break;
-							
-						case Constants.DATA_ZEPHYR_RESPRATE:
-							mZephyrRespRateSeries.add(mSpineChartX, user.mZRespRate);
-							logData += "ZRR, " + user.mHeartRate + ",";
-							break;
-							
-						case Constants.DATA_ZEPHYR_SKINTEMP:
-							mZephyrSkinTempSeries.add(mSpineChartX, user.mZSkinTemp);
-							logData += "ZST, " + user.mHeartRate + ",";
-							break;
-							
-							
-							
-							
-						}
-					}			    	
-			    	
-					mSpineChartX++;
-			    	if (mCurrentSpineSeries.getItemCount() > SPINE_CHART_SIZE)
-						mCurrentSpineSeries.remove(0);
-			    	if (mMindsetAttentionSeries.getItemCount() > SPINE_CHART_SIZE)
-			    		mMindsetAttentionSeries.remove(0);
-			    	if (mMindsetMeditationSeries.getItemCount() > SPINE_CHART_SIZE)
-			    		mMindsetMeditationSeries.remove(0);
-			    	
-
-					if (mDeviceChartView != null) {
-			            mDeviceChartView.repaint();
-			        }   			    	
-				}
-			}			
 			
 			if (mLoggingEnabled == true)
 			{
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-				
-				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
-				currentDateTimeString = sdf.format(new Date());
-				
-				logData = currentDateTimeString + ", " + logData + "\n";
-				
-		        try {
-		        	if (mLogWriter != null)
-		        		mLogWriter.write(logData);
-				} catch (IOException e) {
-					Log.e(TAG, e.toString());
-				}
 			}			
+			
+			currentMindsetData.logData();
+
+	        int keyCount = keyItems.size();
+			for(int i = 0; i < keyItems.size(); ++i) {
+				KeyItem item = keyItems.get(i);
+				
+				if(!item.visible) {
+					continue;
+				}
+				
+				if (testData2++ > 100)
+					testData2 = 0;
+				
+//				item.series.add(mSpineChartX, currentMindsetData.getFeature(item.id));
+				item.series.add(mSpineChartX, testData2);
+				if (item.series.getItemCount() > SPINE_CHART_SIZE)
+					item.series.remove(0);
+				
+			} 			
+			
+			
+			mSpineChartX++;
+			
+			if (mDeviceChartView != null) {
+	            mDeviceChartView.repaint();
+	        }   				
+			
+			
+			
+			
 		}
 	};
 
@@ -955,24 +753,6 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		super.onResume();
 	}
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		switch(requestCode) { 
-	    case (ANDROID_SPINE_SERVER_ACTIVITY) :  
-	      if (resultCode == RESULT_OK) {
-	    	  
-
-	    	  // We can't write the note yet because we may not have been re-initialized
-	    	  // since the not dialog put us into pause.
-	    	  // We'll save the note and write it at restore
-	    	  mLogMarkerNote = data.getStringExtra(ANDROID_SPINE_SERVER_ACTIVITY_RESULT);
-	    	  
-	      } 
-	      break; 
-	    } 
-	}
 
 	void saveState()
 	{
@@ -1006,6 +786,140 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 		
 	}
 
+	static class KeyItem {
+		public long id;
+		public String title1;
+		public String title2;
+		public int color;
+		public boolean visible;
+		public boolean reverseData = false; 
+		public XYSeries series;		
+		
+		public KeyItem(long id, String title1, String title2) {
+			this.id = id;
+			this.title1 = title1;
+			this.title2 = title2;
+			series = new XYSeries(title1);		
+			this.visible = true;
+		}
+		
+		
+		public HashMap<String,Object> toHashMap() {
+			HashMap<String,Object> data = new HashMap<String,Object>();
+			data.put("id", id);
+			data.put("title1", title1);
+			data.put("title2", title2);
+			data.put("color", color);
+			data.put("visible", visible);
+			return data;
+		}
+	}
+	
+	class KeyItemAdapter extends ArrayAdapter<KeyItem> {
+		public static final int VIEW_TYPE_ONE_LINE = 1;
+		public static final int VIEW_TYPE_TWO_LINE = 2;
+		
+		private LayoutInflater layoutInflater;
+		private int layoutId;
+
+		public KeyItemAdapter(Context context, int viewType,
+				List<KeyItem> objects) {
+			super(context, viewType, objects);
+			
+			layoutInflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
+			if(viewType == VIEW_TYPE_TWO_LINE) {
+				layoutId = R.layout.list_item_result_key_2;
+			} else {
+				layoutId = R.layout.list_item_result_key_1;
+			}
+		}
+		
+//		@Override
+//		public View getView(int position, View convertView, ViewGroup parent) {
+//			if(convertView == null) {
+//				convertView = layoutInflater.inflate(layoutId, null);
+//			}
+//
+//			final KeyItem item = this.getItem(position);
+//			TextView tv1 = (TextView)convertView.findViewById(R.id.text1);
+//			TextView tv2 = (TextView)convertView.findViewById(R.id.text2);
+//			ToggleButton tb = (ToggleButton)convertView.findViewById(R.id.showKeyToggleButton);
+//			View keyBox = convertView.findViewById(R.id.keyBox);
+//			
+//			boolean tv1Null = tv1 == null;
+//			boolean tv2Null = tv2 == null;
+//			if(reverseLabels && !tv1Null && !tv2Null) {
+//				if(!tv1Null) {
+//					tv1.setText(item.title2);
+//				}
+//				if(!tv2Null) {
+//					tv2.setText(item.title1);
+//				}
+//			} else {
+//				if(!tv1Null) {
+//					tv1.setText(item.title1);
+//				}
+//				if(!tv2Null) {
+//					tv2.setText(item.title2);
+//				}				
+//			}
+//			
+//			if(tb != null) {
+//				if(isKeyItemsClickable()) {
+//					tb.setFocusable(false);
+//				}
+//				tb.setOnCheckedChangeListener(null);
+//				tb.setChecked(item.visible);
+//				tb.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+//					@Override
+//					public void onCheckedChanged(
+//							CompoundButton buttonView, boolean isChecked) {
+//						item.visible = isChecked;
+//						onKeyToggleButtonCheckedChanged();
+//					}
+//				});
+//			}
+//			
+//			if(keyBox != null) {
+//				keyBox.setBackgroundColor(item.color);
+//			}
+//			
+//			return convertView;
+//		}
+	}
+
+
+	
+	private ArrayList<Long> getVisibleIds(String keySuffix) {
+		String[] idsStrArr = SharedPref.getValues(
+				sharedPref, 
+				KEY_NAME+keySuffix, 
+				",",
+				new String[0]
+		);
+		
+		return new ArrayList<Long>(
+				Arrays.asList(
+						ArraysExtra.toLongArray(idsStrArr)
+				)
+		);
+	}	
+
+	protected int getKeyColor(int currentIndex, int totalCount) {
+		float hue = currentIndex / (1.00f * totalCount) * 360.00f;
+		
+		return Color.HSVToColor(
+    			255,
+    			new float[]{
+    				hue,
+    				1.0f,
+    				1.0f
+    			}
+    	);
+	}
+		
+	
+	
 }
 
 

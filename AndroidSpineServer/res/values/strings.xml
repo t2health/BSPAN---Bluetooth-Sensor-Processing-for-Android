@@ -7,4 +7,10 @@
 	<string name="chart_high">Hi</string>
 	<string name="chart_low">Lo</string>
     
+	<!--  Graph results -->
+	<string name="results_title">Results</string>
+	<string name="groups_tab">Categories</string>
+	<string name="scales_tab">Scales</string>
+	<string name="notes_tab">Notes</string>
+    
 </resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<!-- The tabs -->
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<view
+			class="com.t2.vas.view.ToggledButton"
+			android:id="@+id/keysTabButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_weight="1.0"
+			android:text="@string/groups_tab" />
+		
+		<view
+			class="com.t2.vas.view.ToggledButton"
+			android:id="@+id/notesTabButton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_weight="1.0"
+			android:text="@string/notes_tab" />
+	</LinearLayout>
+	
+	<!-- The tab content -->
+	<FrameLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_weight="1.0">
+		<ListView
+			android:id="@+id/keysList"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:visibility="invisible" />
+			
+		<ListView
+			android:id="@+id/notesList"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:visibility="invisible" />
+	</FrameLayout>
+</LinearLayout>

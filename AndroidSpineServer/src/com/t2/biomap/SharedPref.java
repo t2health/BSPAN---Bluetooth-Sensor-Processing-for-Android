@@ -28,6 +28,24 @@ public class SharedPref {
 		return sSharedPref;
 	}
 	
+	public static String[] getValues(SharedPreferences sharedPref, String key, String separator, String[] defaultValue) {
+		String dataStr = sharedPref.getString(key, "!<[NULLFOUND]>[");
+		if(dataStr.equals("!<[NULLFOUND]>[")) {
+			return defaultValue;
+		}
+		return dataStr.split(separator);
+	}
+	
+	public static void setValues(SharedPreferences sharedPref, String key, String separator, String[] values) {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < values.length; ++i) {
+			sb.append(values[i]);
+			sb.append(separator);
+		}
+		sharedPref.edit().putString(key, sb.toString()).commit();
+	}
+	
+	
 	/**
 	 * @see SharedPreferences.getBoolean
 	 * @param c
