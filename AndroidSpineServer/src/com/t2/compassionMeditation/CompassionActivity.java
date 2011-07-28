@@ -21,6 +21,7 @@ import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+
 import com.t2.AndroidSpineConnector;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
@@ -29,6 +30,7 @@ import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
+
 
 
 //import com.t2.vas.activity.ABSResultsActivity.KeyItem;
@@ -47,6 +49,7 @@ import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -64,6 +67,7 @@ import android.os.Environment;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -172,6 +176,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 	
+    private Button mAddMeasureButton;
     private Button mPauseButton;
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
@@ -181,8 +186,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
-	private KeyItem delta = new KeyItem(MindsetData.DELTA_ID, "Delta", "Delta");
-	private KeyItem theta = new KeyItem(MindsetData.THETA_ID, "Theta", "Theta");
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	MindsetData currentMindsetData = new MindsetData();
 	
@@ -212,11 +215,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         setContentView(R.layout.compassion);
         instance = this;
     
-        
-        keyItems.add(delta);
-        keyItems.add(theta);
-        
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        
+        
+        
         
         
         
@@ -226,6 +229,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         // Set up member variables to UI Elements
         mDetailLog = (EditText) findViewById(R.id.detailLog);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
+        mAddMeasureButton = (Button) findViewById(R.id.buttonAddMeasure);
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
 
@@ -275,8 +279,23 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         deviceRenderer.setYAxisMin(0);
         deviceRenderer.setYAxisMax(255);
         
+        for (int i = 0; i < MindsetData.NUM_BANDS; i++) {
+        	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
+            keyItems.add(key);
+        }
+
+		// set the visibility for each key item.
+		ArrayList<Long> visibleIds = getVisibleIds("measure");
+		int keyCount = keyItems.size();
+		for(int i = 0; i < keyCount; ++i) {
+			KeyItem item = keyItems.get(i);
+			
+			item.visible = visibleIds.contains(item.id);
+		}
         
-        int keyCount = keyItems.size();
+        
+        // TODO: move to create screen
+        keyCount = keyItems.size();
 		for(int i = 0; i < keyItems.size(); ++i) {
 			KeyItem item = keyItems.get(i);
 			
@@ -314,6 +333,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		mManager.discoveryWsn();
     } // End onCreate(Bundle savedInstanceState)
     
+    
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
@@ -328,6 +348,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
   //  	doUnbindService();    	
 	}
 
+	private void generateChart() {
+	}
+    
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -564,8 +587,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	
 	void updateDetailLog(String text, int dataType)
 	{
-
-			
 	}
 	
 	public void onButtonClick(View v)
@@ -578,6 +599,41 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		    	
 		    	break;
 		    		    
+		    case R.id.buttonAddMeasure:
+		    	
+		    	boolean toggleArray[] = new boolean[keyItems.size()];
+				for(int j = 0; j < keyItems.size(); ++j) {
+					KeyItem item = keyItems.get(j);
+					if(item.visible)
+						toggleArray[j] = true;
+					else
+						toggleArray[j] = false;
+					
+				}		    	
+		    	
+		    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		    	alert.setTitle(R.string.alert_dialog_measure_selector);
+		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
+		    			toggleArray,
+	                    new DialogInterface.OnMultiChoiceClickListener() {
+
+		    			public void onClick(DialogInterface dialog, int whichButton,boolean isChecked) {
+
+                			KeyItem item = keyItems.get(whichButton);
+                			item.visible = item.visible ? false: true;
+	                 		saveVisibleKeyIds();	                         
+	                        }
+	                    });
+		    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int whichButton) {
+
+	                    /* User clicked Yes so do some stuff */
+	                }
+	            });
+	
+				alert.show();
+		    	
+		    	break;
 		    case R.id.buttonPause:
 				if (mPaused == true)
 				{
@@ -872,7 +928,18 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 //		}
 	}
 
-
+	private void saveVisibleKeyIds() {
+		String keySuffix = "measure";
+		ArrayList<Long> toggledIds = new ArrayList<Long>();
+		for(int i = 0; i < keyItems.size(); ++i) {
+			KeyItem item = keyItems.get(i);
+			if(item.visible) {
+				toggledIds.add(item.id);
+			}
+		}
+		setVisibleIds(keySuffix, toggledIds);
+	}
+	
 	
 	private ArrayList<Long> getVisibleIds(String keySuffix) {
 		String[] idsStrArr = SharedPref.getValues(
@@ -889,6 +956,15 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		);
 	}	
 
+	private void setVisibleIds(String keySuffix, ArrayList<Long> ids) {
+		SharedPref.setValues(
+				sharedPref, 
+				KEY_NAME+keySuffix, 
+				",", 
+				ArraysExtra.toStringArray(ids.toArray(new Long[ids.size()]))
+		);
+	}	
+	
 	protected int getKeyColor(int currentIndex, int totalCount) {
 		float hue = currentIndex / (1.00f * totalCount) * 360.00f;
 		
