@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="measure_select_dialog_items">
+        <item>Delta</item>
+        <item>Theta</item>
+        <item>Low Alpha</item>
+        <item>High Alpha</item>
+        <item>Low Beta</item>
+        <item>High Beta</item>
+        <item>Low Gamma</item>
+        <item>Mid Gamma</item>
+    </string-array>
+
+</resources>

@@ -68,6 +68,9 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -80,6 +83,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -159,7 +163,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
-	private EditText mDetailLog;
 	
 	int mSpineChartX = 0;
 	
@@ -180,6 +183,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     private Button mPauseButton;
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
+    private TextView mTextInfoView;
+    private TextView mMeasuresDisplayText;
+    private SeekBar mSeekBar;    
     
     private String mLogMarkerNote = null;
     
@@ -189,8 +195,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	MindsetData currentMindsetData = new MindsetData();
 	
-    int testData1 = 0;
-    int testData2 = 0;
+	
+	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -227,12 +233,20 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         AssetManager assetManager = resources.getAssets();
         
         // Set up member variables to UI Elements
-        mDetailLog = (EditText) findViewById(R.id.detailLog);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
         mAddMeasureButton = (Button) findViewById(R.id.buttonAddMeasure);
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
+        mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
+        mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
 
+        mSeekBar = (SeekBar)findViewById(R.id.seekBar1);    
+        
+        mSeekBar.setProgress(50);
+//        mSeekBar.setIndeterminate(true);
+        
+        
+        
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
 			mManager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
@@ -256,64 +270,14 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
 		// See public void received(Data data)
         this.mCommandReceiver = new SpineReceiver(this);
-        
-        
-        // Set up chart
-    	XYMultipleSeriesDataset deviceDataset = new XYMultipleSeriesDataset();
-    	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
-        
-        // Set up Device data chart
-        if (mDeviceChartView == null) 
-        {
-          LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);
-          mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
-          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        }    
-        deviceRenderer.setShowLabels(false);
-        deviceRenderer.setMargins(new int[] {0,0,0,0});
-        deviceRenderer.setShowAxes(true);
-        deviceRenderer.setShowLegend(true);
-        
-        deviceRenderer.setZoomEnabled(false, false);
-        deviceRenderer.setPanEnabled(false, false);
-        deviceRenderer.setYAxisMin(0);
-        deviceRenderer.setYAxisMax(255);
-        
+     
         for (int i = 0; i < MindsetData.NUM_BANDS; i++) {
         	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
 
-		// set the visibility for each key item.
-		ArrayList<Long> visibleIds = getVisibleIds("measure");
-		int keyCount = keyItems.size();
-		for(int i = 0; i < keyCount; ++i) {
-			KeyItem item = keyItems.get(i);
-			
-			item.visible = visibleIds.contains(item.id);
-		}
-        
-        
-        // TODO: move to create screen
-        keyCount = keyItems.size();
-		for(int i = 0; i < keyItems.size(); ++i) {
-			KeyItem item = keyItems.get(i);
-			
-			if(!item.visible) {
-				continue;
-			}
-			
-			deviceDataset.addSeries(item.series);
-			item.color = getKeyColor(i, keyCount);
-			
-			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
-			seriesRenderer.setColor(item.color);
-//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-//			seriesRenderer.setFillPoints(true);
-//			seriesRenderer.setLineWidth(2 * displayMetrics.density);
-			
-			deviceRenderer.addSeriesRenderer(seriesRenderer);
-		}        
+        // Set up Device data chart
+        generateChart();
         
         
         
@@ -349,6 +313,80 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	}
 
 	private void generateChart() {
+        // Set up chart
+    	XYMultipleSeriesDataset deviceDataset = new XYMultipleSeriesDataset();
+    	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
+
+        LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
+    	if (mDeviceChartView != null)
+    	{
+    		layout.removeView(mDeviceChartView);
+    	}
+       	if (true) 
+        {
+          mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
+          mDeviceChartView.setBackgroundColor(Color.WHITE);
+          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        }    
+
+    	
+        deviceRenderer.setShowLabels(false);
+        deviceRenderer.setMargins(new int[] {0,5,5,0});
+        deviceRenderer.setShowAxes(true);
+        deviceRenderer.setShowLegend(false);
+      //  deviceRenderer.setBackgroundColor(Color.WHITE);
+        
+        deviceRenderer.setZoomEnabled(false, false);
+        deviceRenderer.setPanEnabled(false, false);
+        deviceRenderer.setYAxisMin(0);
+        deviceRenderer.setYAxisMax(255);
+        
+
+        SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
+        
+		ArrayList<Long> visibleIds = getVisibleIds("measure");
+		int keyCount = keyItems.size();
+        keyCount = keyItems.size();
+        
+		int lineNum = 0;
+		for(int i = 0; i < keyItems.size(); ++i) {
+			KeyItem item = keyItems.get(i);
+			
+			item.visible = visibleIds.contains(item.id);
+			if(!item.visible) {
+				continue;
+			}
+			
+			deviceDataset.addSeries(item.series);
+			item.color = getKeyColor(i, keyCount);
+			
+			// Add name of the measure to the displayed text field
+			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
+			int start = sMeasuresText.length();
+			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
+			int end = sMeasuresText.length();
+			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			if (sMeasuresText.length() > 40 && lineNum == 0)
+			{
+				lineNum++;
+				//sMeasuresText.append("\n");
+			}
+			
+			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+			seriesRenderer.setColor(item.color);
+//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//			seriesRenderer.setFillPoints(true);
+//			seriesRenderer.setLineWidth(2 * displayMetrics.density);
+			
+			
+			
+			deviceRenderer.addSeriesRenderer(seriesRenderer);
+			
+
+			
+		}     
+		mMeasuresDisplayText.setText(sMeasuresText) ;       
+		
 	}
     
 	@Override
@@ -585,9 +623,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	    }
 	}
 	
-	void updateDetailLog(String text, int dataType)
-	{
-	}
 	
 	public void onButtonClick(View v)
 	{
@@ -621,13 +656,15 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
                 			KeyItem item = keyItems.get(whichButton);
                 			item.visible = item.visible ? false: true;
-	                 		saveVisibleKeyIds();	                         
+	                 		saveVisibleKeyIds();	
+	                 		generateChart();	                 		
 	                        }
 	                    });
 		    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int whichButton) {
 
-	                    /* User clicked Yes so do some stuff */
+                 		generateChart();	                 		
+
 	                }
 	            });
 	
@@ -724,18 +761,27 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					continue;
 				}
 				
-				if (testData2++ > 100) {
-					testData2 = 0;
-				}
-				
 				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
-//				item.series.add(mSpineChartX, testData2);
 				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 					item.series.remove(0);
 				}
 				
 			} 			
 			
+	        mTextInfoView.setText(
+	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
+	        		"Time Remaining: "
+	        		);
+			
+
+	        int multiplier = currentMindsetData.powerTest(bandOfInterest);
+	        int valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest);
+	        
+	        if (multiplier == 1) {
+	        	valueToPlot = 100 - valueToPlot;
+	        }
+	        mSeekBar.setProgress(valueToPlot);
+	        
 			
 			mSpineChartX++;
 			

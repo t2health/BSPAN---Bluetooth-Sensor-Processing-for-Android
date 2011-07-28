@@ -6,11 +6,18 @@
     <string name="discoverbutton">DiscoverAndStart</string>
 	<string name="chart_high">Hi</string>
 	<string name="chart_low">Lo</string>
+    <string name="alert_dialog_measure_selector">Select Measures to graph</string>	
     
 	<!--  Graph results -->
 	<string name="results_title">Results</string>
 	<string name="groups_tab">Categories</string>
 	<string name="scales_tab">Scales</string>
 	<string name="notes_tab">Notes</string>
+	<string name="alert_dialog_ok">Ok</string>
+	<string name="alert_dialog_cancel">Cancel</string>
+	<string name="button_pause">Start/Pause</string>
+	<string name="button_add_measure">Add Measure</string>
+	<string name="button_back">Back</string>
+	<string name="seekbarText">Meditate to keep the bar in the center</string>
     
 </resources>

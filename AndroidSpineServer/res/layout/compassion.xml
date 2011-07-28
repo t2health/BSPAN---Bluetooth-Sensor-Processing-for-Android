@@ -3,31 +3,32 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-		<RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/relativeLayout1">
-    <Button android:onClick="onButtonClick" android:text="Mark\nLog" android:visibility="gone" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_toLeftOf="@+id/buttonLogging" android:layout_alignTop="@+id/buttonLogging" android:layout_alignBottom="@+id/buttonLogging" android:id="@+id/LogMarkerButton"></Button>
-    <Button android:id="@+id/buttonLogging" android:gravity="left" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=""></Button>
-    <Button android:layout_height="wrap_content" android:gravity="right" android:text="Back" android:onClick="onButtonClick" android:layout_width="wrap_content" android:layout_alignParentTop="true" android:id="@+id/buttonBack"></Button>
-		</RelativeLayout>
-	<LinearLayout 
-		android:id="@+id/frameLayout1"
-		android:layout_width="fill_parent"
-		android:layout_height="250dip">	
-	
-		<LinearLayout android:id="@+id/deviceChart" 
-			android:gravity="right"
-			android:orientation="horizontal"
-			android:layout_width="fill_parent" 
-			android:layout_height="wrap_content" 
-			android:layout_weight="1" >
-		</LinearLayout>
-			
-		
-	</LinearLayout>
-		<EditText 
-			android:id="@+id/detailLog" 	
-			android:layout_width="fill_parent" 
-			android:layout_height="100dip" android:cursorVisible="false" android:inputType="none" android:clickable="false" android:focusable="false" android:focusableInTouchMode="false" android:linksClickable="false" android:longClickable="false">
-		</EditText>
-		<Button android:id="@+id/buttonPause" android:gravity="left" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pause" android:onClick="onButtonClick"></Button>
+    <Button 
+    	android:layout_height="wrap_content" 
+    	android:layout_width="wrap_content" 
+    	android:onClick="onButtonClick" 
+    	android:id="@+id/buttonBack" 
+    	android:gravity="right" 
+    	android:text="@string/button_back">
+    </Button>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText"></TextView>
+    <SeekBar 
+    	android:progressDrawable="@drawable/progress_bar_horizontal"
+    	android:layout_width="fill_parent" 
+    	android:layout_height="wrap_content" 
+    	android:id="@+id/seekBar1" 
+    	android:progress="0">
+    </SeekBar>
+    <LinearLayout 
+    	android:id="@+id/deviceChart" 
+    	android:layout_height="300dip" 
+    	android:orientation="horizontal" 
+    	android:gravity="right" 
+    	android:layout_width="fill_parent">
+    </LinearLayout>
+    <TextView android:layout_height="wrap_content" android:id="@+id/measuresDisplayText" android:layout_width="wrap_content"></TextView>
+    <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddMeasure" android:onClick="onButtonClick" android:text="@string/button_add_measure"></Button>
+    <TextView android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo"></TextView>
+    <Button android:onClick="onButtonClick" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/button_pause" android:id="@+id/buttonPause"></Button>
 		
 </LinearLayout>

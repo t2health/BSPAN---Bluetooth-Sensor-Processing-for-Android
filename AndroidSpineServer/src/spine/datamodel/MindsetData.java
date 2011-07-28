@@ -32,6 +32,9 @@ public class MindsetData  extends Data {
 	public static final int HIGHBETA_ID = 5;
 	public static final int LOWGAMMA_ID = 6;
 	public static final int MIDGAMMA_ID = 7;
+
+	public static final String[] spectralNames = new String[] {"Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma"};
+	
 	
 	private Node node;
 	public byte functionCode;	
@@ -77,14 +80,34 @@ public class MindsetData  extends Data {
 		}
 	}
 	
+	/**
+	 * @param band	Band number to test
+	 * @return -1 if more power to left of band, 1 if more power to right of band
+	 */
+	public int powerTest(int band)
+	{
+		int powerToLeft = 0;
+		int powerToRight = 0;
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			if (i < band) {
+				powerToLeft+= this.ratioSpectralData[i];
+			}
+			else if (i > band) {
+				powerToRight+= this.ratioSpectralData[i];
+			}
+		}
+
+		return (powerToLeft >= powerToRight) ? -1:1;
+	}
+	
 	public void logData(){
 		String line = "";
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
-		for (int i = 0; i < NUM_BANDS; i++)	{
-			line += this.rawSpectralData[i] + ", ";
-		}
+//		for (int i = 0; i < NUM_BANDS; i++)	{
+//			line += this.rawSpectralData[i] + ", ";
+//		}
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.ratioSpectralData[i] + ", ";
 		}
