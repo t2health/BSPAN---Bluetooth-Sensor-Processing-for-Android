@@ -1,5 +1,7 @@
 package spine.payload.codec.android;
 
+import com.t2.Constants;
+
 import spine.datamodel.MindsetData;
 import spine.datamodel.Node;
 import spine.datamodel.functions.SpineCodec;
@@ -46,8 +48,9 @@ public class MindsetSpineData extends SpineCodec {
 
 	public SpineObject decode(Node node, byte[] payload) {
 
-		if (node == null)
-			return null;		
+		if (node == null) {
+			return null;
+		}
 		
 		byte[] dataTmp = new byte[MAX_MSG_LENGHT];
 		short dtIndex = 0;
@@ -66,16 +69,23 @@ public class MindsetSpineData extends SpineCodec {
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
 
-		int i = 0;
-		data.delta = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.theta = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.lowAlpha = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.highAlpha = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.lowBeta = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.highBeta = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.lowGamma = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
-		data.midGamma = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i++ * 3));
+		if (exeCode == Constants.EXECODE_SPECTRAL) {
+			int totalPower = 0;
+			for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{
+				int band = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i * 3));
+				totalPower += band;
+				data.rawSpectralData[i] = band;
+			}
 
+			if (totalPower > 0) {
+				// Now set up the ratio spectral band
+				for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{
+					double band = (double) data.rawSpectralData[i] / (double) totalPower;
+					data.ratioSpectralData[i] = (int) (band * 100);
+				}		
+			}
+		}
+		
 		return data;
 	}
 

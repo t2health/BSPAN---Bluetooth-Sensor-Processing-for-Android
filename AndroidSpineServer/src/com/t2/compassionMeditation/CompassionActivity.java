@@ -436,54 +436,36 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	@Override
 	public void received(Data data) {
 		
-		if (data != null)
-		{
-			if (!mPaused == true)
-			{
+		if (data != null) {
+			if (!mPaused == true) {
 				switch (data.getFunctionCode()) {
-
-				
 
 				case SPINEFunctionConstants.MINDSET: {
 						Node source = data.getNode();
 					
 						MindsetData mindsetData = (MindsetData) data;
-						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
-						{
-						}
-						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL)
-						{
-							//currentMindsetData = mindsetData;
-							currentMindsetData.delta = mindsetData.delta;
-							currentMindsetData.theta = mindsetData.theta;
-							currentMindsetData.lowAlpha = mindsetData.lowAlpha;
-							currentMindsetData.highAlpha = mindsetData.highAlpha;
-							currentMindsetData.lowBeta = mindsetData.lowBeta;
-							currentMindsetData.highBeta = mindsetData.highBeta;
-							currentMindsetData.lowGamma = mindsetData.lowGamma;
-							currentMindsetData.midGamma = mindsetData.midGamma;
+						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 						}
 						
+						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
+							currentMindsetData.updateSpectral(mindsetData);
+						}
 						
-						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY)
-						{
+						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 							currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
 						}
-						if (mindsetData.exeCode == Constants.EXECODE_ATTENTION)
-						{
+						
+						if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
 							currentMindsetData.attention= mindsetData.attention;
 						}
-						if (mindsetData.exeCode == Constants.EXECODE_MEDITATION)
-						{						
+						
+						if (mindsetData.exeCode == Constants.EXECODE_MEDITATION) {						
 							currentMindsetData.meditation= mindsetData.meditation;
 						}						
 						
 						break;
 					} // End case SPINEFunctionConstants.MINDSET:
-				
 				} // End switch (data.getFunctionCode())
-				
-			
 			} // End if (!mPaused == true)
 			else
 			{
@@ -669,11 +651,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			if (mPaused == true || currentMindsetData == null)
+			if (mPaused == true || currentMindsetData == null) {
 				return;
+			}
 			
-			if (mLoggingEnabled == true)
-			{
+			if (mLoggingEnabled == true) {
 			}			
 			
 			currentMindsetData.logData();
@@ -686,13 +668,15 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					continue;
 				}
 				
-				if (testData2++ > 100)
+				if (testData2++ > 100) {
 					testData2 = 0;
+				}
 				
-//				item.series.add(mSpineChartX, currentMindsetData.getFeature(item.id));
-				item.series.add(mSpineChartX, testData2);
-				if (item.series.getItemCount() > SPINE_CHART_SIZE)
+				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+//				item.series.add(mSpineChartX, testData2);
+				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 					item.series.remove(0);
+				}
 				
 			} 			
 			
