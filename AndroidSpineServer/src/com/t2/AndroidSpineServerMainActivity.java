@@ -386,6 +386,7 @@ public class AndroidSpineServerMainActivity extends Activity implements OnBioFee
 //			Intent i = new Intent(this, BioMapActivity.class);
 			Intent i = new Intent(this, CompassionActivity.class);
 			this.startActivity(i);
+		//	finish();
 		}
 		
 		// Set up a timer to do graphical updates

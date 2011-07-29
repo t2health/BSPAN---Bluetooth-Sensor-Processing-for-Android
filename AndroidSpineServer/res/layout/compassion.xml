@@ -3,14 +3,10 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <Button 
-    	android:layout_height="wrap_content" 
-    	android:layout_width="wrap_content" 
-    	android:onClick="onButtonClick" 
-    	android:id="@+id/buttonBack" 
-    	android:gravity="right" 
-    	android:text="@string/button_back">
-    </Button>
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <Button android:onClick="onButtonClick" android:layout_width="wrap_content" android:gravity="right" android:id="@+id/buttonBack" android:text="@string/button_back" android:layout_height="wrap_content"></Button>
+        <ImageView android:id="@+id/imageView1" android:src="@drawable/icon" android:layout_height="wrap_content" android:layout_width="fill_parent"></ImageView>
+    </LinearLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText"></TextView>
     <SeekBar 
     	android:progressDrawable="@drawable/progress_bar_horizontal"

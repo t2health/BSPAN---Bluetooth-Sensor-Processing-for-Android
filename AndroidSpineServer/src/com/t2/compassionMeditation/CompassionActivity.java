@@ -82,6 +82,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -197,6 +198,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
+	private int numSecsWithoutData = 0;
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -239,6 +241,12 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
+        
+        ImageView image = (ImageView) findViewById(R.id.imageView1);
+        image.setColorFilter(Color.HSVToColor(255, new float[]{ 120,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+        image.setImageResource(R.drawable.headphones);  
+        
+        
 
         mSeekBar = (SeekBar)findViewById(R.id.seekBar1);    
         
@@ -498,7 +506,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public void received(Data data) {
 		
 		if (data != null) {
-			if (!mPaused == true) {
+//			if (!mPaused == true) {
 				switch (data.getFunctionCode()) {
 
 				case SPINEFunctionConstants.MINDSET: {
@@ -506,10 +514,27 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					
 						MindsetData mindsetData = (MindsetData) data;
 						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
+							
+							int sigQuality = mindsetData.poorSignalStrength & 0xff;
+							ImageView image = (ImageView) findViewById(R.id.imageView1);
+							if (sigQuality == 200) {
+						        image.setColorFilter(Color.HSVToColor(255, new float[]{ 0,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+						        image.setImageResource(R.drawable.headphones_bad);  
+							}
+							else {
+						        double f = 120 - (double) sigQuality * 0.6; 
+						        image.setColorFilter(Color.HSVToColor(255, new float[]{(float) f,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+						        image.setImageResource(R.drawable.headphones);  
+								
+							}
+							
+							
 						}
 						
 						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
 							currentMindsetData.updateSpectral(mindsetData);
+							Log.i(TAG, "Spectral Data");
+							numSecsWithoutData = 0;							
 						}
 						
 						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
@@ -527,11 +552,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 						break;
 					} // End case SPINEFunctionConstants.MINDSET:
 				} // End switch (data.getFunctionCode())
-			} // End if (!mPaused == true)
-			else
-			{
-		
-			}
+//			} // End if (!mPaused == true)
+//			else
+//			{
+//		
+//			}
 		} // End if (data != null)
 	}
 	
@@ -744,6 +769,12 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
+			numSecsWithoutData++;
+			if (numSecsWithoutData > 2) {
+				return;
+			}
+
+			
 			if (mPaused == true || currentMindsetData == null) {
 				return;
 			}
