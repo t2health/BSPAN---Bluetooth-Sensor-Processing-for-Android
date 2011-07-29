@@ -21,7 +21,7 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  */
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
-	boolean mDebug = false;	
+	boolean mDebug = true;	
 	
 	ZephyrDevice(ArrayList<Messenger> serverListeners)
 	{

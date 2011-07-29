@@ -231,11 +231,12 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 			break;
 		
 		case EXECODE_RAW_WAVE:
+			//Log.i(TAG, "Raw");
 			// For now we'll ignore raw wave data (comes in every 2 ms)
 			return;
 		
 		case EXECODE_SPECTRAL:
-			//Log.i(TAG, "Spectral");
+			Log.i(TAG, "Spectral");
 
 			startMessage();
 			mMindsetMessage[mMessageIndex++] = (byte) code;	
