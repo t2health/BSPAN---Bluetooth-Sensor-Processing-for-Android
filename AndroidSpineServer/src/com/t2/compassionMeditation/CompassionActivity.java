@@ -217,6 +217,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	   return instance;
 	}
     
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -314,9 +315,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     	mLoggingEnabled = false;
     	saveState();
     	
-    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
+//    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.mCommandReceiver);
-		Log.i(TAG, "MainActivity onDestroy");
+		Log.i(TAG, "CompassionActivity onDestroy");
 	    	
   //  	doUnbindService();    	
 	}
@@ -590,65 +591,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		return val;
 	}
 
-	/**
-	 * Binds this activity to a service using the service connection specified.
-	 * 
-	 * Note that it is the responsibility of the calling party (AndroidMessageServer) 
-	 * to update this activities member variable, mService, when the connection to 
-	 * the service is complete.
-	 * 
-	 * AndroidMessageServer can't do the bind by itself because it needs to be done 
-	 * by an Android activity. Also, we do it here because the AndroidMessageServer
-	 * doesn't know when we are destroyed. Here we know and can unbind the service.
-	 * 
-	 * The reason we don't simply move all of the binding here is that AndroidMessageServer
-	 * needs to create it's own Messenger for the service connection.
-	 *  
-	 * @param mConnection	A previously established service connection
-	 */
-	public void doBindService(ServiceConnection mConnection ) {
-		this.mConnection = mConnection; 
-		Log.i(TAG, "*****************binding **************************");
 
-		try {
-			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
-			Log.i(TAG, "*****************binding SUCCESS**************************");
-			
-			mIsBound = true;
-		} catch (Exception e) {
-			Log.i(TAG, "*****************binding FAIL**************************");
-			Log.e(TAG, e.toString());
-		}
-	}	
-
-	/**
-	 * Unbinds any service connection we may have
-	 */
-	void doUnbindService() {
-	    if (mIsBound) {
-			Log.i(TAG, "*****************UN-binding **************************");
-	    	
-	        // If we have received the service, and hence registered with
-	        // it, then now is the time to unregister.
-	        if (mService != null) {
-	            try {
-	                Message msg = Message.obtain(null,MSG_UNREGISTER_CLIENT);
-	    			Log.i(TAG, "*****************UN- binding SUCCESS**************************");
-	    			// msg.replyTo = mMessenger; We don't care about reply to because we're shutting down
-	                mService.send(msg);
-	            } catch (RemoteException e) {
-	                // There is nothing special we need to do if the service
-	                // has crashed.
-	            }
-	        }
-
-	        // Detach our existing connection.
-	        unbindService(mConnection);
-	        mIsBound = false;
-	    }
-	}
-	
 	
 	public void onButtonClick(View v)
 	{
@@ -845,7 +788,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "MainActivity onPause");
+		Log.i(TAG, "CompassionActivity onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
@@ -865,20 +808,20 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "MainActivity onStop");
+		Log.i(TAG, "CompassionActivity onStop");
 		super.onStop();
 	}	
 
 	
 	@Override
 	protected void onRestart() {
-		Log.i(TAG, "MainActivity onRestart");
+		Log.i(TAG, "CompassionActivity onRestart");
 		super.onRestart();
 	}
 
 	@Override
 	protected void onResume() {
-		Log.i(TAG, "MainActivity onResume");
+		Log.i(TAG, "CompassionActivity onResume");
 		
 		restoreState();
 		

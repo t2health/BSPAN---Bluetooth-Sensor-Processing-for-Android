@@ -40,7 +40,6 @@ import android.widget.ImageView;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-import com.t2.AndroidSpineServerMainActivity;
 import com.t2.Constants;
 import com.t2.R;
 import com.t2.Util;
@@ -79,7 +78,6 @@ public class BioMapActivity extends Activity
 	int mMeditation = 0;
 	int mHeartRate = 0;
 	private FrameLayout mLayout;
-    private static boolean firstTime = true;
 //    LocationManager mLocationManager;   
 //	private static Timer mDataUpdateTimer;	
     
@@ -469,7 +467,7 @@ public class BioMapActivity extends Activity
 //				v1.mTarget.mToggled = false;
 //				saveState();
 
-				Intent i = new Intent(this, AndroidSpineServerMainActivity.class);
+				Intent i = new Intent(this, BioDetailActivity.class);
 				Bundle bundle = new Bundle();
 	
 				//Add the parameters to bundle as 
@@ -482,16 +480,6 @@ public class BioMapActivity extends Activity
 				
 				this.startActivity(i);
 
-				// This will ensure that that only the first Biomap will be saves on the history stack
-				if (firstTime) 
-				{
-					firstTime = false;				
-				}
-				else
-				{
-//					this.finish();
-				}
-					
 	        	return false;
 			}
 			
