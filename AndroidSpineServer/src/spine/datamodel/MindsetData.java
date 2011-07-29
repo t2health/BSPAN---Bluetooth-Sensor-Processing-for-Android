@@ -65,6 +65,10 @@ public class MindsetData  extends Data {
 			return -1;
 	}
 
+	/**
+	 * @param feature Band of interest
+	 * @return Spectral power for specified data normalized to 0-100 by ratio to total power
+	 */
 	public int getRatioFeature(int feature) {
 		if (feature <= NUM_BANDS)
 			return this.ratioSpectralData[feature];

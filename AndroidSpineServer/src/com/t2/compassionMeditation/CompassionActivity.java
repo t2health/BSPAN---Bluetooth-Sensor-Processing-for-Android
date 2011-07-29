@@ -186,7 +186,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     private Button mLlogMarkerButton;
     private TextView mTextInfoView;
     private TextView mMeasuresDisplayText;
-    private SeekBar mSeekBar;    
+    private SeekBar mMeditationBar;    
+    
     
     private String mLogMarkerNote = null;
     
@@ -248,9 +249,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         
         
 
-        mSeekBar = (SeekBar)findViewById(R.id.seekBar1);    
+        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
         
-        mSeekBar.setProgress(50);
+        mMeditationBar.setProgress(50);
 //        mSeekBar.setIndeterminate(true);
         
         
@@ -805,13 +806,29 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	        		);
 			
 
-	        int multiplier = currentMindsetData.powerTest(bandOfInterest);
-	        int valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest);
 	        
-	        if (multiplier == 1) {
-	        	valueToPlot = 100 - valueToPlot;
+	        // Update the mediation bar
+	        int side = currentMindsetData.powerTest(bandOfInterest);
+	        final double BAR_ABS_MAXVAL = 100;
+	        final double BAR_ABS_CENTERVAL = 50;
+	        final double BAR_ABS_MINVAL = 0;
+	        final int SIDE_RIGHT = 1;
+	        final int SIDE_LEFT = -1;
+	        
+	        double scaledCenterValue = 100;
+
+	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
+	        
+	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
+	        if (valueToPlot > BAR_ABS_CENTERVAL) {
+	        	valueToPlot = BAR_ABS_CENTERVAL;
 	        }
-	        mSeekBar.setProgress(valueToPlot);
+	        
+	        
+	        if (side == SIDE_RIGHT) {
+	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
+	        }
+	        mMeditationBar.setProgress((int) valueToPlot);
 	        
 			
 			mSpineChartX++;
