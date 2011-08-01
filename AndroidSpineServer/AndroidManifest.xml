@@ -41,10 +41,32 @@
 
         <activity 
         	android:theme="@android:style/Theme.Light"
+
         	android:name=".compassionMeditation.CompassionActivity" 
         	android:excludeFromRecents="true"
         	android:label="">
-        			
+        </activity>
+
+        <activity 
+        	android:theme="@android:style/Theme.NoTitleBar"
+        	android:name=".compassionMeditation.MainActivity" 
+        	android:label="Compassion Meditation App"
+        	>
+        	
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>        	
+        </activity>
+
+
+
+        <activity 
+        	android:theme="@android:style/Theme.Light"
+
+        	android:name=".compassionMeditation.MeditationActivity" 
+        	android:excludeFromRecents="true"
+        	android:label="">
         </activity>
 
 

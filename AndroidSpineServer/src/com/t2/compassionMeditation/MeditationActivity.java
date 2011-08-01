@@ -13,13 +13,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import org.achartengine.ChartFactory;
-import org.achartengine.GraphicalView;
-import org.achartengine.chart.PointStyle;
-import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
-import org.achartengine.renderer.XYMultipleSeriesRenderer;
-import org.achartengine.renderer.XYSeriesRenderer;
+
 
 
 import com.t2.AndroidSpineConnector;
@@ -75,10 +70,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -113,11 +109,12 @@ import com.t2.R;
  * @author scott.coleman
  *
  */
-public class CompassionActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
-	private static final String TAG = "CompassionActivity";
+public class MeditationActivity extends Activity 
+		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
+					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
+	private static final String TAG = "MeditationActivity";
 
     private static AndroidSpineConnector spineConnector;
-    
     
 
 	/**
@@ -132,11 +129,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private SpineReceiver mCommandReceiver;
 	
 	/**
-	 * Static instance of this activity
-	 */
-	private static CompassionActivity instance;
-
-	/**
 	 * Service connection used to communicate data messages with the AndroidBTService
 	 */
 	ServiceConnection mConnection;
@@ -147,26 +139,16 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	 */
 	private Messenger mService = null;	
 	
-	/**
-	 * Whether or not the AndroidBTService is bound to this activity
-	 */
-	boolean mIsBound = false;
+    private boolean mShowingControls = false; 
 	
 	
 	
 	private static Timer mDataUpdateTimer;	
 	
 	
-	// Charting stuff
-	private final static int SPINE_CHART_SIZE = 20;
-	
-	private GraphicalView mDeviceChartView;
-
-	  
     static final int MSG_UNREGISTER_CLIENT = 2;	
 	
 	
-	int mSpineChartX = 0;
 	
 	String mPackageName = "";
 	int mVersionCode;
@@ -181,13 +163,17 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 	
-    private Button mAddMeasureButton;
-    private Button mPauseButton;
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
+    private Button mPauseButton;
+    private Button mBackButton;
     private TextView mTextInfoView;
-    private TextView mMeasuresDisplayText;
-    private SeekBar mMeditationBar;    
+    private ImageView mBuddahImage; 
+    private SeekBar mSeekBar;
+    
+    
+    private MovingAverage mMovingAverage;
+    private double mGain = 1;
     
     
     private String mLogMarkerNote = null;
@@ -210,55 +196,49 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		this.mService = mService;
 	}
 
-	/**
-	 * @return Static instance of this activity
-	 */
-	public static CompassionActivity getInstance() 
-	{
-	   return instance;
-	}
-    
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.compassion);
-        instance = this;
-    
+        setContentView(R.layout.meditation);
+        
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
+        mMovingAverage = new MovingAverage(30);
         
-        
-        
-        
+        View v1 = findViewById (R.id.buddahView); 
+        v1.setOnTouchListener (this);        
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
         
         // Set up member variables to UI Elements
-        mPauseButton = (Button) findViewById(R.id.buttonPause);
-        mAddMeasureButton = (Button) findViewById(R.id.buttonAddMeasure);
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
-        mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
+        mPauseButton = (Button) findViewById(R.id.buttonPause);
+        mBackButton = (Button) findViewById(R.id.buttonBack);
+		mSeekBar = (SeekBar)findViewById(R.id.seekBar1);
+
+		mSeekBar.setOnSeekBarChangeListener(this);
+		
+		
+        // Controls start as invisible, need to touch screen to activate them
+        mTextInfoView.setVisibility(View.GONE);
+		mPauseButton.setVisibility(View.GONE);
+		mBackButton.setVisibility(View.GONE);
+		mSeekBar.setVisibility(View.GONE);
+		
+        
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
-//        image.setColorFilter(Color.HSVToColor(255, new float[]{ 120,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//        image.setImageResource(R.drawable.headphones);
         image.setImageResource(R.drawable.signal_bars0);  
         
-        
-        
-
-        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
-        
-        mMeditationBar.setProgress(50);
-//        mSeekBar.setIndeterminate(true);
-        
+        mBuddahImage = (ImageView) findViewById(R.id.buddahView);
+        mBuddahImage.setImageResource(R.drawable.buddha);
         
         
 		// Initialize SPINE by passing the fileName with the configuration properties
@@ -290,10 +270,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
             keyItems.add(key);
         }
 
-        // Set up Device data chart
-        generateChart();
-        
-        
         
 		try {
 			PackageManager packageManager = this.getPackageManager();
@@ -319,96 +295,16 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     	mLoggingEnabled = false;
     	saveState();
     	
-//    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.mCommandReceiver);
-		Log.i(TAG, "CompassionActivity onDestroy");
+		Log.i(TAG, "TAG +  onDestroy");
 	    	
-  //  	doUnbindService();    	
 	}
 
-	private void generateChart() {
-        // Set up chart
-    	XYMultipleSeriesDataset deviceDataset = new XYMultipleSeriesDataset();
-    	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
-
-        LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
-    	if (mDeviceChartView != null)
-    	{
-    		layout.removeView(mDeviceChartView);
-    	}
-       	if (true) 
-        {
-          mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
-          mDeviceChartView.setBackgroundColor(Color.WHITE);
-          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        }    
-
-    	
-        deviceRenderer.setShowLabels(false);
-        deviceRenderer.setMargins(new int[] {0,5,5,0});
-        deviceRenderer.setShowAxes(true);
-        deviceRenderer.setShowLegend(false);
-      //  deviceRenderer.setBackgroundColor(Color.WHITE);
-        
-        deviceRenderer.setZoomEnabled(false, false);
-        deviceRenderer.setPanEnabled(false, false);
-        deviceRenderer.setYAxisMin(0);
-        deviceRenderer.setYAxisMax(255);
-        
-
-        SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
-        
-		ArrayList<Long> visibleIds = getVisibleIds("measure");
-		int keyCount = keyItems.size();
-        keyCount = keyItems.size();
-        
-		int lineNum = 0;
-		for(int i = 0; i < keyItems.size(); ++i) {
-			KeyItem item = keyItems.get(i);
-			
-			item.visible = visibleIds.contains(item.id);
-			if(!item.visible) {
-				continue;
-			}
-			
-			deviceDataset.addSeries(item.series);
-			item.color = getKeyColor(i, keyCount);
-			
-			// Add name of the measure to the displayed text field
-			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
-			int start = sMeasuresText.length();
-			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
-			int end = sMeasuresText.length();
-			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			if (sMeasuresText.length() > 40 && lineNum == 0)
-			{
-				lineNum++;
-				//sMeasuresText.append("\n");
-			}
-			
-			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
-			seriesRenderer.setColor(item.color);
-//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-//			seriesRenderer.setFillPoints(true);
-//			seriesRenderer.setLineWidth(2 * displayMetrics.density);
-			
-			
-			
-			deviceRenderer.addSeriesRenderer(seriesRenderer);
-			
-
-			
-		}     
-		mMeasuresDisplayText.setText(sMeasuresText) ;       
-		
-	}
     
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.i(TAG, "OnStart");
-		
-		
+		Log.i(TAG, "TAG +  OnStart");
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -536,24 +432,20 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 							else 
 								image.setImageResource(R.drawable.signal_bars5);
 
-//							if (sigQuality == 200) {
-//						        image.setColorFilter(Color.HSVToColor(255, new float[]{ 0,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//						        image.setImageResource(R.drawable.headphones_bad);
-//							}
-//							else {
-//						        double f = 120 - (double) sigQuality * 0.6; 
-//						        image.setColorFilter(Color.HSVToColor(255, new float[]{(float) f,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//						        image.setImageResource(R.drawable.headphones);  
-//								
-//							}
-							
-							
 						}
 						
 						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
 							currentMindsetData.updateSpectral(mindsetData);
 							Log.i(TAG, "Spectral Data");
-							numSecsWithoutData = 0;							
+							numSecsWithoutData = 0;				
+							
+							int value = mindsetData.getRatioFeature(bandOfInterest);
+							mMovingAverage.pushValue(value);	
+							int filteredValue = (int) (mMovingAverage.getValue() * mGain);
+							mBuddahImage.setAlpha((int) filteredValue);
+							mTextInfoView.setText("Raw= " + value + ", Filtered= " + filteredValue);							
+							
+							
 						}
 						
 						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
@@ -615,48 +507,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		 final int id = v.getId();
 		    switch (id) {
 		    case R.id.buttonBack:
-				Intent i = new Intent(this, MeditationActivity.class);
+				Intent i = new Intent(this, CompassionActivity.class);
 				this.startActivity(i);
 		    	
 		    	break;
 		    		    
-		    case R.id.buttonAddMeasure:
-		    	
-		    	boolean toggleArray[] = new boolean[keyItems.size()];
-				for(int j = 0; j < keyItems.size(); ++j) {
-					KeyItem item = keyItems.get(j);
-					if(item.visible)
-						toggleArray[j] = true;
-					else
-						toggleArray[j] = false;
-					
-				}		    	
-		    	
-		    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		    	alert.setTitle(R.string.alert_dialog_measure_selector);
-		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
-		    			toggleArray,
-	                    new DialogInterface.OnMultiChoiceClickListener() {
-
-		    			public void onClick(DialogInterface dialog, int whichButton,boolean isChecked) {
-
-                			KeyItem item = keyItems.get(whichButton);
-                			item.visible = item.visible ? false: true;
-	                 		saveVisibleKeyIds();	
-	                 		generateChart();	                 		
-	                        }
-	                    });
-		    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int whichButton) {
-
-                 		generateChart();	                 		
-
-	                }
-	            });
-	
-				alert.show();
-		    	
-		    	break;
 		    case R.id.buttonPause:
 				if (mPaused == true)
 				{
@@ -745,67 +600,13 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			
 			currentMindsetData.logData();
 
-	        int keyCount = keyItems.size();
-			for(int i = 0; i < keyItems.size(); ++i) {
-				KeyItem item = keyItems.get(i);
-				
-				if(!item.visible) {
-					continue;
-				}
-				
-				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
-				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-					item.series.remove(0);
-				}
-				
-			} 			
-			
-	        mTextInfoView.setText(
-	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
-	        		"Time Remaining: "
-	        		);
-			
-
-	        
-	        // Update the mediation bar
-	        int side = currentMindsetData.powerTest(bandOfInterest);
-	        final double BAR_ABS_MAXVAL = 100;
-	        final double BAR_ABS_CENTERVAL = 50;
-	        final double BAR_ABS_MINVAL = 0;
-	        final int SIDE_RIGHT = 1;
-	        final int SIDE_LEFT = -1;
-	        
-	        double scaledCenterValue = 100;
-
-	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
-	        
-	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
-	        if (valueToPlot > BAR_ABS_CENTERVAL) {
-	        	valueToPlot = BAR_ABS_CENTERVAL;
-	        }
-	        
-	        
-	        if (side == SIDE_RIGHT) {
-	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
-	        }
-	        mMeditationBar.setProgress((int) valueToPlot);
-	        
-			
-			mSpineChartX++;
-			
-			if (mDeviceChartView != null) {
-	            mDeviceChartView.repaint();
-	        }   				
-			
-			
-			
 			
 		}
 	};
 
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "CompassionActivity onPause");
+		Log.i(TAG, "TAG +  onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
@@ -825,20 +626,20 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "CompassionActivity onStop");
+		Log.i(TAG, "TAG +  onStop");
 		super.onStop();
 	}	
 
 	
 	@Override
 	protected void onRestart() {
-		Log.i(TAG, "CompassionActivity onRestart");
+		Log.i(TAG, "TAG +  onRestart");
 		super.onRestart();
 	}
 
 	@Override
 	protected void onResume() {
-		Log.i(TAG, "CompassionActivity onResume");
+		Log.i(TAG, "TAG +  onResume");
 		
 		restoreState();
 		
@@ -927,59 +728,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 				layoutId = R.layout.list_item_result_key_1;
 			}
 		}
-		
-//		@Override
-//		public View getView(int position, View convertView, ViewGroup parent) {
-//			if(convertView == null) {
-//				convertView = layoutInflater.inflate(layoutId, null);
-//			}
-//
-//			final KeyItem item = this.getItem(position);
-//			TextView tv1 = (TextView)convertView.findViewById(R.id.text1);
-//			TextView tv2 = (TextView)convertView.findViewById(R.id.text2);
-//			ToggleButton tb = (ToggleButton)convertView.findViewById(R.id.showKeyToggleButton);
-//			View keyBox = convertView.findViewById(R.id.keyBox);
-//			
-//			boolean tv1Null = tv1 == null;
-//			boolean tv2Null = tv2 == null;
-//			if(reverseLabels && !tv1Null && !tv2Null) {
-//				if(!tv1Null) {
-//					tv1.setText(item.title2);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title1);
-//				}
-//			} else {
-//				if(!tv1Null) {
-//					tv1.setText(item.title1);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title2);
-//				}				
-//			}
-//			
-//			if(tb != null) {
-//				if(isKeyItemsClickable()) {
-//					tb.setFocusable(false);
-//				}
-//				tb.setOnCheckedChangeListener(null);
-//				tb.setChecked(item.visible);
-//				tb.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-//					@Override
-//					public void onCheckedChanged(
-//							CompoundButton buttonView, boolean isChecked) {
-//						item.visible = isChecked;
-//						onKeyToggleButtonCheckedChanged();
-//					}
-//				});
-//			}
-//			
-//			if(keyBox != null) {
-//				keyBox.setBackgroundColor(item.color);
-//			}
-//			
-//			return convertView;
-//		}
 	}
 
 	private void saveVisibleKeyIds() {
@@ -1030,6 +778,53 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     				1.0f
     			}
     	);
+	}
+
+
+	@Override
+	public boolean onTouch(View arg0, MotionEvent arg1) {
+		if (mShowingControls) {
+			mShowingControls = false;
+			mTextInfoView.setVisibility(View.GONE);
+			mPauseButton.setVisibility(View.GONE);
+			mBackButton.setVisibility(View.GONE);
+			mSeekBar.setVisibility(View.GONE);
+			
+		}
+		else {
+			mShowingControls = true;
+			mTextInfoView.setVisibility(View.VISIBLE);
+			mPauseButton.setVisibility(View.VISIBLE);
+			mBackButton.setVisibility(View.VISIBLE);
+			mSeekBar.setVisibility(View.VISIBLE);
+			
+		}
+		
+		
+		return false;
+	}
+
+
+	@Override
+	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+		double  alpha = arg1 * 2.5;
+		mBuddahImage.setAlpha((int) alpha);
+		mTextInfoView.setText(Integer.toString((int)alpha));
+		
+	}
+
+
+	@Override
+	public void onStartTrackingTouch(SeekBar arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void onStopTrackingTouch(SeekBar arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 		
 	

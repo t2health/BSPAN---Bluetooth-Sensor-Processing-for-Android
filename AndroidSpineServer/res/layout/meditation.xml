@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:gravity="center_horizontal">
+    <RelativeLayout android:id="@+id/relativeLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <Button android:layout_height="wrap_content" android:id="@+id/buttonBack" android:text="@string/button_back" android:onClick="onButtonClick" android:layout_width="wrap_content" ></Button>
+        <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_width="wrap_content" android:layout_alignParentRight="true"></ImageView>
+    </RelativeLayout>
+    <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buddahView" android:src="@drawable/buddha"></ImageView>
+    <TextView android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo" android:gravity="center_horizontal"></TextView>
+    <Button android:onClick="onButtonClick" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/button_pause" android:id="@+id/buttonPause"></Button>
+    <SeekBar android:layout_height="wrap_content" android:id="@+id/seekBar1" android:layout_width="fill_parent"></SeekBar>
+		
+</LinearLayout>
