@@ -45,22 +45,12 @@
         	android:excludeFromRecents="true"
         	android:label="">
         			
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        			
         </activity>
 
 
         <activity android:name=".biomap.BioMapActivity" 
         			android:excludeFromRecents="true"
         			android:label="biomap">
-        			
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         			
         </activity>
 

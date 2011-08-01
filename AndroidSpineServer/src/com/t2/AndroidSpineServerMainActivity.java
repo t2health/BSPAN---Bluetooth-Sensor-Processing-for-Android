@@ -1,6 +1,7 @@
 package com.t2;
 
 import com.t2.biomap.BioMapActivity;
+import com.t2.compassionMeditation.CompassionActivity;
 import com.t2.Constants;
 
 import spine.SPINEFactory;
@@ -106,6 +107,8 @@ public class AndroidSpineServerMainActivity extends Activity{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+		Log.i(TAG, "OnCreate");
+		firstTime = true;
         setContentView(R.layout.main);
         instance = this;
 
@@ -147,7 +150,14 @@ public class AndroidSpineServerMainActivity extends Activity{
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
 		Log.i(TAG, "MainActivity onDestroy");
 	    	
-    	doUnbindService();    
+    	doUnbindService();   
+
+    	try {
+			SPINEFactory.killSPINEManager();
+		} catch (InstantiationException e) {
+			Log.e(TAG, "Exception killing SPINE manager: " + e.toString());
+			e.printStackTrace();
+		}     	
     	
 	}
 
@@ -162,10 +172,10 @@ public class AndroidSpineServerMainActivity extends Activity{
 		if (firstTime) 
 		{
 
-			Log.i(TAG, "--------------------Starting Map Activity -----------------------");
+			Log.i(TAG, "--------------------Starting Compassion Activity -----------------------");
 			
-			Intent i = new Intent(this, BioMapActivity.class);
-//			Intent i = new Intent(this, CompassionActivity.class);
+//			Intent i = new Intent(this, BioMapActivity.class);
+			Intent i = new Intent(this, CompassionActivity.class);
 //			Intent i = new Intent(this, BioDetailActivity.class);
 			this.startActivity(i);
 		}

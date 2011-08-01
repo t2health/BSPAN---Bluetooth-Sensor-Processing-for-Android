@@ -245,8 +245,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
-        image.setColorFilter(Color.HSVToColor(255, new float[]{ 120,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-        image.setImageResource(R.drawable.headphones);  
+//        image.setColorFilter(Color.HSVToColor(255, new float[]{ 120,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+//        image.setImageResource(R.drawable.headphones);
+        image.setImageResource(R.drawable.signal_bars0);  
+        
         
         
 
@@ -519,16 +521,29 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 							
 							int sigQuality = mindsetData.poorSignalStrength & 0xff;
 							ImageView image = (ImageView) findViewById(R.id.imageView1);
-							if (sigQuality == 200) {
-						        image.setColorFilter(Color.HSVToColor(255, new float[]{ 0,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-						        image.setImageResource(R.drawable.headphones_bad);  
-							}
-							else {
-						        double f = 120 - (double) sigQuality * 0.6; 
-						        image.setColorFilter(Color.HSVToColor(255, new float[]{(float) f,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-						        image.setImageResource(R.drawable.headphones);  
-								
-							}
+							if (sigQuality == 200)
+								image.setImageResource(R.drawable.signal_bars0);
+							else if (sigQuality > 150)
+								image.setImageResource(R.drawable.signal_bars1);
+							else if (sigQuality > 100)
+								image.setImageResource(R.drawable.signal_bars2);
+							else if (sigQuality > 50)
+								image.setImageResource(R.drawable.signal_bars3);
+							else if (sigQuality > 25)
+								image.setImageResource(R.drawable.signal_bars4);
+							else 
+								image.setImageResource(R.drawable.signal_bars5);
+
+//							if (sigQuality == 200) {
+//						        image.setColorFilter(Color.HSVToColor(255, new float[]{ 0,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+//						        image.setImageResource(R.drawable.headphones_bad);
+//							}
+//							else {
+//						        double f = 120 - (double) sigQuality * 0.6; 
+//						        image.setColorFilter(Color.HSVToColor(255, new float[]{(float) f,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
+//						        image.setImageResource(R.drawable.headphones);  
+//								
+//							}
 							
 							
 						}

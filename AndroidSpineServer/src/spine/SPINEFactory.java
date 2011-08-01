@@ -26,6 +26,7 @@ package spine;
 
 
 import android.content.res.Resources;
+import android.util.Log;
 
 
 /**
@@ -38,7 +39,7 @@ public class SPINEFactory {
 
 	private static final String APP_PROP_MISSING_MSG = "ERROR: 'app.properties' file is missing, not properly specified or 'MOTECOM' and/or 'PLATFORM' properties not defined!";
 
-	private static SPINEManager managerInstance;
+	private static SPINEManager managerInstance = null;
 
 	/**
 	 * Initializes the SPINE Manager. The SPINEManager instance is connected to
@@ -59,6 +60,7 @@ public class SPINEFactory {
 	public static SPINEManager createSPINEManager(String appPropertiesFile, Resources resources) throws InstantiationException {
 		if (managerInstance != null)
 		{
+			Log.i("BFDemo", "	gOT HERE 2, managerInstance = " + managerInstance);			
 			
 		}
 //			throw new InstantiationException("SPINEManager already initialized");
@@ -76,8 +78,15 @@ public class SPINEFactory {
 				throw new InstantiationException(APP_PROP_MISSING_MSG);
 			
 			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
+			Log.i("BFDemo", "	gOT HERE 1, managerInstance = " + managerInstance);			
+			
 		}
 		return managerInstance;
 
 	}
+	
+	public static void killSPINEManager() throws InstantiationException {
+		managerInstance = null;
+	}
+	
 }
