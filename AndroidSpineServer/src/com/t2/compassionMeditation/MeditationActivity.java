@@ -69,6 +69,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -81,6 +82,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -96,25 +98,9 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-
 import com.t2.R;
 
-/**
- * Main (test) activity for Spine server.
- * This application sets up and initializes the Spine server to talk to a couple of sample devices
- * and displays their data streams.
- * 
- * Note that the AndroidBTService is an Android background service mandatory as a front end 
- * for the Bluetooth devices to work with the Spine server.
- * 
- * This activity uses two mechanisms to communicate with the AndroidBTService
- *  1. Broadcast intents are used to communicate low bandwidth messages: status messages and connection information
- *  2. A service connection is used to communicate potentially high bandwidth messages (Sensor data messages)
- * 
- * 
- * @author scott.coleman
- *
- */
+
 public class MeditationActivity extends Activity 
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
@@ -216,6 +202,9 @@ public class MeditationActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
+        
+        // We don't want the screen to timeout in this activity
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.meditation);
         
@@ -645,8 +634,9 @@ public class MeditationActivity extends Activity
 	@Override
 	protected void onStop() {
 		Log.i(TAG, TAG +  " onStop");
-		Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-		
+		if (!mSessionName.equalsIgnoreCase("")) {
+			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		}
 		mSelectedUser = "";
 		mSessionName = "";
     	saveState();
@@ -886,6 +876,7 @@ public class MeditationActivity extends Activity
     			mSelectedUser = mCurrentUsers.get(mSelection);
     			setNewSessionName();    			
     			openLogFile();
+    			handlePause(); // Allow opportinuty for a note
 
             }
         });
@@ -965,7 +956,7 @@ public class MeditationActivity extends Activity
 		  }
 		});
 
-		alert1.setNegativeButton("Unpause", new DialogInterface.OnClickListener() {
+		alert1.setNegativeButton("Start", new DialogInterface.OnClickListener() {
 		  public void onClick(DialogInterface dialog, int whichButton) {
 				mPaused = false;
 				addNoteToLog(input.getText().toString());

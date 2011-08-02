@@ -109,11 +109,12 @@ public class MindsetData  extends Data {
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
-//		for (int i = 0; i < NUM_BANDS; i++)	{
-//			line += this.rawSpectralData[i] + ", ";
-//		}
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.ratioSpectralData[i] + ", ";
+		}
+		line += ", ";
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			line += this.rawSpectralData[i] + ", ";
 		}
 		return line;
 	}

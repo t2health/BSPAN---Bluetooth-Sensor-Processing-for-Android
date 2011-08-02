@@ -13,6 +13,7 @@ import android.widget.Toast;
 //class is in a sub-package.
 
 import com.t2.R;
+import com.t2.filechooser.FileChooser;
 
 
 public class MainActivity extends ListActivity {
@@ -59,6 +60,11 @@ public class MainActivity extends ListActivity {
 			this.startActivity(intent);		
 			
 		}
+		if (keyword.equalsIgnoreCase("View Previous Session")) {
+			intent = new Intent(this, FileChooser.class);
+			this.startActivity(intent);		
+			
+		}
 		
 		
 	}
@@ -69,6 +75,7 @@ public class MainActivity extends ListActivity {
 	private String[] mStrings = {
             "New Session", 
             "View EEG Activity", 
+            "View Previous Session", 
             };	
 	
 	
