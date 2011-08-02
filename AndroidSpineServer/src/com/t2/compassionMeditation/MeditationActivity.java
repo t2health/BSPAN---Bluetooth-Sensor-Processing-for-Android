@@ -4,16 +4,21 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
 import org.achartengine.model.XYSeries;
+
 
 
 
@@ -25,6 +30,7 @@ import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
+import com.t2.compassionMeditation.CompassionActivity.KeyItem;
 
 
 
@@ -139,6 +145,12 @@ public class MeditationActivity extends Activity
 	 */
 	private Messenger mService = null;	
 	
+	/**
+	 * Static instance of this activity
+	 */
+	private static MeditationActivity instance;
+	
+	
     private boolean mShowingControls = false; 
 	
 	
@@ -187,6 +199,9 @@ public class MeditationActivity extends Activity
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
+	private ArrayList<String> mCurrentUsers;
+	private String mSelectedUser = null;
+	private int mSelection = 0;
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -201,6 +216,7 @@ public class MeditationActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.meditation);
         
@@ -293,6 +309,14 @@ public class MeditationActivity extends Activity
     	super.onDestroy();
     	
     	mLoggingEnabled = false;
+    	try {
+        	if (mLogWriter != null)
+        		mLogWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}        	
+    	
     	saveState();
     	
     	this.unregisterReceiver(this.mCommandReceiver);
@@ -305,6 +329,42 @@ public class MeditationActivity extends Activity
 	protected void onStart() {
 		super.onStart();
 		Log.i(TAG, "TAG +  OnStart");
+		
+		mCurrentUsers = getUsers();		
+		
+    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+    	alert.setTitle(R.string.select_users_text);
+    	alert.setSingleChoiceItems(ArraysExtra.toStringArray(mCurrentUsers.toArray()),0,
+    			new DialogInterface.OnClickListener() {
+
+	    			public void onClick(DialogInterface dialog, int whichButton) {
+	
+	    				mSelection = whichButton;
+	        			
+	                }
+                });
+    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+    			mSelectedUser = mCurrentUsers.get(mSelection);
+    			Toast.makeText(instance, "Selected User: " + mSelectedUser, Toast.LENGTH_LONG).show();
+    			openLogFile();
+
+            }
+        });
+    	alert.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+            }
+        });
+    	// Add new user
+    	alert.setNeutralButton(R.string.new_user_text, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+        		getNewUserName("Enter new user name");
+            }
+        });
+
+		alert.show();		
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -543,20 +603,6 @@ public class MeditationActivity extends Activity
 		        }
 		        else
 		        {
-		    		// Open a file for saving data
-		    		try {
-		    		    File root = Environment.getExternalStorageDirectory();
-		    		    if (root.canWrite()){
-		    		        File gpxfile = new File(root, "BioData.txt");
-		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-		    		        mLogWriter = new BufferedWriter(gpxwriter);
-		    		        // Put a visual marker in
-		    		        mLogWriter.write("----------------------------------------------\n");
-
-		    		    }
-		    		} catch (IOException e) {
-		    		    Log.e(TAG, "Could not write file " + e.getMessage());
-		    		}		
 		        	mLoggingEnabled = true;
 		        	mToggleLogButton.setText("Log:\nON");
 		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
@@ -599,6 +645,22 @@ public class MeditationActivity extends Activity
 			}			
 			
 			currentMindsetData.logData();
+			if (mLoggingEnabled == true)
+			{
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+				
+				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+				currentDateTimeString = sdf.format(new Date());
+				
+				String logData = currentDateTimeString + ", " + currentMindsetData.getLogDataLine() + "\n";
+				
+		        try {
+		        	if (mLogWriter != null)
+		        		mLogWriter.write(logData);
+				} catch (IOException e) {
+					Log.e(TAG, e.toString());
+				}
+			}			
 
 			
 		}
@@ -655,30 +717,7 @@ public class MeditationActivity extends Activity
 	}
 	void restoreState()
 	{
-		mLoggingEnabled = SharedPref.getBoolean(this, "LoggingEnabled", false);	
-		if (mLoggingEnabled)
-		{
-    		// Open a file for saving data
-    		try {
-    		    File root = Environment.getExternalStorageDirectory();
-    		    if (root.canWrite()){
-    		        File gpxfile = new File(root, "BioData.txt");
-    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-    		        mLogWriter = new BufferedWriter(gpxwriter);
-    		        // Put a visual marker in
-    		        mLogWriter.write("----------------------------------------------\n");
-    		        if (mLogMarkerNote != null)
-    		        {
-        		        mLogWriter.write(mLogMarkerNote + "\n");
-        		        mLogMarkerNote = null;
-    		        }
-
-    		    }
-    		} catch (IOException e) {
-    		    Log.e(TAG, "Could not write file " + e.getMessage());
-    		}
-		}
-		
+		openLogFile();
 	}
 
 	static class KeyItem {
@@ -767,6 +806,33 @@ public class MeditationActivity extends Activity
 		);
 	}	
 	
+	
+	
+	private ArrayList<String> getUsers() {
+		String[] usersStrArr = SharedPref.getValues(
+				sharedPref, 
+				"CurrentUsers", 
+				",",
+				new String[0]
+//				new String[] {""}
+		);
+		
+		return new ArrayList<String>(
+				Arrays.asList(
+						ArraysExtra.toStringArray(usersStrArr)
+				)
+		);		
+	}	
+
+	private void setUsers(ArrayList<String> users) {
+		SharedPref.setValues(
+				sharedPref, 
+				"CurrentUsers", 
+				",", 
+				ArraysExtra.toStringArray(users.toArray(new String[users.size()]))
+		);
+	}	
+	
 	protected int getKeyColor(int currentIndex, int totalCount) {
 		float hue = currentIndex / (1.00f * totalCount) * 360.00f;
 		
@@ -827,7 +893,75 @@ public class MeditationActivity extends Activity
 		
 	}
 		
+	public void getNewUserName(String message) {
+		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
+
+		alert1.setMessage(message);
+
+		// Set an EditText view to get user input 
+		final EditText input = new EditText(this);
+		alert1.setView(input);
+
+		alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int whichButton) {
+			mSelectedUser = input.getText().toString();
+
+			
+      		mCurrentUsers.add(mSelectedUser);
+      		setUsers(mCurrentUsers);
+
+		  
+		  }
+		});
+
+		alert1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		  public void onClick(DialogInterface dialog, int whichButton) {
+			  mSelectedUser = null;
+		  }
+		});
+
+		alert1.show();
+	}
+
+	void closeLogFile() {
+	}
 	
+	void openLogFile() {
+		mLoggingEnabled = true;	
+//		mLoggingEnabled = SharedPref.getBoolean(this, "LoggingEnabled", false);	
+		
+		
+		if (mLoggingEnabled && this.mSelectedUser != null)
+		{
+			// Create a log file name from the seledcted user and date/time
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
+			String currentDateTimeString = sdf.format(new Date());
+			
+			String logFileName = mSelectedUser + "_" + currentDateTimeString + ".log";
+
+			// Open a file for saving data
+    		try {
+    		    File root = Environment.getExternalStorageDirectory();
+    		    if (root.canWrite()){
+    		        File gpxfile = new File(root, logFileName);
+    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+    		        mLogWriter = new BufferedWriter(gpxwriter);
+    		        // Put a visual marker in
+    		        mLogWriter.write("----------------------------------------------\n");
+    		        if (mLogMarkerNote != null)
+    		        {
+        		        mLogWriter.write(mLogMarkerNote + "\n");
+        		        mLogMarkerNote = null;
+    		        }
+
+    		    }
+    		} catch (IOException e) {
+    		    Log.e(TAG, "Could not write file " + e.getMessage());
+    		}
+		}
+		
+		
+	}
 	
 }
 
