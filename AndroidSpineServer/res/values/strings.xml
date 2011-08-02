@@ -19,5 +19,8 @@
 	<string name="button_add_measure">Add Measure</string>
 	<string name="button_back">Back</string>
 	<string name="seekbarText">Meditate to keep the bar in the center</string>
+	<string name="select_users_text">Select User</string>
+	<string name="new_user_text">Add</string>
+	<string name="new_name_dialog">Enter new user name</string>
     
 </resources>

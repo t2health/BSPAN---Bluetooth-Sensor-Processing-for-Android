@@ -104,7 +104,7 @@ public class MindsetData  extends Data {
 		return (powerToLeft >= powerToRight) ? -1:1;
 	}
 	
-	public void logData(){
+	public String getLogDataLine() {
 		String line = "";
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
@@ -115,6 +115,9 @@ public class MindsetData  extends Data {
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.ratioSpectralData[i] + ", ";
 		}
-		Log.i("SensorData", ", " + line);
+		return line;
+	}
+	public void logData(){
+		Log.i("SensorData", ", " + getLogDataLine());
 	}
 }

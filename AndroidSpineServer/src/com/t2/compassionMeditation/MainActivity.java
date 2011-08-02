@@ -4,6 +4,7 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ public class MainActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         View header = getLayoutInflater().inflate(R.layout.layout_header, null);
         ListView listView = getListView();
@@ -47,7 +49,6 @@ public class MainActivity extends ListActivity {
 		// Get the item that was clicked
 		Object o = this.getListAdapter().getItem(position - 1);
 		String keyword = o.toString();
-		Toast.makeText(this, "You selected: " + keyword, Toast.LENGTH_LONG).show();		
 		if (keyword.equalsIgnoreCase("new session")) {
 			intent = new Intent(this, MeditationActivity.class);
 			this.startActivity(intent);		

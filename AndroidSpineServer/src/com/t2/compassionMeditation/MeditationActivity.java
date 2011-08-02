@@ -188,8 +188,6 @@ public class MeditationActivity extends Activity
     private double mGain = 1;
     
     
-    private String mLogMarkerNote = null;
-    
 
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
@@ -202,6 +200,7 @@ public class MeditationActivity extends Activity
 	private ArrayList<String> mCurrentUsers;
 	private String mSelectedUser = null;
 	private int mSelection = 0;
+	private String mSessionName = "";
 	
 	/**
 	 * Sets up messenger service which is used to communicate to the AndroidBTService
@@ -320,7 +319,7 @@ public class MeditationActivity extends Activity
     	saveState();
     	
     	this.unregisterReceiver(this.mCommandReceiver);
-		Log.i(TAG, "TAG +  onDestroy");
+		Log.i(TAG, TAG +  " onDestroy");
 	    	
 	}
 
@@ -328,43 +327,9 @@ public class MeditationActivity extends Activity
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.i(TAG, "TAG +  OnStart");
+		Log.i(TAG, TAG +  " OnStart");
 		
-		mCurrentUsers = getUsers();		
-		
-    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
-    	alert.setTitle(R.string.select_users_text);
-    	alert.setSingleChoiceItems(ArraysExtra.toStringArray(mCurrentUsers.toArray()),0,
-    			new DialogInterface.OnClickListener() {
-
-	    			public void onClick(DialogInterface dialog, int whichButton) {
-	
-	    				mSelection = whichButton;
-	        			
-	                }
-                });
-    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-    			mSelectedUser = mCurrentUsers.get(mSelection);
-    			Toast.makeText(instance, "Selected User: " + mSelectedUser, Toast.LENGTH_LONG).show();
-    			openLogFile();
-
-            }
-        });
-    	alert.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-            }
-        });
-    	// Add new user
-    	alert.setNeutralButton(R.string.new_user_text, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-        		getNewUserName("Enter new user name");
-            }
-        });
-
-		alert.show();		
+		SelectUser();
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -494,7 +459,7 @@ public class MeditationActivity extends Activity
 
 						}
 						
-						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
+						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL && mPaused == false) {
 							currentMindsetData.updateSpectral(mindsetData);
 							Log.i(TAG, "Spectral Data");
 							numSecsWithoutData = 0;				
@@ -503,7 +468,7 @@ public class MeditationActivity extends Activity
 							mMovingAverage.pushValue(value);	
 							int filteredValue = (int) (mMovingAverage.getValue() * mGain);
 							mBuddahImage.setAlpha((int) filteredValue);
-							mTextInfoView.setText("Raw= " + value + ", Filtered= " + filteredValue);							
+							mTextInfoView.setText("Theta: Raw= " + value + ", Filtered= " + filteredValue);							
 							
 							
 						}
@@ -573,17 +538,8 @@ public class MeditationActivity extends Activity
 		    	break;
 		    		    
 		    case R.id.buttonPause:
-				if (mPaused == true)
-				{
-					mPaused = false;
-					mPauseButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-				}
-				else
-				{
-					mPaused = true;
-					mPauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
-				}
-		        break;
+		    	handlePause();
+		    	break;
 		        
 		    case R.id.buttonLogging:
 		        if (mLoggingEnabled == true)
@@ -652,7 +608,7 @@ public class MeditationActivity extends Activity
 				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
 				currentDateTimeString = sdf.format(new Date());
 				
-				String logData = currentDateTimeString + ", " + currentMindsetData.getLogDataLine() + "\n";
+				String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine() + "\n";
 				
 		        try {
 		        	if (mLogWriter != null)
@@ -668,7 +624,7 @@ public class MeditationActivity extends Activity
 
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "TAG +  onPause");
+		Log.i(TAG, TAG +  " onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
@@ -688,20 +644,27 @@ public class MeditationActivity extends Activity
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "TAG +  onStop");
+		Log.i(TAG, TAG +  " onStop");
+		Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		
+		mSelectedUser = "";
+		mSessionName = "";
+    	saveState();
+		
+		
 		super.onStop();
 	}	
 
 	
 	@Override
 	protected void onRestart() {
-		Log.i(TAG, "TAG +  onRestart");
+		Log.i(TAG, TAG +  " onRestart");
 		super.onRestart();
 	}
 
 	@Override
 	protected void onResume() {
-		Log.i(TAG, "TAG +  onResume");
+		Log.i(TAG, TAG +  " onResume");
 		
 		restoreState();
 		
@@ -714,10 +677,19 @@ public class MeditationActivity extends Activity
 	void saveState()
 	{
 		 SharedPref.putBoolean(this, "LoggingEnabled", 	mLoggingEnabled);
+		 SharedPref.putString(this, "SessionName", 	mSessionName);
+		 SharedPref.putString(this, "SelectedUser", 	mSelectedUser);
 	}
 	void restoreState()
 	{
-		openLogFile();
+		mCurrentUsers = getUsers();	
+		mSelectedUser = SharedPref.getString(this, "SelectedUser", 	"");
+
+		setNewSessionName();
+		mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
+		if (!mSessionName.equalsIgnoreCase("")) {
+			openLogFile();
+		}
 	}
 
 	static class KeyItem {
@@ -893,6 +865,50 @@ public class MeditationActivity extends Activity
 		
 	}
 		
+	public void SelectUser()
+	{
+		mCurrentUsers = getUsers();	
+		mSelection = 0;
+
+    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+    	alert.setTitle(R.string.select_users_text);
+    	alert.setSingleChoiceItems(ArraysExtra.toStringArray(mCurrentUsers.toArray()),0,
+    			new DialogInterface.OnClickListener() {
+
+	    			public void onClick(DialogInterface dialog, int whichButton) {
+	
+	    				mSelection = whichButton;
+	        			
+	                }
+                });
+    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+    			mSelectedUser = mCurrentUsers.get(mSelection);
+    			setNewSessionName();    			
+    			openLogFile();
+
+            }
+        });
+    	alert.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+          		String s = mCurrentUsers.get(mSelection);
+            	mCurrentUsers.remove(s);
+          		setUsers(mCurrentUsers);
+          		SelectUser(); // Go back to main selection dialog
+            }
+        });
+    	// Add new user
+    	alert.setNeutralButton(R.string.new_user_text, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+        		getNewUserName("Enter new user name");
+            }
+        });
+
+		alert.show();		
+		
+	}
+	
 	public void getNewUserName(String message) {
 		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
 
@@ -909,6 +925,7 @@ public class MeditationActivity extends Activity
 			
       		mCurrentUsers.add(mSelectedUser);
       		setUsers(mCurrentUsers);
+      		SelectUser(); // Go back to main selection dialog
 
 		  
 		  }
@@ -923,7 +940,66 @@ public class MeditationActivity extends Activity
 		alert1.show();
 	}
 
+	public void handlePause() {
+		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
+		String message = mSessionName + " Paused";
+		alert1.setTitle(message);
+		alert1.setMessage("Notes:");
+		mPaused = true;
+
+		// Set an EditText view to get user input 
+		final EditText input = new EditText(this);
+		alert1.setView(input);
+
+		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int whichButton) {
+			
+			addNoteToLog(input.getText().toString());
+			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+			
+			mSelectedUser = "";
+			mSessionName = "";
+			
+			finish();
+		  
+		  }
+		});
+
+		alert1.setNegativeButton("Unpause", new DialogInterface.OnClickListener() {
+		  public void onClick(DialogInterface dialog, int whichButton) {
+				mPaused = false;
+				addNoteToLog(input.getText().toString());
+		  }
+		});
+
+		alert1.show();
+	}
+
+	void addNoteToLog(String note) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+		
+		String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+		currentDateTimeString = sdf.format(new Date());
+		
+		String logData = currentDateTimeString + ", " + note + "\n";
+		
+        try {
+        	if (mLogWriter != null)
+        		mLogWriter.write(logData);
+		} catch (IOException e) {
+			Log.e(TAG, e.toString());
+		}		
+	}
+	
 	void closeLogFile() {
+	}
+	
+	private void setNewSessionName() {
+		// Create a log file name from the seledcted user and date/time
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
+		String currentDateTimeString = sdf.format(new Date());
+		
+		mSessionName = mSelectedUser + "_" + currentDateTimeString + ".log";	
 	}
 	
 	void openLogFile() {
@@ -933,36 +1009,36 @@ public class MeditationActivity extends Activity
 		
 		if (mLoggingEnabled && this.mSelectedUser != null)
 		{
-			// Create a log file name from the seledcted user and date/time
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
-			String currentDateTimeString = sdf.format(new Date());
+
+			Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
 			
-			String logFileName = mSelectedUser + "_" + currentDateTimeString + ".log";
 
 			// Open a file for saving data
     		try {
     		    File root = Environment.getExternalStorageDirectory();
     		    if (root.canWrite()){
-    		        File gpxfile = new File(root, logFileName);
+    		        File gpxfile = new File(root, mSessionName);
     		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
     		        mLogWriter = new BufferedWriter(gpxwriter);
-    		        // Put a visual marker in
-    		        mLogWriter.write("----------------------------------------------\n");
-    		        if (mLogMarkerNote != null)
-    		        {
-        		        mLogWriter.write(mLogMarkerNote + "\n");
-        		        mLogMarkerNote = null;
-    		        }
-
+    		    } 
+    		    else {
+        		    Log.e(TAG, "Could not write file " );
+        			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        			
+        			alert.setTitle("ERROR");
+        			alert.setMessage("Cannot write to file");	
+        			alert.show();			
+    		    	
     		    }
     		} catch (IOException e) {
     		    Log.e(TAG, "Could not write file " + e.getMessage());
+    			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+    			
+    			alert.setTitle("ERROR");
+    			alert.setMessage("Cannot write to file");	
+    			alert.show();			
+    		    
     		}
 		}
-		
-		
 	}
-	
 }
-
-

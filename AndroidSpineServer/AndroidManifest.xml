@@ -48,7 +48,8 @@
         </activity>
 
         <activity 
-        	android:theme="@android:style/Theme.NoTitleBar"
+        	android:theme="@android:style/Theme.Light"
+        
         	android:name=".compassionMeditation.MainActivity" 
         	android:label="Compassion Meditation App"
         	>
@@ -65,7 +66,6 @@
         	android:theme="@android:style/Theme.Light"
 
         	android:name=".compassionMeditation.MeditationActivity" 
-        	android:excludeFromRecents="true"
         	android:label="">
         </activity>
 
