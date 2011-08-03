@@ -105,19 +105,21 @@ public class MindsetData  extends Data {
 	}
 	
 	public String getLogDataLine() {
-		String line = "";
+		String line = "";							// Comment
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.ratioSpectralData[i] + ", ";
 		}
-		line += ", ";
+		line += ", ";								// Visual seperator
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.rawSpectralData[i] + ", ";
 		}
 		return line;
 	}
+	
+
 	public void logData(){
 		Log.i("SensorData", ", " + getLogDataLine());
 	}

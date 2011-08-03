@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
+import com.t2.biomap.BioDetailActivity;
 import com.t2.biomap.SharedPref;
 import com.t2.filechooser.FileChooser;
 
@@ -46,7 +47,7 @@ public class MainActivity extends ListActivity {
     }
 
     void setPrefs() {
-		 SharedPref.putInt(this, Constants.PREF_SESSION_LENGTH, 	35);
+		 SharedPref.putInt(this, Constants.PREF_SESSION_LENGTH, 	1800);
 
     }
     
@@ -100,8 +101,20 @@ public class MainActivity extends ListActivity {
 		
 		switch(requestCode) {
 			case Constants.fileChooserRequestCode:
-				String LogMarkerNote = data.getStringExtra(Constants.FILE_CHOOSER_EXTRA);
-		    	Toast.makeText(this, "File Clicked: " + LogMarkerNote, Toast.LENGTH_SHORT).show();
+				String sessionName = data.getStringExtra(Constants.FILE_CHOOSER_EXTRA);
+		    	Toast.makeText(this, "File Clicked: " + sessionName, Toast.LENGTH_SHORT).show();
+		    	
+		    	
+				Intent intent = new Intent(this, ViewHistoryActivity.class);
+				Bundle bundle = new Bundle();
+	
+				bundle.putString(Constants.EXTRA_SESSION_NAME,sessionName);
+	
+				//Add this bundle to the intent
+				intent.putExtras(bundle);				
+				
+		    	
+				this.startActivity(intent);			    	
 
 				break;
 		}

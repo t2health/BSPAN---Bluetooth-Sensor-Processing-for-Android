@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
@@ -289,6 +290,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			
 			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
 			seriesRenderer.setColor(item.color);
+			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+			
 			deviceRenderer.addSeriesRenderer(seriesRenderer);
 			
 		}     

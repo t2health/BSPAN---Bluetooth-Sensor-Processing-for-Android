@@ -92,7 +92,13 @@
             </intent-filter>
         </receiver>
         <activity android:name="t2.spine.communication.android.SendBroadcastActivity"></activity>
-        <activity android:name=".compassionMeditation.ViewHistoryActivity" android:screenOrientation="portrait"></activity>
+        <activity 
+        	android:theme="@android:style/Theme.Light"
+        
+        	android:name=".compassionMeditation.ViewHistoryActivity" 
+        	android:screenOrientation="portrait">
+        	
+        </activity>
         
 
         

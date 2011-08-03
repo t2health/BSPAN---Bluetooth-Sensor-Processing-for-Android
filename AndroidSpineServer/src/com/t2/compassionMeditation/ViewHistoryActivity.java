@@ -1,7 +1,9 @@
 package com.t2.compassionMeditation;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.Vector;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
@@ -69,6 +72,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -78,29 +83,27 @@ import android.widget.Toast;
 import com.t2.R;
 
 
-public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
-	private static final String TAG = "CompassionActivity";
-	private static final String mActivityVersion = "2.0";
+public class ViewHistoryActivity extends Activity implements OnSeekBarChangeListener
+{
+	private static final String TAG = "BFDemo";
+	private static final String mActivityVersion = "1.0";
 
-	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
-	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
+	private BufferedReader mLogReader = null;
 
+	private Vector mSessionData;
+	private int mCursor = 0;
+	
+	/**
+	 * Session name which is used for file creation (based on selected user) 
+	 */
+	private String mSessionName = "";
+	
+	
 	/**
 	 * Application version info determined by the package manager
 	 */
 	private String mApplicationVersion = "";
 
-    /**
-     * The Spine manager contains the bulk of the Spine server. 
-     */
-    private static SPINEManager mManager;
-
-    /**
-	 * This is a broadcast receiver. Note that this is used ONLY for command/status messages from the AndroidBTService
-	 * All data from the service goes through the mail SPINE mechanism (received(Data data)).
-	 */
-	private SpineReceiver mCommandReceiver;
-	
 	/**
 	 * Static instance of this activity
 	 */
@@ -118,8 +121,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 	private int mSpineChartX = 0;
 	
 	
-	private BufferedWriter mLogWriter = null;
-	private boolean mLoggingEnabled = false;
 	private boolean mPaused = false;
 	
 	// UI Elements
@@ -128,9 +129,9 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
     private TextView mTextInfoView;
+    private TextView mTextViewComment;
     private TextView mMeasuresDisplayText;
-//    private SeekBar mMeditationBar;    
-    
+    private SeekBar mSeekBar;    
     
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
@@ -152,7 +153,7 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE); // This needs to happen BEFORE setContentView
-        setContentView(R.layout.compassion);
+        setContentView(R.layout.view_history);
         instance = this;
     
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
@@ -167,39 +168,17 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
+        mTextViewComment = (TextView) findViewById(R.id.textViewComment);
+        
         mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
         image.setImageResource(R.drawable.signal_bars0);  
 
-//        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
-//        mMeditationBar.setProgress(50);
+        mSeekBar = (SeekBar)findViewById(R.id.seekBar1);    
+        mSeekBar.setOnSeekBarChangeListener(this);        
         
-        
-        
-		// Initialize SPINE by passing the fileName with the configuration properties
-		try {
-			mManager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
-		} catch (InstantiationException e) {
-			Log.e(TAG, "Exception creating SPINE manager: " + e.toString());
-			e.printStackTrace();
-		}        
-		
-		// Since Mindset is a static node we have to manually put it in the active node list
-		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
-		Node mindsetNode = null;
-		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
-		mManager.getActiveNodes().add(mindsetNode);
-				
-		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
-		// to receive sensor node data from the Spine server
-		// (I register myself since I'm a SPINEListener implementation!)
-		mManager.addListener(this);	        
-                
-		// Create a broadcast receiver. Note that this is used ONLY for command messages from the service
-		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
-		// See public void received(Data data)
-        this.mCommandReceiver = new SpineReceiver(this);
+
      
         for (int i = 0; i < MindsetData.NUM_BANDS; i++) {
         	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
@@ -219,18 +198,160 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 			   	Log.e(TAG, e.toString());
 		}
 		
-		mManager.discoveryWsn();
+        // Get the session(file) name
+        try {
+			// Get target name if one was supplied
+			Bundle bundle = getIntent().getExtras();
+			mSessionName = bundle.getString(com.t2.compassionMeditation.Constants.EXTRA_SESSION_NAME);
+
+			mSessionData = new Vector();
+			loadSessionData();
+			mSeekBar.setMax(mSessionData.size() - SPINE_CHART_SIZE);
+			updateChart();
+			
+			
+			
+			
+			
+		} catch (Exception e1) {
+			mSessionName = "";
+		}
     } // End onCreate(Bundle savedInstanceState)
+    
+    class MindsetPoint extends MindsetData {
+    	public String dateTime;
+    	public String comment;
+    	
+    	MindsetPoint() {
+    		super();
+    	}
+    	
+    }
+    
+    void updateChart() {
+		for (int j = 0; j < SPINE_CHART_SIZE; j++) {
+
+			if (j + mCursor >= mSessionData.size()) {
+				if (mDeviceChartView != null) {
+		            mDeviceChartView.repaint();
+		        }  
+				return;
+
+			}
+			MindsetPoint p = (MindsetPoint) mSessionData.get(j + mCursor);
+			if (p.comment.equalsIgnoreCase("")) {
+				currentMindsetData = (MindsetPoint) mSessionData.get(j + mCursor);
+				
+				int keyCount = keyItems.size();
+				for(int i = 0; i < keyItems.size(); ++i) {
+					KeyItem item = keyItems.get(i);
+					
+					if(!item.visible) {
+						continue;
+					}
+						int v = currentMindsetData.getRatioFeature((int) item.id);
+						item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+							item.series.remove(0);
+						}
+						
+						mSpineChartX++;
+				} 						
+			}
+			else {
+				// It's a comment
+			}
+	
+			
+		}
+		
+		if (mDeviceChartView != null) {
+            mDeviceChartView.repaint();
+        }  
+
+    }
+    
+    MindsetPoint parseLine(String line) {
+    	MindsetPoint data = new MindsetPoint();
+    	
+    	String[] tokens = line.split(",");
+    	
+    	if (tokens.length == 2) {
+    		data.dateTime = tokens[0];
+    		data.comment = tokens[1];
+    	}
+    	else if (tokens.length == 23) {
+    		int i = 0;
+    		data.dateTime = tokens[i++];
+    		data.comment = tokens[i++];
+    		data.poorSignalStrength = Integer.parseInt(tokens[i++].trim());
+    		data.attention = Integer.parseInt(tokens[i++].trim());
+    		data.meditation = Integer.parseInt(tokens[i++].trim());
+    		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
+    			data.ratioSpectralData[j] = Integer.parseInt(tokens[i++].trim());
+    		}    		
+    		i++;
+    		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
+    			data.rawSpectralData[j] = Integer.parseInt(tokens[i++].trim());
+    		}    		
+    		
+    		
+    	}
+    	return data;
+    }
+    
+    
+	boolean loadSessionData()
+	{
+		// Open a file for saving data
+		try {
+		    File root = Environment.getExternalStorageDirectory();
+		    if (root.canWrite()){
+		        File gpxfile = new File(root, mSessionName);
+		        FileReader gpxreader = new FileReader(gpxfile); // open for append
+		        mLogReader = new BufferedReader(gpxreader);
+		        
+		        String lineToParse;
+		        while ((lineToParse = mLogReader.readLine()) != null) {
+		        	MindsetPoint point = parseLine(lineToParse);
+		        	mSessionData.add(point);
+		        	Log.i(TAG,lineToParse);
+		        }
+		        TextView textViewSessionName = (TextView) findViewById(R.id.textViewSessionName);
+		        textViewSessionName.setText("Session: " + mSessionName);
+		        
+		    } 
+		    else {
+    		    Log.e(TAG, "Could not open file " );
+    			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+    			
+    			alert.setTitle("ERROR");
+    			alert.setMessage("Cannot open to file");	
+    			alert.show();			
+		    	
+		    }
+		} catch (IOException e) {
+		    Log.e(TAG, "Could not write file " + e.getMessage());
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+			
+			alert.setTitle("ERROR");
+			alert.setMessage("Cannot write to file");	
+			alert.show();			
+		    
+		}
+		
+		
+		return true;
+	}
+    
     
     
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
     	
-    	mLoggingEnabled = false;
     	saveState();
     	
-    	this.unregisterReceiver(this.mCommandReceiver);
 		Log.i(TAG, TAG + " onDestroy");
 	}
 
@@ -289,6 +410,12 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 			
 			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
 			seriesRenderer.setColor(item.color);
+			
+			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//			seriesRenderer.setFillPoints(true);
+//			seriesRenderer.setLineWidth(2 * displayMetrics.density);			
+			
+			
 			deviceRenderer.addSeriesRenderer(seriesRenderer);
 			
 		}     
@@ -301,10 +428,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 		super.onStart();
 		Log.i(TAG, TAG + " OnStart");
 		
-		// Set up filter intents so we can receive broadcasts
-		IntentFilter filter = new IntentFilter();
-		filter.addAction("com.t2.biofeedback.service.status.BROADCAST");
-		this.registerReceiver(this.mCommandReceiver,filter);
 		
 		// Set up a timer to do graphical updates
 		mDataUpdateTimer = new Timer();
@@ -315,6 +438,8 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 			}
 
 		}, 0, 1000);		
+		
+		setCursor(0);		
 	}
     
 	@Override
@@ -326,15 +451,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
-		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
-			return true;
-			
-		case R.id.discover:
-			mManager.discoveryWsn();
-
-			return true;
-			
 		case R.id.about:
 			String content = "National Center for Telehealth and Technology (T2)\n\n";
 			content += "Compassion Meditation Application\n";
@@ -353,37 +469,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 		}
 	}
 	
-	/**
-	 * This callback is called whenever the AndroidBTService sends us an indication that
-	 * it is actively trying to establish a BT connection to one of the nodes.
-	 * 
-	 * @see com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener#onStatusReceived(com.t2.SpineReceiver.BioFeedbackStatus)
-	 */
-	@Override
-	public void onStatusReceived(BioFeedbackStatus bfs) {
-		if(bfs.messageId.equals("CONN_CONNECTING")) {
-			Log.i(TAG, "Received command : CONN_CONNECTING" );
-			Toast.makeText (getApplicationContext(), "**** Connecting to Sensor Node ****", Toast.LENGTH_SHORT).show ();
-		} 
-		else if(bfs.messageId.equals("CONN_ANY_CONNECTED")) {
-			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );
-			// Something has connected - discover what it was
-			mManager.discoveryWsn();
-			Toast.makeText (getApplicationContext(), "**** Sensor Node Connected ****", Toast.LENGTH_SHORT).show ();
-		} 
-		else if(bfs.messageId.equals("CONN_CONNECTION_LOST")) {
-			Log.i(TAG, "Received command : CONN_ANY_CONNECTED" );		
-			Toast.makeText (getApplicationContext(), "**** Sensor Node Connection lost ****", Toast.LENGTH_SHORT).show ();
-		}
-	}
-
-	@Override
-	public void newNodeDiscovered(Node newNode) {
-	}
-
-	@Override
-	public void received(ServiceMessage msg) {
-	}
 
 	/**
 	 * This is where we receive sensor data that comes through the actual
@@ -392,7 +477,7 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 	 *
 	 * @see spine.SPINEListener#received(spine.datamodel.Data)
 	 */
-	@Override
+
 	public void received(Data data) {
 		
 		if (data != null) {
@@ -444,16 +529,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 		} // End if (data != null)
 	}
 	
-	@Override
-	public void discoveryCompleted(Vector activeNodes) {
-		Log.i(TAG, "discovery completed" );	
-		
-		Node curr = null;
-		for (Object o: activeNodes) {
-			curr = (Node)o;
-			Log.i(TAG, o.toString());
-		}
-	}
 
 	/**
 	 * Converts a byte array to an integer
@@ -475,6 +550,32 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 	{
 		 final int id = v.getId();
 		    switch (id) {
+
+		    
+		    case R.id.buttonLeft:
+		    	if (mCursor > 0) {
+		    		mSeekBar.setProgress(mCursor - 1);
+		    	}
+		    	break;
+
+		    case R.id.buttonRight:
+	    		mSeekBar.setProgress(mCursor + 1);
+
+	    		// A HUGE cheat here, if we're as far as we can go then show the comment from the last line
+	    		if (mCursor >= mSessionData.size() - SPINE_CHART_SIZE) {
+		    		MindsetPoint p = (MindsetPoint) mSessionData.get(mSessionData.size() - 1);
+		            if (!p.comment.equalsIgnoreCase("")) {
+		            	mTextViewComment.setText("Comment: " + p.comment);
+		            }
+		            else {
+		            	mTextViewComment.setText("");
+		            }	    		
+	    			
+	    		}
+	    		
+	    		
+		    	break;
+
 		    case R.id.buttonBack:
 		    	finish();
 		    	
@@ -528,47 +629,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 				}
 		        break;
 		        
-		    case R.id.buttonLogging:
-		        if (mLoggingEnabled == true) {
-		        	mLoggingEnabled = false;
-		        	mToggleLogButton.setText("Log:\nOFF");
-		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.GONE);
-
-		        	try {
-		            	if (mLogWriter != null)
-		            		mLogWriter.close();
-		    		} catch (IOException e) {
-		    			Log.e(TAG, "Exeption closing file " + e.toString());
-		    			e.printStackTrace();
-		    		}        	
-		        }
-		        else {
-		    		// Open a file for saving data
-		    		try {
-		    		    File root = Environment.getExternalStorageDirectory();
-		    		    if (root.canWrite()){
-		    		        File gpxfile = new File(root, "BioData.txt");
-		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-		    		        mLogWriter = new BufferedWriter(gpxwriter);
-		    		        // Put a visual marker in
-		    		        mLogWriter.write("----------------------------------------------\n");
-
-		    		    }
-		    		} catch (IOException e) {
-		    		    Log.e(TAG, "Could not write file " + e.getMessage());
-		    		}		
-		        	mLoggingEnabled = true;
-		        	mToggleLogButton.setText("Log:\nON");
-		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
-		        }
-		    	break;
-
-		    case R.id.LogMarkerButton:
-				Intent i1 = new Intent(this, LogNoteActivity.class);
-				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
-		    	break;
 		    } // End switch		
 	}
 	
@@ -586,69 +646,43 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			numSecsWithoutData++;
-			if (numSecsWithoutData > 2) {
-				return;
-			}
-
-			
-			if (mPaused == true || currentMindsetData == null) {
-				return;
-			}
-			
-			if (mLoggingEnabled == true) {
-			}			
-			
-			currentMindsetData.logData();
-
-	        int keyCount = keyItems.size();
-			for(int i = 0; i < keyItems.size(); ++i) {
-				KeyItem item = keyItems.get(i);
-				
-				if(!item.visible) {
-					continue;
-				}
-				
-				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
-				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-					item.series.remove(0);
-				}
-				
-			} 			
-			
-	        mTextInfoView.setText(
-	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
-	        		"Time Remaining: "
-	        		);
-			
-//	        // Update the mediation bar
-//	        int side = currentMindsetData.powerTest(bandOfInterest);
-//	        final double BAR_ABS_MAXVAL = 100;
-//	        final double BAR_ABS_CENTERVAL = 50;
-//	        final double BAR_ABS_MINVAL = 0;
-//	        final int SIDE_RIGHT = 1;
-//	        final int SIDE_LEFT = -1;
-//	        
-//	        double scaledCenterValue = 100;
+//			numSecsWithoutData++;
+//			if (numSecsWithoutData > 2) {
+//				return;
+//			}
 //
-//	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
-//	        
-//	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
-//	        if (valueToPlot > BAR_ABS_CENTERVAL) {
-//	        	valueToPlot = BAR_ABS_CENTERVAL;
-//	        }
-//	        
-//	        
-//	        if (side == SIDE_RIGHT) {
-//	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
-//	        }
-//	        mMeditationBar.setProgress((int) valueToPlot);
-	        
-			mSpineChartX++;
-			
-			if (mDeviceChartView != null) {
-	            mDeviceChartView.repaint();
-	        }   				
+//			
+//			if (mPaused == true || currentMindsetData == null) {
+//				return;
+//			}
+//			
+//
+//	        int keyCount = keyItems.size();
+//			for(int i = 0; i < keyItems.size(); ++i) {
+//				KeyItem item = keyItems.get(i);
+//				
+//				if(!item.visible) {
+//					continue;
+//				}
+//				
+//				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+//				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+//					item.series.remove(0);
+//				}
+//				
+//			} 			
+//			
+//	        mTextInfoView.setText(
+//	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
+//	        		"Time Remaining: "
+//	        		);
+//			
+//
+//			mSpineChartX++;
+//			
+//			if (mDeviceChartView != null) {
+//	            mDeviceChartView.repaint();
+//	        }   				
 		}
 	};
 
@@ -660,14 +694,6 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 
     	saveState();
     	
-        try {
-        	if (mLogWriter != null)
-        		mLogWriter.close();
-		} catch (IOException e) {
-			Log.e(TAG, "Exeption closing file " + e.toString());
-			e.printStackTrace();
-		}
-
 		super.onPause();
 	}
 
@@ -694,25 +720,9 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
 
 	void saveState()
 	{
-		 SharedPref.putBoolean(this, "LoggingEnabled", 	mLoggingEnabled);
 	}
 	void restoreState()
 	{
-		mLoggingEnabled = SharedPref.getBoolean(this, "LoggingEnabled", false);	
-		if (mLoggingEnabled) {
-    		// Open a file for saving data
-    		try {
-    		    File root = Environment.getExternalStorageDirectory();
-    		    if (root.canWrite()){
-    		        File gpxfile = new File(root, "BioData.txt");
-    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-    		        mLogWriter = new BufferedWriter(gpxwriter);
-    		    }
-    		} catch (IOException e) {
-    		    Log.e(TAG, "Could not write file " + e.getMessage());
-    		}
-		}
-		
 	}
 
 	static class KeyItem {
@@ -865,5 +875,42 @@ public class ViewHistoryActivity extends Activity implements OnBioFeedbackMessag
     				1.0f
     			}
     	);
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+		try {
+			setCursor(arg1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	void setCursor(int start) {
+		mCursor = start;
+		MindsetPoint p = (MindsetPoint) mSessionData.get(mCursor);
+        mTextInfoView.setText(p.dateTime + ":\n Theta: " + p.getRatioFeature(bandOfInterest) + "\n");
+        if (!p.comment.equalsIgnoreCase("")) {
+        	mTextViewComment.setText("Comment: " + p.comment);
+        }
+        else {
+        	mTextViewComment.setText("");
+        }
+		
+		updateChart();
+		
+	}
+	
+	
+	@Override
+	public void onStartTrackingTouch(SeekBar arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

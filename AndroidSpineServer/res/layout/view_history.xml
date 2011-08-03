@@ -3,21 +3,27 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
+    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewSessionName" android:text="TextView" android:textStyle="bold"></TextView>
     <RelativeLayout android:layout_width="fill_parent" android:id="@+id/relativeLayout1" android:layout_height="wrap_content">
         <Button android:layout_width="wrap_content" android:text="@string/button_back" android:id="@+id/buttonBack" android:gravity="right" android:layout_height="wrap_content" android:onClick="onButtonClick"></Button>
+        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo" android:text="TextView" android:layout_toRightOf="@+id/buttonBack" android:layout_alignTop="@+id/buttonBack" android:layout_alignBottom="@+id/buttonBack"></TextView>
         <ImageView android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/imageView1" android:layout_alignParentRight="true" android:layout_width="wrap_content"></ImageView>
     </RelativeLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText" android:visibility="gone"></TextView>
     <LinearLayout 
     	android:id="@+id/deviceChart" 
-    	android:layout_height="300dip" 
+    	android:layout_height="250dip" 
     	android:orientation="horizontal" 
     	android:gravity="right" 
     	android:layout_width="fill_parent">
     </LinearLayout>
-    <SeekBar android:layout_height="wrap_content"  android:visibility="visible" android:layout_width="fill_parent" android:progress="0" android:id="@+id/seekBar1"></SeekBar>
+    <RelativeLayout android:id="@+id/relativeLayout2" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <SeekBar android:progress="0" android:layout_width="fill_parent" android:layout_height="wrap_content" android:visibility="visible" android:id="@+id/seekBar1"></SeekBar>
+        <Button android:layout_height="wrap_content" android:text="&lt;" android:layout_width="wrap_content" android:layout_below="@+id/seekBar1" android:layout_alignLeft="@+id/seekBar1" android:id="@+id/buttonLeft" android:onClick="onButtonClick"></Button>
+        <Button android:layout_height="wrap_content" android:text="&gt;" android:layout_width="wrap_content" android:layout_below="@+id/seekBar1" android:layout_alignRight="@+id/seekBar1" android:id="@+id/buttonRight" android:onClick="onButtonClick"></Button>
+    </RelativeLayout>
     <TextView android:layout_height="wrap_content" android:id="@+id/measuresDisplayText" android:layout_width="wrap_content"></TextView>
     <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddMeasure" android:onClick="onButtonClick" android:text="@string/button_add_measure"></Button>
-    <TextView android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo"></TextView>
+    <TextView android:id="@+id/textViewComment" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
 		
 </LinearLayout>

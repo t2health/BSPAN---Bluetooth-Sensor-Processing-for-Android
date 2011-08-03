@@ -5,5 +5,7 @@ public class Constants {
 	
 	public static final String PREF_SESSION_LENGTH = "SessionLength";
 
+	public static final String EXTRA_SESSION_NAME = "SessionName";
+
 	public static final int fileChooserRequestCode = 0x300;
 }
