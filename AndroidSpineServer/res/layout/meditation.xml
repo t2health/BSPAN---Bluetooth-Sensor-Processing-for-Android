@@ -8,7 +8,10 @@
         <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_width="wrap_content" android:layout_alignParentRight="true"></ImageView>
     </RelativeLayout>
     <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buddahView" android:src="@drawable/buddha"></ImageView>
-    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo" android:gravity="center_horizontal"></TextView>
+    <RelativeLayout android:id="@+id/relativeLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <TextView android:id="@+id/countdownTextView" android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
+        <TextView android:visibility="visible" android:id="@+id/textViewInfo" android:layout_height="wrap_content" android:text="TextView" android:gravity="center_horizontal" android:layout_width="wrap_content" android:layout_alignParentRight="true"></TextView>
+    </RelativeLayout>
     <Button android:onClick="onButtonClick" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/button_pause" android:id="@+id/buttonPause"></Button>
     <SeekBar android:layout_height="wrap_content" android:id="@+id/seekBar1" android:layout_width="fill_parent"></SeekBar>
 		

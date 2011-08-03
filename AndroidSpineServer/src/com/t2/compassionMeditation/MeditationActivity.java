@@ -77,9 +77,15 @@ public class MeditationActivity extends Activity
 	private static final String mActivityVersion = "1.0";
 
 	/**
+	 * Number of seconds remaining in the session
+	 *   This is set initially from SharedPref.PREF_SESSION_LENGTH
+	 */
+	private int mSecondsRemaining = 0;
+	
+	/**
 	 * Application version info determined by the package manager
 	 */
-	String mApplicationVersion = "";
+	private String mApplicationVersion = "";
 
 	/**
      * The Spine manager contains the bulk of the Spine server. 
@@ -121,6 +127,7 @@ public class MeditationActivity extends Activity
     private Button mPauseButton;
     private Button mBackButton;
     private TextView mTextInfoView;
+    private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
     private SeekBar mSeekBar;
     
@@ -184,7 +191,9 @@ public class MeditationActivity extends Activity
         setContentView(R.layout.meditation);
         
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
+        
+        mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);        
         
         mMovingAverage = new MovingAverage(mMovingAverageSize);
         
@@ -198,6 +207,7 @@ public class MeditationActivity extends Activity
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
+        mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
         mBackButton = (Button) findViewById(R.id.buttonBack);
 
@@ -207,7 +217,8 @@ public class MeditationActivity extends Activity
 		mSeekBar.setOnSeekBarChangeListener(this);
 		
         // Controls start as invisible, need to touch screen to activate them
-        mTextInfoView.setVisibility(View.GONE);
+		mCountdownTextView.setVisibility(View.GONE);
+		mTextInfoView.setVisibility(View.GONE);
 		mPauseButton.setVisibility(View.GONE);
 		mBackButton.setVisibility(View.GONE);
 		mSeekBar.setVisibility(View.GONE);
@@ -295,8 +306,27 @@ public class MeditationActivity extends Activity
 			}
 
 		}, 0, 1000);		
+		
+		
 	}
     
+	/**
+	 * Convert seconds to string display of hours:minutes:seconds 
+	 * @param time Total number of seconds to display
+	 * @return String formated to hours:minutes:seconds
+	 */
+	String secsToHMS(long time) {
+		
+		long secs = time;
+		long hours = secs / 3600;
+		secs = secs % 3600;
+		long mins = secs / 60;
+		secs = secs % 60;
+		
+		return "Time remaining: " + hours + ":" + mins + ":" + secs;
+	}
+	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		this.getMenuInflater().inflate(R.menu.menu_compassion_meditation, menu);
@@ -410,7 +440,7 @@ public class MeditationActivity extends Activity
 						mMovingAverage.pushValue(value);	
 						int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
 						mBuddahImage.setAlpha((int) filteredValue);
-						mTextInfoView.setText("Theta: Raw= " + value + ", Filtered= " + filteredValue);							
+						mTextInfoView.setText("Theta: " + value + ", " + filteredValue);							
 						
 					}
 					
@@ -469,7 +499,7 @@ public class MeditationActivity extends Activity
 		    	break;
 		    		    
 		    case R.id.buttonPause:
-		    	handlePause();
+		    	handlePause(mSessionName + " Paused");
 		    	break;
 		        
 		    case R.id.buttonLogging:
@@ -518,6 +548,9 @@ public class MeditationActivity extends Activity
 	 */
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
+			
+			
+			
 
 			numSecsWithoutData++;
 			if (numSecsWithoutData > 2) {
@@ -530,6 +563,15 @@ public class MeditationActivity extends Activity
 			
 			if (mLoggingEnabled == true) {
 			}			
+			
+
+			if (mSecondsRemaining-- > 0) {
+				mCountdownTextView.setText(secsToHMS(mSecondsRemaining));	
+			}
+			else {
+		    	handlePause("Session Complete"); // Allow opportinuty for a note
+			}
+			
 			
 			currentMindsetData.logData();
 			if (mLoggingEnabled == true) {
@@ -655,6 +697,7 @@ public class MeditationActivity extends Activity
 		// Toggle showing screen buttons/controls
 		if (mShowingControls) {
 			mShowingControls = false;
+			mCountdownTextView.setVisibility(View.GONE);
 			mTextInfoView.setVisibility(View.GONE);
 			mPauseButton.setVisibility(View.GONE);
 			mBackButton.setVisibility(View.GONE);
@@ -663,6 +706,7 @@ public class MeditationActivity extends Activity
 		}
 		else {
 			mShowingControls = true;
+			mCountdownTextView.setVisibility(View.VISIBLE);
 			mTextInfoView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
 			mBackButton.setVisibility(View.VISIBLE);
@@ -711,7 +755,7 @@ public class MeditationActivity extends Activity
     			mSelectedUser = mCurrentUsers.get(mSelection);
     			setNewSessionName();    			
     			openLogFile();
-    			handlePause(); // Allow opportinuty for a note
+		    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
 
             }
         });
@@ -772,9 +816,9 @@ public class MeditationActivity extends Activity
 	 *   Brings up a dialog that allows the user to either restart, or quit
 	 *   Note that in any case the text entered by the user is saved to the log file
 	 */
-	public void handlePause() {
+	public void handlePause(String message) {
 		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
-		String message = mSessionName + " Paused";
+
 		alert1.setTitle(message);
 		alert1.setMessage("Notes:");
 		mPaused = true;

@@ -12,16 +12,26 @@ import android.widget.Toast;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
 
+import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
+import com.t2.biomap.SharedPref;
 import com.t2.filechooser.FileChooser;
 
 
 public class MainActivity extends ListActivity {
+	
+	
+	private static final int BLUETOOTH_SETTINGS = 987;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
+        // For now we'll set the prefs manually (until we get a dialog for it
+        setPrefs();
+        
 
         View header = getLayoutInflater().inflate(R.layout.layout_header, null);
         ListView listView = getListView();
@@ -35,7 +45,10 @@ public class MainActivity extends ListActivity {
         getListView().setTextFilterEnabled(true);
     }
 
-    
+    void setPrefs() {
+		 SharedPref.putInt(this, Constants.PREF_SESSION_LENGTH, 	35);
+
+    }
     
     
     @Override
@@ -62,7 +75,10 @@ public class MainActivity extends ListActivity {
 		}
 		if (keyword.equalsIgnoreCase("View Previous Session")) {
 			intent = new Intent(this, FileChooser.class);
-			this.startActivity(intent);		
+			
+			this.startActivityForResult(intent, Constants.fileChooserRequestCode);
+
+//			this.startActivity(intent);		
 			
 		}
 		
@@ -77,6 +93,23 @@ public class MainActivity extends ListActivity {
             "View EEG Activity", 
             "View Previous Session", 
             };	
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode) {
+			case Constants.fileChooserRequestCode:
+				String LogMarkerNote = data.getStringExtra(Constants.FILE_CHOOSER_EXTRA);
+		    	Toast.makeText(this, "File Clicked: " + LogMarkerNote, Toast.LENGTH_SHORT).show();
+
+				break;
+		}
+	}
+	
+	
+	
+	
 	
 	
 }

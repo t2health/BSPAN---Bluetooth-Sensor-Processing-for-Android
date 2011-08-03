@@ -92,6 +92,7 @@
             </intent-filter>
         </receiver>
         <activity android:name="t2.spine.communication.android.SendBroadcastActivity"></activity>
+        <activity android:name=".compassionMeditation.ViewHistoryActivity" android:screenOrientation="portrait"></activity>
         
 
         

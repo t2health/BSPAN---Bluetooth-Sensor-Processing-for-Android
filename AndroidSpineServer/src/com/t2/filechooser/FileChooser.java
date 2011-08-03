@@ -7,6 +7,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -15,7 +16,9 @@ import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
+import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
+import com.t2.compassionMeditation.Constants;
 
 
 public class FileChooser extends ListActivity {
@@ -77,6 +80,10 @@ public class FileChooser extends ListActivity {
 	}
     private void onFileClick(Option o)
     {
-    	Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_SHORT).show();
+		Intent resultIntent;
+		resultIntent = new Intent();
+		resultIntent.putExtra(Constants.FILE_CHOOSER_EXTRA, o.getName());		
+		setResult(RESULT_OK, resultIntent);
+		finish();
     }
 }
