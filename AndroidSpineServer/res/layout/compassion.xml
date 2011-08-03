@@ -7,13 +7,13 @@
         <Button android:layout_width="wrap_content" android:text="@string/button_back" android:id="@+id/buttonBack" android:gravity="right" android:layout_height="wrap_content" android:onClick="onButtonClick"></Button>
         <ImageView android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/imageView1" android:layout_alignParentRight="true" android:layout_width="wrap_content"></ImageView>
     </RelativeLayout>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText"></TextView>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText" android:visibility="gone"></TextView>
     <SeekBar 
     	android:progressDrawable="@drawable/progress_bar_horizontal"
     	android:layout_width="fill_parent" 
     	android:layout_height="wrap_content" 
     	android:id="@+id/seekBar1" 
-    	android:progress="0">
+    	android:progress="0" android:visibility="gone">
     </SeekBar>
     <LinearLayout 
     	android:id="@+id/deviceChart" 

@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -15,26 +14,18 @@ import java.util.Vector;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
-import org.achartengine.chart.PointStyle;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
 
-import com.t2.AndroidSpineConnector;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.BioLocation;
-import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
 
-
-
-//import com.t2.vas.activity.ABSResultsActivity.KeyItem;
-//import com.t2.vas.activity.ABSResultsActivity.KeyItem;
 import com.t2.Constants;
 
 import spine.datamodel.Node;
@@ -52,7 +43,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -64,9 +54,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -76,51 +63,34 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-
 import com.t2.R;
 
-/**
- * Main (test) activity for Spine server.
- * This application sets up and initializes the Spine server to talk to a couple of sample devices
- * and displays their data streams.
- * 
- * Note that the AndroidBTService is an Android background service mandatory as a front end 
- * for the Bluetooth devices to work with the Spine server.
- * 
- * This activity uses two mechanisms to communicate with the AndroidBTService
- *  1. Broadcast intents are used to communicate low bandwidth messages: status messages and connection information
- *  2. A service connection is used to communicate potentially high bandwidth messages (Sensor data messages)
- * 
- * 
- * @author scott.coleman
- *
- */
+
 public class CompassionActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = "CompassionActivity";
+	private static final String mActivityVersion = "2.0";
 
-    private static AndroidSpineConnector spineConnector;
-    
-    
+	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
+	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 
 	/**
+	 * Application version info determined by the package manager
+	 */
+	private String mApplicationVersion = "";
+
+    /**
      * The Spine manager contains the bulk of the Spine server. 
      */
     private static SPINEManager mManager;
@@ -135,105 +105,58 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	 * Static instance of this activity
 	 */
 	private static CompassionActivity instance;
-
-	/**
-	 * Service connection used to communicate data messages with the AndroidBTService
-	 */
-	ServiceConnection mConnection;
 	
 	/**
-	 * This is the MEssenger service which is used to communicate sensor data messages between the main activity 
-	 * and the AndroidBTService
+	 * Timer for updating the UI
 	 */
-	private Messenger mService = null;	
-	
-	/**
-	 * Whether or not the AndroidBTService is bound to this activity
-	 */
-	boolean mIsBound = false;
-	
-	
-	
 	private static Timer mDataUpdateTimer;	
-	
 	
 	// Charting stuff
 	private final static int SPINE_CHART_SIZE = 20;
 	
 	private GraphicalView mDeviceChartView;
-
-	  
-    static final int MSG_UNREGISTER_CLIENT = 2;	
+	private int mSpineChartX = 0;
 	
 	
-	int mSpineChartX = 0;
+	private BufferedWriter mLogWriter = null;
+	private boolean mLoggingEnabled = false;
+	private boolean mPaused = false;
 	
-	String mPackageName = "";
-	int mVersionCode;
-	String mVersionName = "";
-	Vector<String>  mDeviceDetailContent = new Vector<String>();
-	
-	
-	BufferedWriter mLogWriter = null;
-	boolean mLoggingEnabled = false;
-	boolean mPaused = false;
-	
-	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
-	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
-	
+	// UI Elements
     private Button mAddMeasureButton;
     private Button mPauseButton;
     private Button mToggleLogButton;
     private Button mLlogMarkerButton;
     private TextView mTextInfoView;
     private TextView mMeasuresDisplayText;
-    private SeekBar mMeditationBar;    
+//    private SeekBar mMeditationBar;    
     
     
-    private String mLogMarkerNote = null;
-    
-
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
-	MindsetData currentMindsetData = new MindsetData();
-	
+	private MindsetData currentMindsetData = new MindsetData();
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
 	/**
-	 * Sets up messenger service which is used to communicate to the AndroidBTService
-	 * @param mService
-	 */
-	public void setmService(Messenger mService) {
-		this.mService = mService;
-	}
-
-	/**
 	 * @return Static instance of this activity
 	 */
-	public static CompassionActivity getInstance() 
-	{
+	public static CompassionActivity getInstance() {
 	   return instance;
 	}
-    
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE); // This needs to happen BEFORE setContentView
         setContentView(R.layout.compassion);
         instance = this;
     
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
-        
-        
-        
-        
-        
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
@@ -247,17 +170,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
-//        image.setColorFilter(Color.HSVToColor(255, new float[]{ 120,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//        image.setImageResource(R.drawable.headphones);
         image.setImageResource(R.drawable.signal_bars0);  
-        
-        
-        
 
-        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
-        
-        mMeditationBar.setProgress(50);
-//        mSeekBar.setIndeterminate(true);
+//        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
+//        mMeditationBar.setProgress(50);
         
         
         
@@ -293,20 +209,15 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         // Set up Device data chart
         generateChart();
         
-        
-        
 		try {
 			PackageManager packageManager = this.getPackageManager();
 			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
-			mPackageName = info.packageName;
-			mVersionCode = info.versionCode;
-			mVersionName = info.versionName;
-			Log.i(TAG, "Compassion Meditation Application Version " + mVersionName);
+			mApplicationVersion = info.versionName;
+			Log.i(TAG, "Compassion Meditation Application Version: " + mApplicationVersion + ", Activity Version: " + mActivityVersion);
 		} 
 		catch (NameNotFoundException e) {
 			   	Log.e(TAG, e.toString());
 		}
-		
 		
 		mManager.discoveryWsn();
     } // End onCreate(Bundle savedInstanceState)
@@ -319,11 +230,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     	mLoggingEnabled = false;
     	saveState();
     	
-//    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	this.unregisterReceiver(this.mCommandReceiver);
-		Log.i(TAG, "CompassionActivity onDestroy");
-	    	
-  //  	doUnbindService();    	
+		Log.i(TAG, TAG + " onDestroy");
 	}
 
 	private void generateChart() {
@@ -332,29 +240,24 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
 
         LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
-    	if (mDeviceChartView != null)
-    	{
+    	if (mDeviceChartView != null) {
     		layout.removeView(mDeviceChartView);
     	}
-       	if (true) 
-        {
+       	if (true) {
           mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
           mDeviceChartView.setBackgroundColor(Color.WHITE);
           layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
-
     	
         deviceRenderer.setShowLabels(false);
         deviceRenderer.setMargins(new int[] {0,5,5,0});
         deviceRenderer.setShowAxes(true);
         deviceRenderer.setShowLegend(false);
-      //  deviceRenderer.setBackgroundColor(Color.WHITE);
         
         deviceRenderer.setZoomEnabled(false, false);
         deviceRenderer.setPanEnabled(false, false);
         deviceRenderer.setYAxisMin(0);
         deviceRenderer.setYAxisMax(255);
-        
 
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
         
@@ -380,23 +283,13 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
 			int end = sMeasuresText.length();
 			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			if (sMeasuresText.length() > 40 && lineNum == 0)
-			{
+			if (sMeasuresText.length() > 40 && lineNum == 0) {
 				lineNum++;
-				//sMeasuresText.append("\n");
 			}
 			
 			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
 			seriesRenderer.setColor(item.color);
-//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-//			seriesRenderer.setFillPoints(true);
-//			seriesRenderer.setLineWidth(2 * displayMetrics.density);
-			
-			
-			
 			deviceRenderer.addSeriesRenderer(seriesRenderer);
-			
-
 			
 		}     
 		mMeasuresDisplayText.setText(sMeasuresText) ;       
@@ -406,9 +299,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	@Override
 	protected void onStart() {
 		super.onStart();
-		Log.i(TAG, "OnStart");
-		
-		
+		Log.i(TAG, TAG + " OnStart");
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -424,13 +315,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			}
 
 		}, 0, 1000);		
-		
-		
 	}
     
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		this.getMenuInflater().inflate(R.menu.main, menu);
+		this.getMenuInflater().inflate(R.menu.menu_compassion_meditation, menu);
 		return true;
 	}
 	
@@ -448,8 +337,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			
 		case R.id.about:
 			String content = "National Center for Telehealth and Technology (T2)\n\n";
-			content += "Spine Server Test Application\n";
-			content += "Version " + mVersionName;
+			content += "Compassion Meditation Application\n";
+			content += "Application Version: " + mApplicationVersion + "\n";
+			content += "Activity Version: " + mActivityVersion;
 			
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
 			
@@ -458,14 +348,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			alert.show();			
 			return true;
 			
-		case R.id.biomap:
-
-			Intent i = new Intent(this, BioMapActivity.class);
-			this.startActivity(i);
-			return true;
-
 		default:
-				return super.onOptionsItemSelected(item);
+			return super.onOptionsItemSelected(item);
 		}
 	}
 	
@@ -512,70 +396,51 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public void received(Data data) {
 		
 		if (data != null) {
-//			if (!mPaused == true) {
-				switch (data.getFunctionCode()) {
+			switch (data.getFunctionCode()) {
 
-				case SPINEFunctionConstants.MINDSET: {
-						Node source = data.getNode();
+			case SPINEFunctionConstants.MINDSET: {
+					Node source = data.getNode();
+				
+					MindsetData mindsetData = (MindsetData) data;
+					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
+						
+						int sigQuality = mindsetData.poorSignalStrength & 0xff;
+						ImageView image = (ImageView) findViewById(R.id.imageView1);
+						if (sigQuality == 200)
+							image.setImageResource(R.drawable.signal_bars0);
+						else if (sigQuality > 150)
+							image.setImageResource(R.drawable.signal_bars1);
+						else if (sigQuality > 100)
+							image.setImageResource(R.drawable.signal_bars2);
+						else if (sigQuality > 50)
+							image.setImageResource(R.drawable.signal_bars3);
+						else if (sigQuality > 25)
+							image.setImageResource(R.drawable.signal_bars4);
+						else 
+							image.setImageResource(R.drawable.signal_bars5);
+					}
 					
-						MindsetData mindsetData = (MindsetData) data;
-						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
-							
-							int sigQuality = mindsetData.poorSignalStrength & 0xff;
-							ImageView image = (ImageView) findViewById(R.id.imageView1);
-							if (sigQuality == 200)
-								image.setImageResource(R.drawable.signal_bars0);
-							else if (sigQuality > 150)
-								image.setImageResource(R.drawable.signal_bars1);
-							else if (sigQuality > 100)
-								image.setImageResource(R.drawable.signal_bars2);
-							else if (sigQuality > 50)
-								image.setImageResource(R.drawable.signal_bars3);
-							else if (sigQuality > 25)
-								image.setImageResource(R.drawable.signal_bars4);
-							else 
-								image.setImageResource(R.drawable.signal_bars5);
-
-//							if (sigQuality == 200) {
-//						        image.setColorFilter(Color.HSVToColor(255, new float[]{ 0,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//						        image.setImageResource(R.drawable.headphones_bad);
-//							}
-//							else {
-//						        double f = 120 - (double) sigQuality * 0.6; 
-//						        image.setColorFilter(Color.HSVToColor(255, new float[]{(float) f,1.0f,1.0f}), PorterDuff.Mode.MULTIPLY);
-//						        image.setImageResource(R.drawable.headphones);  
-//								
-//							}
-							
-							
-						}
-						
-						if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
-							currentMindsetData.updateSpectral(mindsetData);
-							Log.i(TAG, "Spectral Data");
-							numSecsWithoutData = 0;							
-						}
-						
-						if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
-							currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
-						}
-						
-						if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
-							currentMindsetData.attention= mindsetData.attention;
-						}
-						
-						if (mindsetData.exeCode == Constants.EXECODE_MEDITATION) {						
-							currentMindsetData.meditation= mindsetData.meditation;
-						}						
-						
-						break;
-					} // End case SPINEFunctionConstants.MINDSET:
-				} // End switch (data.getFunctionCode())
-//			} // End if (!mPaused == true)
-//			else
-//			{
-//		
-//			}
+					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
+						currentMindsetData.updateSpectral(mindsetData);
+						Log.i(TAG, "Spectral Data");
+						numSecsWithoutData = 0;							
+					}
+					
+					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
+						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+					}
+					
+					if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
+						currentMindsetData.attention= mindsetData.attention;
+					}
+					
+					if (mindsetData.exeCode == Constants.EXECODE_MEDITATION) {						
+						currentMindsetData.meditation= mindsetData.meditation;
+					}						
+					
+					break;
+				} // End case SPINEFunctionConstants.MINDSET:
+			} // End switch (data.getFunctionCode())
 		} // End if (data != null)
 	}
 	
@@ -584,12 +449,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		Log.i(TAG, "discovery completed" );	
 		
 		Node curr = null;
-		for (Object o: activeNodes)
-		{
+		for (Object o: activeNodes) {
 			curr = (Node)o;
 			Log.i(TAG, o.toString());
 		}
-			
 	}
 
 	/**
@@ -607,16 +470,13 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		
 		return val;
 	}
-
-
 	
 	public void onButtonClick(View v)
 	{
 		 final int id = v.getId();
 		    switch (id) {
 		    case R.id.buttonBack:
-				Intent i = new Intent(this, MeditationActivity.class);
-				this.startActivity(i);
+		    	finish();
 		    	
 		    	break;
 		    		    
@@ -658,21 +518,18 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		    	
 		    	break;
 		    case R.id.buttonPause:
-				if (mPaused == true)
-				{
+				if (mPaused == true) {
 					mPaused = false;
 					mPauseButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
 				}
-				else
-				{
+				else {
 					mPaused = true;
 					mPauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 				}
 		        break;
 		        
 		    case R.id.buttonLogging:
-		        if (mLoggingEnabled == true)
-		        {
+		        if (mLoggingEnabled == true) {
 		        	mLoggingEnabled = false;
 		        	mToggleLogButton.setText("Log:\nOFF");
 		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
@@ -682,12 +539,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		            	if (mLogWriter != null)
 		            		mLogWriter.close();
 		    		} catch (IOException e) {
-		    			// TODO Auto-generated catch block
+		    			Log.e(TAG, "Exeption closing file " + e.toString());
 		    			e.printStackTrace();
 		    		}        	
 		        }
-		        else
-		        {
+		        else {
 		    		// Open a file for saving data
 		    		try {
 		    		    File root = Environment.getExternalStorageDirectory();
@@ -716,17 +572,17 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		    } // End switch		
 	}
 	
-	private void TimerMethod()
-	{
-		//This method is called directly by the timer
-		//and runs in the same thread as the timer.
-
-		//We call the method that will work with the UI
-		//through the runOnUiThread method.
+	/**
+	 * This method is called directly by the timer and runs in the same thread as the timer
+	 * From here We call the method that will work with the UI through the runOnUiThread method.
+	 */	
+	private void TimerMethod() {
 		this.runOnUiThread(Timer_Tick);
 	}
 
-	//This method runs in the same thread as the UI.    	       
+	/**
+	 * This method runs in the same thread as the UI.
+	 */
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
@@ -765,58 +621,50 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	        		"Time Remaining: "
 	        		);
 			
-
+//	        // Update the mediation bar
+//	        int side = currentMindsetData.powerTest(bandOfInterest);
+//	        final double BAR_ABS_MAXVAL = 100;
+//	        final double BAR_ABS_CENTERVAL = 50;
+//	        final double BAR_ABS_MINVAL = 0;
+//	        final int SIDE_RIGHT = 1;
+//	        final int SIDE_LEFT = -1;
+//	        
+//	        double scaledCenterValue = 100;
+//
+//	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
+//	        
+//	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
+//	        if (valueToPlot > BAR_ABS_CENTERVAL) {
+//	        	valueToPlot = BAR_ABS_CENTERVAL;
+//	        }
+//	        
+//	        
+//	        if (side == SIDE_RIGHT) {
+//	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
+//	        }
+//	        mMeditationBar.setProgress((int) valueToPlot);
 	        
-	        // Update the mediation bar
-	        int side = currentMindsetData.powerTest(bandOfInterest);
-	        final double BAR_ABS_MAXVAL = 100;
-	        final double BAR_ABS_CENTERVAL = 50;
-	        final double BAR_ABS_MINVAL = 0;
-	        final int SIDE_RIGHT = 1;
-	        final int SIDE_LEFT = -1;
-	        
-	        double scaledCenterValue = 100;
-
-	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
-	        
-	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
-	        if (valueToPlot > BAR_ABS_CENTERVAL) {
-	        	valueToPlot = BAR_ABS_CENTERVAL;
-	        }
-	        
-	        
-	        if (side == SIDE_RIGHT) {
-	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
-	        }
-	        mMeditationBar.setProgress((int) valueToPlot);
-	        
-			
 			mSpineChartX++;
 			
 			if (mDeviceChartView != null) {
 	            mDeviceChartView.repaint();
 	        }   				
-			
-			
-			
-			
 		}
 	};
 
 	@Override
 	protected void onPause() {
-		Log.i(TAG, "CompassionActivity onPause");
+		Log.i(TAG, TAG + " onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
     	saveState();
     	
-    	
         try {
         	if (mLogWriter != null)
         		mLogWriter.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			Log.e(TAG, "Exeption closing file " + e.toString());
 			e.printStackTrace();
 		}
 
@@ -825,28 +673,24 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 	@Override
 	protected void onStop() {
-		Log.i(TAG, "CompassionActivity onStop");
+		Log.i(TAG, TAG + " onStop");
 		super.onStop();
 	}	
 
 	
 	@Override
 	protected void onRestart() {
-		Log.i(TAG, "CompassionActivity onRestart");
+		Log.i(TAG, TAG + " onRestart");
 		super.onRestart();
 	}
 
 	@Override
 	protected void onResume() {
-		Log.i(TAG, "CompassionActivity onResume");
+		Log.i(TAG, TAG + " onResume");
 		
 		restoreState();
-		
-		
-		
 		super.onResume();
 	}
-
 
 	void saveState()
 	{
@@ -855,8 +699,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	void restoreState()
 	{
 		mLoggingEnabled = SharedPref.getBoolean(this, "LoggingEnabled", false);	
-		if (mLoggingEnabled)
-		{
+		if (mLoggingEnabled) {
     		// Open a file for saving data
     		try {
     		    File root = Environment.getExternalStorageDirectory();
@@ -864,14 +707,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     		        File gpxfile = new File(root, "BioData.txt");
     		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
     		        mLogWriter = new BufferedWriter(gpxwriter);
-    		        // Put a visual marker in
-    		        mLogWriter.write("----------------------------------------------\n");
-    		        if (mLogMarkerNote != null)
-    		        {
-        		        mLogWriter.write(mLogMarkerNote + "\n");
-        		        mLogMarkerNote = null;
-    		        }
-
     		    }
     		} catch (IOException e) {
     		    Log.e(TAG, "Could not write file " + e.getMessage());
@@ -1031,9 +866,4 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     			}
     	);
 	}
-		
-	
-	
 }
-
-
