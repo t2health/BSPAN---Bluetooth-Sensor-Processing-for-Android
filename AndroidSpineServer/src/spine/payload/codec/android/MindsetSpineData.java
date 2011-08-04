@@ -71,12 +71,23 @@ public class MindsetSpineData extends SpineCodec {
 
 		if (exeCode == Constants.EXECODE_SPECTRAL) {
 			int totalPower = 0;
+			int maxBandPower = 0;
 			for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{
-				int band = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i * 3));
-				totalPower += band;
-				data.rawSpectralData[i] = band;
+				int bandPower = convertThreeBytesToInt(payload, EXECODE_SPECTRAL_POS + (i * 3));
+				totalPower += bandPower;
+				if (bandPower > maxBandPower) {
+					maxBandPower = bandPower;
+				}
+				data.rawSpectralData[i] = bandPower;
 			}
 
+//			if (maxBandPower > 0) {
+//				// Now set up the ratio spectral band
+//				for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{
+//					double power = (double) data.rawSpectralData[i] / (double) maxBandPower;
+//					data.ratioSpectralData[i] = (int) (power * 100);
+//				}		
+//			}
 			if (totalPower > 0) {
 				// Now set up the ratio spectral band
 				for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{

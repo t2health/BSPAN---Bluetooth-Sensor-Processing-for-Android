@@ -99,6 +99,16 @@
         	android:screenOrientation="portrait">
         	
         </activity>
+        <activity 
+        	android:theme="@android:style/Theme.Light"
+        	android:name=".compassionMeditation.PreferenceActivity"
+        	>
+        </activity>
+        <activity 
+        	android:theme="@android:style/Theme.Light"
+        	android:name=".compassionMeditation.InstructionsActivity"
+        	>
+        </activity>
         
 
         

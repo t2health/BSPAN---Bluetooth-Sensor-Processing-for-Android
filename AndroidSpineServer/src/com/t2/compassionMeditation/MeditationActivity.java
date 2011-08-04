@@ -412,6 +412,11 @@ public class MeditationActivity extends Activity
 					Node source = data.getNode();
 				
 					MindsetData mindsetData = (MindsetData) data;
+//					Log.i("BDDemo", "" + mindsetData.exeCode);
+					if (mindsetData.exeCode == Constants.EXECODE_RAW_WAVE) {
+						Log.i("BDDemo", "" + mindsetData.rawSignal);
+					}
+					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 						
 						int sigQuality = mindsetData.poorSignalStrength & 0xff;
