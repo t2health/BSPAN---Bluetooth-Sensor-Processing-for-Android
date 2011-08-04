@@ -233,6 +233,14 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		case EXECODE_RAW_WAVE:
 			//Log.i(TAG, "Raw");
 			// For now we'll ignore raw wave data (comes in every 2 ms)
+//			startMessage();
+//			mMindsetMessage[mMessageIndex++] = (byte) code;
+//			mMindsetMessage[EXECODE_RAW_POS] = valueBytes[0];
+//			mMindsetMessage[EXECODE_RAW_POS + 1] = valueBytes[1];
+//			break;
+		
+			
+						
 			return;
 		
 		case EXECODE_SPECTRAL:
