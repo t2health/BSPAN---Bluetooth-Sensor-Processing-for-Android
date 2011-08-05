@@ -264,6 +264,11 @@ public class MeditationActivity extends Activity
 		}
 		
 		mManager.discoveryWsn();
+		
+		mAlphaGain = SharedPref.getFloat(this, 
+				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
+				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
+		
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
@@ -412,9 +417,9 @@ public class MeditationActivity extends Activity
 					Node source = data.getNode();
 				
 					MindsetData mindsetData = (MindsetData) data;
-//					Log.i("BDDemo", "" + mindsetData.exeCode);
-					if (mindsetData.exeCode == Constants.EXECODE_RAW_WAVE) {
-						Log.i("BDDemo", "" + mindsetData.rawSignal);
+					//Log.i("BFDemo", "" + mindsetData.exeCode);
+					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
+						//Log.i("BFDemo", "" + mindsetData.rawSignal);
 					}
 					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
@@ -553,22 +558,12 @@ public class MeditationActivity extends Activity
 	 */
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
-			
-			
-			
 
 			numSecsWithoutData++;
-			if (numSecsWithoutData > 2) {
+			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
 				return;
 			}
-			
-			if (mPaused == true || currentMindsetData == null) {
-				return;
-			}
-			
-			if (mLoggingEnabled == true) {
-			}			
-			
+			Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 
 			if (mSecondsRemaining-- > 0) {
 				mCountdownTextView.setText(secsToHMS(mSecondsRemaining));	
@@ -577,8 +572,6 @@ public class MeditationActivity extends Activity
 		    	handlePause("Session Complete"); // Allow opportinuty for a note
 			}
 			
-			
-			currentMindsetData.logData();
 			if (mLoggingEnabled == true) {
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 				
@@ -594,6 +587,8 @@ public class MeditationActivity extends Activity
 					Log.e(TAG, e.toString());
 				}
 			}			
+						
+			
 		}
 	};
 

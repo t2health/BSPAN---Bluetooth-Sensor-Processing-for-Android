@@ -131,6 +131,9 @@ public class MainActivity extends ListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		
+		if (data == null)
+			return;
+		
 		switch(requestCode) {
 			case Constants.fileChooserRequestCode:
 				String sessionName = data.getStringExtra(Constants.FILE_CHOOSER_EXTRA);

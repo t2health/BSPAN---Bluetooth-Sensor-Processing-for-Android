@@ -17,6 +17,9 @@ public class MindsetData  extends Data {
 	 * Spectral band power data
 	 */
 	public int[] rawSpectralData = new int[NUM_BANDS];
+
+	
+	public int[] rawWaveData = new int[500];
 	
 	
 	/**
@@ -84,6 +87,13 @@ public class MindsetData  extends Data {
 		}
 	}
 	
+	public void updateRawWave(MindsetData d) {
+
+		for (int i = 0; i < 500; i++)	{
+			this.rawWaveData[i] = d.rawWaveData[i];
+		}
+	}
+	
 	/**
 	 * @param band	Band number to test
 	 * @return -1 if more power to left of band, 1 if more power to right of band
@@ -120,7 +130,4 @@ public class MindsetData  extends Data {
 	}
 	
 
-	public void logData(){
-		Log.i("SensorData", ", " + getLogDataLine());
-	}
 }

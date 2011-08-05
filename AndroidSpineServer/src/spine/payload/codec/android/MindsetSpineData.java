@@ -68,8 +68,26 @@ public class MindsetSpineData extends SpineCodec {
 
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
-
-		if (exeCode == Constants.EXECODE_SPECTRAL) {
+		if (exeCode == Constants.EXECODE_RAW_ACCUM) {
+			int s = payload.length;
+			int s1 = data.rawWaveData.length;
+			int j = 0;
+			for (int i = 0; i < 500; i++) {
+				if (i > 64) {
+					int q = 0;
+					q++;
+				}
+				byte hi = payload[32 + j++];
+				byte lo = payload[32 + j++];
+				//hi = (byte) 0xf8; lo = (byte) 0x00;
+				int value = hi << 8 | lo;
+				
+				data.rawWaveData[i] = value;
+				
+			}
+			
+		}
+		else if (exeCode == Constants.EXECODE_SPECTRAL) {
 			int totalPower = 0;
 			int maxBandPower = 0;
 			for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{

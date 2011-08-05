@@ -4,10 +4,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -405,8 +409,17 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					Node source = data.getNode();
 				
 					MindsetData mindsetData = (MindsetData) data;
+					
+					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
+						Log.i(TAG, "Raw Wave Data" );
+						currentMindsetData.updateRawWave(mindsetData);
+					}
+					
+					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 						
+						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+
 						int sigQuality = mindsetData.poorSignalStrength & 0xff;
 						ImageView image = (ImageView) findViewById(R.id.imageView1);
 						if (sigQuality == 200)
@@ -429,9 +442,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 						numSecsWithoutData = 0;							
 					}
 					
-					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
-						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
-					}
 					
 					if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
 						currentMindsetData.attention= mindsetData.attention;
@@ -440,6 +450,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					if (mindsetData.exeCode == Constants.EXECODE_MEDITATION) {						
 						currentMindsetData.meditation= mindsetData.meditation;
 					}						
+					
+
+					
+					
 					
 					break;
 				} // End case SPINEFunctionConstants.MINDSET:
@@ -590,19 +604,13 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		public void run() {
 
 			numSecsWithoutData++;
-			if (numSecsWithoutData > 2) {
+			
+			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
 				return;
 			}
+			
+			Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 
-			
-			if (mPaused == true || currentMindsetData == null) {
-				return;
-			}
-			
-			if (mLoggingEnabled == true) {
-			}			
-			
-			currentMindsetData.logData();
 
 	        int keyCount = keyItems.size();
 			for(int i = 0; i < keyItems.size(); ++i) {
