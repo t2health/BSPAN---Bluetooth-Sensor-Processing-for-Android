@@ -76,6 +76,9 @@ public class MeditationActivity extends Activity
 	private static final String TAG = "MeditationActivity";
 	private static final String mActivityVersion = "1.0";
 
+	private int mIntro = 255;
+	private int mSubTimerClick = 100;
+	
 	/**
 	 * Number of seconds remaining in the session
 	 *   This is set initially from SharedPref.PREF_SESSION_LENGTH
@@ -130,7 +133,7 @@ public class MeditationActivity extends Activity
     private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
     private SeekBar mSeekBar;
-    
+    private ImageView mSignalImage;    
     /**
      * Moving average used to smooth the display of the band of interest
      */
@@ -147,7 +150,7 @@ public class MeditationActivity extends Activity
 	MindsetData currentMindsetData = new MindsetData();
 	
 	
-	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
+	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	/**
 	 * Non-volatile list of users that the system knows about
@@ -178,6 +181,8 @@ public class MeditationActivity extends Activity
 	 */
 	private String mSessionName = "";
 	
+	boolean mAllowMultipleUsers;
+	
 	
     /** Called when the activity is first created. */
     @Override
@@ -187,13 +192,25 @@ public class MeditationActivity extends Activity
         
         // We don't want the screen to timeout in this activity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
+        
+        
         setContentView(R.layout.meditation);
         
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
         
-        mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);        
+        mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
+		
+        mAllowMultipleUsers = SharedPref.getBoolean(this, 
+        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS, 
+        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS_DEFAULT);
+		mAlphaGain = SharedPref.getFloat(this, 
+				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
+				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
+
+        
         
         mMovingAverage = new MovingAverage(mMovingAverageSize);
         
@@ -210,6 +227,8 @@ public class MeditationActivity extends Activity
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
         mBackButton = (Button) findViewById(R.id.buttonBack);
+        mSignalImage = (ImageView) findViewById(R.id.imageView1);    
+                
 
         // Note that the seek bar is a debug thing - used only to set the
         // alpha of the buddah image manually for visual testing
@@ -265,9 +284,6 @@ public class MeditationActivity extends Activity
 		
 		mManager.discoveryWsn();
 		
-		mAlphaGain = SharedPref.getFloat(this, 
-				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
-				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
 		
     } // End onCreate(Bundle savedInstanceState)
     
@@ -295,7 +311,16 @@ public class MeditationActivity extends Activity
 		super.onStart();
 		Log.i(TAG, TAG +  " OnStart");
 		
-		SelectUser();
+		if (mAllowMultipleUsers) {
+			SelectUser();
+		}
+		else {
+			mSelectedUser = "";
+			setNewSessionName();    			
+			openLogFile();
+	    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+			
+		}
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -310,7 +335,7 @@ public class MeditationActivity extends Activity
 				TimerMethod();
 			}
 
-		}, 0, 1000);		
+		}, 0, 10);		
 		
 		
 	}
@@ -419,43 +444,64 @@ public class MeditationActivity extends Activity
 					MindsetData mindsetData = (MindsetData) data;
 					//Log.i("BFDemo", "" + mindsetData.exeCode);
 					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
-						//Log.i("BFDemo", "" + mindsetData.rawSignal);
 					}
 					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 						
+						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+
 						int sigQuality = mindsetData.poorSignalStrength & 0xff;
-						ImageView image = (ImageView) findViewById(R.id.imageView1);
+
+						if (mShowingControls || sigQuality == 200)
+							mSignalImage.setVisibility(View.VISIBLE);
+						else
+							mSignalImage.setVisibility(View.GONE);
+							
+						
+						
 						if (sigQuality == 200)
-							image.setImageResource(R.drawable.signal_bars0);
+							mSignalImage.setImageResource(R.drawable.signal_bars0);
 						else if (sigQuality > 150)
-							image.setImageResource(R.drawable.signal_bars1);
+							mSignalImage.setImageResource(R.drawable.signal_bars1);
 						else if (sigQuality > 100)
-							image.setImageResource(R.drawable.signal_bars2);
+							mSignalImage.setImageResource(R.drawable.signal_bars2);
 						else if (sigQuality > 50)
-							image.setImageResource(R.drawable.signal_bars3);
+							mSignalImage.setImageResource(R.drawable.signal_bars3);
 						else if (sigQuality > 25)
-							image.setImageResource(R.drawable.signal_bars4);
+							mSignalImage.setImageResource(R.drawable.signal_bars4);
 						else 
-							image.setImageResource(R.drawable.signal_bars5);
+							mSignalImage.setImageResource(R.drawable.signal_bars5);
 
 					}
 					
-					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL && mPaused == false) {
-						currentMindsetData.updateSpectral(mindsetData);
+					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL || mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Spectral Data");
-						numSecsWithoutData = 0;				
-						
-						int value = mindsetData.getRatioFeature(bandOfInterest);
-						mMovingAverage.pushValue(value);	
-						int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
-						mBuddahImage.setAlpha((int) filteredValue);
-						mTextInfoView.setText("Theta: " + value + ", " + filteredValue);							
-						
-					}
-					
-					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
-						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+
+						if (mPaused == false) {
+							if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM)
+								currentMindsetData.updateRawWave(mindsetData);
+
+							currentMindsetData.updateSpectral(mindsetData);
+							numSecsWithoutData = 0;				
+							Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
+							
+
+							if (mLoggingEnabled == true) {
+								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+								
+								String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+								currentDateTimeString = sdf.format(new Date());
+								
+								String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode) + "\n";
+								
+						        try {
+						        	if (mLogWriter != null)
+						        		mLogWriter.write(logData);
+								} catch (IOException e) {
+									Log.e(TAG, e.toString());
+								}
+							}			
+						} // End if (mPaused == false)
 					}
 					
 					if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
@@ -559,12 +605,36 @@ public class MeditationActivity extends Activity
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			numSecsWithoutData++;
-			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
+			if (mPaused == true || currentMindsetData == null) {
 				return;
 			}
-			Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 
+			if (mSubTimerClick-- > 0) {
+				if (mIntro > 0) {
+
+					mBuddahImage.setAlpha(mIntro--);
+				}
+				return;
+			}
+			else {
+				mSubTimerClick = 100;
+				
+			}
+			
+			numSecsWithoutData++;
+
+			// Update buddah image based on band of interes
+			int value = currentMindsetData.getRatioFeature(mBandOfInterest);
+			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+			mMovingAverage.pushValue(value);	
+			int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
+			
+			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue);		
+			
+			if (mIntro <= 0) {
+				mBuddahImage.setAlpha((int) filteredValue);
+			}
+			
 			if (mSecondsRemaining-- > 0) {
 				mCountdownTextView.setText(secsToHMS(mSecondsRemaining));	
 			}
@@ -572,21 +642,6 @@ public class MeditationActivity extends Activity
 		    	handlePause("Session Complete"); // Allow opportinuty for a note
 			}
 			
-			if (mLoggingEnabled == true) {
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-				
-				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
-				currentDateTimeString = sdf.format(new Date());
-				
-				String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine() + "\n";
-				
-		        try {
-		        	if (mLogWriter != null)
-		        		mLogWriter.write(logData);
-				} catch (IOException e) {
-					Log.e(TAG, e.toString());
-				}
-			}			
 						
 			
 		}
@@ -628,12 +683,19 @@ public class MeditationActivity extends Activity
 	@Override
 	protected void onRestart() {
 		Log.i(TAG, TAG +  " onRestart");
+		mBandOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+		
 		super.onRestart();
 	}
 
 	@Override
 	protected void onResume() {
 		Log.i(TAG, TAG +  " onResume");
+		mBandOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
 		restoreState();
 		super.onResume();
 	}
@@ -734,6 +796,10 @@ public class MeditationActivity extends Activity
 		
 	/**
 	 * Presents a dialog allowing the operator to choose/add/delete specific users for session
+	 * Sets up the following
+	 *   mSelectedUser
+	 *   mCurrentUsers
+	 *   
 	 */
 	public void SelectUser() {
 		mCurrentUsers = getUsers();	
