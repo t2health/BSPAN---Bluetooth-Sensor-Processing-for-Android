@@ -21,6 +21,10 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	private static final String TAG = Constants.TAG;
 	boolean mTestData = false;
 
+	byte[] mRawAccumData = new byte[500 * 2];
+	int mRawAccumDataIndex = 0;
+	boolean mSendRawWave = true;
+	
 	byte[] mTestDataBytes = {
 			0x01, 0x02, 0x03, 
 			0x04, 0x05, 0x06, 
@@ -47,6 +51,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
 	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
 	 * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
+	 * 41 - 			500 samples of raw data 
 	 */
 	
 	/**
@@ -68,6 +73,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	static final int EXECODE_BLINK_STRENGTH = 0x16;
 	static final int EXECODE_RAW_WAVE = 0x80;
 	static final int EXECODE_SPECTRAL = 0x83;
+	static final int EXECODE_RAW_ACCUM = 0x90;				// Special T2 code for gaterhing 1 second of raw data and sending it all together
 
 	static final int MINDSET_FUNCT_CODE						= 0x0A;
 	static final int MINDSET_SENSOR_CODE 					= 0x0D;
@@ -76,6 +82,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	
 	static final int MINDSET_PREMSG_SIZE 				    = 3;   // 	3 bytes in front of every payload, MINDSET_FUNCT_CODE, MINDSET_SENSOR_CODE, EXECode)	
 	static final int MINDSET_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE;		
+	static final int MINDSET_ACCUM_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE + 1000;		
 	
 	
 	// Note that each Spine mindset message has all of the mindset attribuites
@@ -87,6 +94,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	static final byte EXECODE_BLINK_STRENGTH_POS = EXECODE_MEDITATION_POS + 1; 
 	static final byte EXECODE_RAW_POS = EXECODE_BLINK_STRENGTH_POS + 1; 
 	static final byte EXECODE_SPECTRAL_POS = EXECODE_RAW_POS + 2; 
+
+	static final byte EXECODE_ACCUM_MSG_POS = 41; 
 	
 	/**
 	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
@@ -231,17 +240,47 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 			break;
 		
 		case EXECODE_RAW_WAVE:
-			//Log.i(TAG, "Raw");
 			// For now we'll ignore raw wave data (comes in every 2 ms)
-//			startMessage();
-//			mMindsetMessage[mMessageIndex++] = (byte) code;
-//			mMindsetMessage[EXECODE_RAW_POS] = valueBytes[0];
-//			mMindsetMessage[EXECODE_RAW_POS + 1] = valueBytes[1];
-//			break;
-		
-			
-						
-			return;
+			if (mSendRawWave) {
+//				mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] << 8 | valueBytes[1];
+				mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
+				mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
+				if (mRawAccumDataIndex >= 1000) {
+					mRawAccumDataIndex = 0;
+					
+					
+					mMessageIndex = 0;
+					mMindsetMessage = new byte[MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE];		
+					mMindsetMessage[mMessageIndex++] = (byte) 0xc4; 
+					mMindsetMessage[mMessageIndex++] = (byte) 0xab;
+					mMindsetMessage[mMessageIndex++] = (byte) 0xff;
+					mMindsetMessage[mMessageIndex++] = (byte) 0xf2;
+					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
+					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
+					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
+					mMindsetMessage[mMessageIndex++] = (byte) 0x01;
+					mMindsetMessage[mMessageIndex++] = (byte) 0x01;	
+					mMindsetMessage[mMessageIndex++] = MINDSET_FUNCT_CODE;			
+					mMindsetMessage[mMessageIndex++] = MINDSET_SENSOR_CODE;						
+					
+					mMindsetMessage[mMessageIndex++] = (byte) EXECODE_RAW_ACCUM;
+					for (int i = 0; i < 1000; i++) {
+//						mMindsetMessage[EXECODE_ACCUM_MSG_POS + i] = (byte) i; // For testing
+						mMindsetMessage[EXECODE_ACCUM_MSG_POS + i] = mRawAccumData[i];
+					}
+//					Log.i(TAG, "Sending 500 samples of raw data");
+					
+					break;
+					
+				}
+				else {
+					return;
+				}
+				
+			}
+			else {
+				return;
+			}
 		
 		case EXECODE_SPECTRAL:
 			Log.i(TAG, "Spectral");
