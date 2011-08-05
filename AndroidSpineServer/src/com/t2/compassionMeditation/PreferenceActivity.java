@@ -18,6 +18,7 @@ public class PreferenceActivity extends Activity {
 	EditText mSessionLengthEdit;
 	EditText mAlphaGainEdit;
 	CheckBox mShowInstructionsCheckbox;
+	CheckBox mAllowMultipleUsersCheckbox;
 	Spinner mBandOfInterestSpinner;
 	
 	
@@ -33,17 +34,20 @@ public class PreferenceActivity extends Activity {
 			int sessionLengthMins = sessionLengthSecs / 60;
 			float alphaGain = SharedPref.getFloat(this, Constants.PREF_ALPHA_GAIN, 	Constants.PREF_ALPHA_GAIN_DEFAULT);
 			boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);
+			boolean allowMultipleUsers = SharedPref.getBoolean(this, Constants.PREF_MULTIPLE_USERS, Constants.PREF_MULTIPLE_USERS_DEFAULT);
 			int bandOfInterest = SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST , 	Constants.PREF_BAND_OF_INTEREST_DEFAULT);
 			
 			
 			mSessionLengthEdit = (EditText) findViewById(R.id.editTextSessionLength);
 			mAlphaGainEdit = (EditText) findViewById(R.id.editTextAlphaGain);
 			mShowInstructionsCheckbox = (CheckBox) findViewById(R.id.checkBoxShowInstructions);
+			mAllowMultipleUsersCheckbox = (CheckBox) findViewById(R.id.checkBoxMultipleUsers);
 			mBandOfInterestSpinner = (Spinner) findViewById(R.id.spinnerBandOfInterest);		
 			
 			mSessionLengthEdit.setText(Integer.toString(sessionLengthMins));
 			mAlphaGainEdit.setText(Float.toString(alphaGain));
 			mShowInstructionsCheckbox.setChecked(instructionsOnStart);
+			mAllowMultipleUsersCheckbox.setChecked(allowMultipleUsers);
 			
 			ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 			        this, R.array.bands_of_interest_array, android.R.layout.simple_spinner_item);
@@ -68,6 +72,8 @@ public class PreferenceActivity extends Activity {
 
 			boolean isChecked = mShowInstructionsCheckbox.isChecked();
 			SharedPref.putBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, isChecked );
+			isChecked = mAllowMultipleUsersCheckbox.isChecked();
+			SharedPref.putBoolean(this, Constants.PREF_MULTIPLE_USERS, isChecked );
 			int selection = mBandOfInterestSpinner.getSelectedItemPosition();
 			SharedPref.putInt(this, Constants.PREF_BAND_OF_INTEREST , 	selection);
 		} catch (NumberFormatException e) {

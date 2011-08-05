@@ -889,7 +889,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 	void setCursor(int start) {
 		mCursor = start;
 		MindsetPoint p = (MindsetPoint) mSessionData.get(mCursor);
-        mTextInfoView.setText(p.dateTime + ":\n Theta: " + p.getRatioFeature(bandOfInterest) + "\n");
+
+        mTextInfoView.setText(p.dateTime + ":\n " + p.getSpectralName(bandOfInterest) + ":" + p.getRatioFeature(bandOfInterest) + "\n");
         if (!p.comment.equalsIgnoreCase("")) {
         	mTextViewComment.setText("Comment: " + p.comment);
         }

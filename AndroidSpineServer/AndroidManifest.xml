@@ -40,7 +40,6 @@
 
 
         <activity 
-        	android:theme="@android:style/Theme.Light"
 
         	android:name=".compassionMeditation.CompassionActivity" 
         	android:excludeFromRecents="true"
@@ -56,9 +55,8 @@
         </activity>
 
         
-
         <activity 
-        	android:theme="@android:style/Theme.Light"
+        	
         
         	android:name=".compassionMeditation.MainActivity" 
         	android:label="Compassion Meditation App"
@@ -73,8 +71,6 @@
 
 
         <activity 
-        	android:theme="@android:style/Theme.Light"
-
         	android:name=".compassionMeditation.MeditationActivity" 
         	android:label="">
         </activity>
@@ -93,19 +89,16 @@
         </receiver>
         <activity android:name="t2.spine.communication.android.SendBroadcastActivity"></activity>
         <activity 
-        	android:theme="@android:style/Theme.Light"
         
         	android:name=".compassionMeditation.ViewHistoryActivity" 
         	android:screenOrientation="portrait">
         	
         </activity>
         <activity 
-        	android:theme="@android:style/Theme.Light"
         	android:name=".compassionMeditation.PreferenceActivity"
         	>
         </activity>
         <activity 
-        	android:theme="@android:style/Theme.Light"
         	android:name=".compassionMeditation.InstructionsActivity"
         	>
         </activity>

@@ -188,7 +188,8 @@ public class MeditationActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        instance = this;
+		Log.i(TAG, TAG +  " onCreate");
+		instance = this;
         
         // We don't want the screen to timeout in this activity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -262,10 +263,6 @@ public class MeditationActivity extends Activity
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
 		mManager.getActiveNodes().add(mindsetNode);
 				
-		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
-		// to receive sensor node data from the Spine server
-		// (I register myself since I'm a SPINEListener implementation!)
-		mManager.addListener(this);	        
                 
 		// Create a broadcast receiver. Note that this is used ONLY for command messages from the service
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
@@ -284,12 +281,26 @@ public class MeditationActivity extends Activity
 		
 		mManager.discoveryWsn();
 		
+		if (mAllowMultipleUsers) {
+			SelectUser();
+		}
+		else {
+			mSelectedUser = "";
+			setNewSessionName();    			
+//			openLogFile();
+	    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+		}
+		
+    	saveState();
+		
+		
 		
     } // End onCreate(Bundle savedInstanceState)
     
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
+		Log.i(TAG, TAG +  " onDestroy");
     	
     	mLoggingEnabled = false;
     	try {
@@ -300,10 +311,7 @@ public class MeditationActivity extends Activity
 			e.printStackTrace();
 		}        	
     	
-    	saveState();
-    	
     	this.unregisterReceiver(this.mCommandReceiver);
-		Log.i(TAG, TAG +  " onDestroy");
 	}
     
 	@Override
@@ -311,16 +319,6 @@ public class MeditationActivity extends Activity
 		super.onStart();
 		Log.i(TAG, TAG +  " OnStart");
 		
-		if (mAllowMultipleUsers) {
-			SelectUser();
-		}
-		else {
-			mSelectedUser = "";
-			setNewSessionName();    			
-			openLogFile();
-	    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
-			
-		}
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -652,9 +650,10 @@ public class MeditationActivity extends Activity
 		Log.i(TAG, TAG +  " onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
+		mManager.removeListener(this);	
 
     	saveState();
-
+    	mLoggingEnabled = false;
     	try {
         	if (mLogWriter != null)
         		mLogWriter.close();
@@ -674,7 +673,6 @@ public class MeditationActivity extends Activity
 		}
 		mSelectedUser = "";
 		mSessionName = "";
-    	saveState();
 		
 		
 		super.onStop();
@@ -683,9 +681,6 @@ public class MeditationActivity extends Activity
 	@Override
 	protected void onRestart() {
 		Log.i(TAG, TAG +  " onRestart");
-		mBandOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
 		
 		super.onRestart();
 	}
@@ -693,10 +688,12 @@ public class MeditationActivity extends Activity
 	@Override
 	protected void onResume() {
 		Log.i(TAG, TAG +  " onResume");
-		mBandOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
-		restoreState();
+		restoreState(); // Opens log file
+		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
+		// to receive sensor node data from the Spine server
+		// (I register myself since I'm a SPINEListener implementation!)
+		mManager.addListener(this);	        
+		
 		super.onResume();
 	}
 
@@ -713,8 +710,13 @@ public class MeditationActivity extends Activity
 		mCurrentUsers = getUsers();	
 		mSelectedUser = SharedPref.getString(this, "SelectedUser", 	"");
 
-		setNewSessionName();
 		mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
+		
+		mBandOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+		
+		
 		if (!mSessionName.equalsIgnoreCase("")) {
 			openLogFile();
 		}

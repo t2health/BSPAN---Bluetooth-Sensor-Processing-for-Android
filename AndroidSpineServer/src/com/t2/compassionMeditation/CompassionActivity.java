@@ -250,7 +250,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     	}
        	if (true) {
           mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
-          mDeviceChartView.setBackgroundColor(Color.WHITE);
+//          mDeviceChartView.setBackgroundColor(Color.WHITE);
+          mDeviceChartView.setBackgroundColor(Color.BLACK);
           layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
     	
@@ -260,6 +261,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         deviceRenderer.setShowLegend(false);
         
         deviceRenderer.setZoomEnabled(false, false);
+//        deviceRenderer.setPanEnabled(true, false);
         deviceRenderer.setPanEnabled(false, false);
         deviceRenderer.setYAxisMin(0);
         deviceRenderer.setYAxisMax(255);
@@ -412,8 +414,66 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					
 					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Raw Wave Data" );
+						currentMindsetData.updateSpectral(mindsetData);
 						currentMindsetData.updateRawWave(mindsetData);
+						numSecsWithoutData = 0;		
+
+						// Output a point for each visible key item
+						int keyCount = keyItems.size();
+						for(int i = 0; i < keyItems.size(); ++i) {
+							KeyItem item = keyItems.get(i);
+							
+							if(!item.visible) {
+								continue;
+							}
+
+							item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+								item.series.remove(0);
+							}
+						} 			
+						mSpineChartX++;
+						
+						if (mDeviceChartView != null) {
+				            mDeviceChartView.repaint();
+				        }   				
+						
+
+
+//						int keyCount = keyItems.size();
+//						for(int i = 0; i < keyItems.size(); ++i) {
+//							KeyItem item = keyItems.get(i);
+//							
+//							if(!item.visible) {
+//								continue;
+//							}
+//
+//							for (int j = 0; j < 512; j++) {
+//								item.series.add(mSpineChartX, currentMindsetData.rawWaveData[j]);
+//								mSpineChartX++;
+//								
+//							}
+//							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+//								//item.series.remove(0);
+//							}
+//						} 			
+//						if (mDeviceChartView != null) {
+//				            mDeviceChartView.repaint();
+//				        }   				
+						
+						Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
+						
+						
+						
 					}
+					
+					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
+						Log.i(TAG, "Spectral Data");
+						currentMindsetData.updateSpectral(mindsetData);
+						numSecsWithoutData = 0;							
+					}
+					
+					
 					
 					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
@@ -434,12 +494,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 							image.setImageResource(R.drawable.signal_bars4);
 						else 
 							image.setImageResource(R.drawable.signal_bars5);
-					}
-					
-					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL) {
-						currentMindsetData.updateSpectral(mindsetData);
-						Log.i(TAG, "Spectral Data");
-						numSecsWithoutData = 0;							
 					}
 					
 					
@@ -608,29 +662,14 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
 				return;
 			}
-			
-			Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
-
-
-	        int keyCount = keyItems.size();
-			for(int i = 0; i < keyItems.size(); ++i) {
-				KeyItem item = keyItems.get(i);
-				
-				if(!item.visible) {
-					continue;
-				}
-				
-				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
-				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-					item.series.remove(0);
-				}
-				
-			} 			
-			
 	        mTextInfoView.setText(
 	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
 	        		"Time Remaining: "
 	        		);
+			
+
+
+			
 			
 //	        // Update the mediation bar
 //	        int side = currentMindsetData.powerTest(bandOfInterest);
@@ -655,11 +694,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 //	        }
 //	        mMeditationBar.setProgress((int) valueToPlot);
 	        
-			mSpineChartX++;
-			
-			if (mDeviceChartView != null) {
-	            mDeviceChartView.repaint();
-	        }   				
 		}
 	};
 

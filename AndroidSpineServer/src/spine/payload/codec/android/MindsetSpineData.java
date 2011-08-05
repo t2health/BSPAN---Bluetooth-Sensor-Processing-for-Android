@@ -22,6 +22,8 @@ import spine.exceptions.MethodNotSupportedException;
  * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
  * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
  * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS (8 * 3 bytes each big endian)
+ * 41 - 			512 samples of raw data 
+ * 
  */
 
 
@@ -44,7 +46,6 @@ public class MindsetSpineData extends SpineCodec {
 		throw new MethodNotSupportedException("encode");
 	};
 
-	private int MAX_MSG_LENGHT = 42;
 
 	public SpineObject decode(Node node, byte[] payload) {
 
@@ -52,7 +53,6 @@ public class MindsetSpineData extends SpineCodec {
 			return null;
 		}
 		
-		byte[] dataTmp = new byte[MAX_MSG_LENGHT];
 		short dtIndex = 0;
 		short pldIndex = 0;
 
@@ -68,26 +68,7 @@ public class MindsetSpineData extends SpineCodec {
 
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
-		if (exeCode == Constants.EXECODE_RAW_ACCUM) {
-			int s = payload.length;
-			int s1 = data.rawWaveData.length;
-			int j = 0;
-			for (int i = 0; i < 500; i++) {
-				if (i > 64) {
-					int q = 0;
-					q++;
-				}
-				byte hi = payload[32 + j++];
-				byte lo = payload[32 + j++];
-				//hi = (byte) 0xf8; lo = (byte) 0x00;
-				int value = hi << 8 | lo;
-				
-				data.rawWaveData[i] = value;
-				
-			}
-			
-		}
-		else if (exeCode == Constants.EXECODE_SPECTRAL) {
+		if (exeCode == Constants.EXECODE_SPECTRAL || exeCode == Constants.EXECODE_RAW_ACCUM) {
 			int totalPower = 0;
 			int maxBandPower = 0;
 			for (int i = 0; i < MindsetData.NUM_BANDS; i++)	{
@@ -113,6 +94,20 @@ public class MindsetSpineData extends SpineCodec {
 					data.ratioSpectralData[i] = (int) (band * 100);
 				}		
 			}
+			
+			if (exeCode == Constants.EXECODE_RAW_ACCUM) {
+				// Now save the raw data
+				int s = payload.length;
+				int s1 = data.rawWaveData.length;
+				int j = 0;
+				for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {
+					byte hi = payload[32 + j++];
+					byte lo = payload[32 + j++];
+					int value = hi << 8 | lo;
+					data.rawWaveData[i] = value;
+				}
+			}			
+			
 		}
 		
 		return data;

@@ -16,6 +16,10 @@
 	    <TextView android:text="Show instructions on Start:" android:id="@+id/textView3" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 	    <CheckBox android:id="@+id/checkBoxShowInstructions" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
   	</TableRow>
+  	<TableRow>
+	    <TextView android:text="Allow multiple users:" android:id="@+id/textView3" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+	    <CheckBox android:id="@+id/checkBoxMultipleUsers" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+  	</TableRow>
   	<TableRow android:id="@+id/tableRow1" android:layout_width="wrap_content" android:layout_height="wrap_content">
   		<TextView android:text="Band of Interest:" android:id="@+id/textView4" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
   		<Spinner android:id="@+id/spinnerBandOfInterest" android:layout_width="wrap_content" android:layout_height="wrap_content"></Spinner>

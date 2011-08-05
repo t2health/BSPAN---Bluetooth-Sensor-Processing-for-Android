@@ -1,5 +1,7 @@
 package spine.datamodel;
 
+import com.t2.Constants;
+
 import android.util.Log;
 
 
@@ -19,7 +21,7 @@ public class MindsetData  extends Data {
 	public int[] rawSpectralData = new int[NUM_BANDS];
 
 	
-	public int[] rawWaveData = new int[500];
+	public int[] rawWaveData = new int[Constants.RAW_ACCUM_SIZE];
 	
 	
 	/**
@@ -79,6 +81,10 @@ public class MindsetData  extends Data {
 			return -1;
 	}
 
+	public String getSpectralName(int band) {
+		return spectralNames[band];
+	}
+	
 	public void updateSpectral(MindsetData d) {
 
 		for (int i = 0; i < NUM_BANDS; i++)	{
@@ -89,8 +95,21 @@ public class MindsetData  extends Data {
 	
 	public void updateRawWave(MindsetData d) {
 
-		for (int i = 0; i < 500; i++)	{
-			this.rawWaveData[i] = d.rawWaveData[i];
+		boolean scale = false;
+		
+		for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++)	{
+
+			if (scale) {
+				float v = (float) d.rawWaveData[i] + 2048;
+				v = v / (float) 409.6;
+				int vi = (int) v;
+				
+				this.rawWaveData[i] = vi;
+			}
+			else {
+				this.rawWaveData[i] = d.rawWaveData[i];
+				
+			}
 		}
 	}
 	
@@ -126,6 +145,30 @@ public class MindsetData  extends Data {
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.rawSpectralData[i] + ", ";
 		}
+		
+		return line;
+	}
+	
+	public String getLogDataLine(int execode) {
+		String line = "";							// Comment
+		line += this.poorSignalStrength + ", "; 
+		line += this.attention + ", "; 
+		line += this.meditation + ", "; 		
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			line += this.ratioSpectralData[i] + ", ";
+		}
+		line += ", ";								// Visual seperator
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			line += this.rawSpectralData[i] + ", ";
+		}
+		
+		if (execode == Constants.EXECODE_RAW_ACCUM) {
+			for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {
+				line += this.rawWaveData[i] + ";";
+			}
+		}
+		
+		
 		return line;
 	}
 	

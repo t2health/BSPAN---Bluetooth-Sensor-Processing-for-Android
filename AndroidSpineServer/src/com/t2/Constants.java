@@ -28,6 +28,7 @@ public class Constants {
 	public static final byte EXECODE_RAW_WAVE = (byte) 0x80;
 	public static final byte EXECODE_SPECTRAL = (byte) 0x83;
 	public static final byte EXECODE_RAW_ACCUM = (byte) 0x90;				// Special T2 code for gaterhing 1 second of raw data and sending it all together
+	public static final int RAW_ACCUM_SIZE = 512;				// Size of raw wave data accumulator
 	
 
 	
