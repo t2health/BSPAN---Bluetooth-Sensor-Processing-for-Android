@@ -19,9 +19,13 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  */
 public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataListener{
 	private static final String TAG = Constants.TAG;
+	private static final int NUM_RAW = 512;
 	boolean mTestData = false;
-
-	byte[] mRawAccumData = new byte[500 * 2];
+	
+	
+	
+	byte t1,t2;
+	byte[] mRawAccumData = new byte[NUM_RAW * 2];
 	int mRawAccumDataIndex = 0;
 	boolean mSendRawWave = true;
 	
@@ -51,7 +55,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
 	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
 	 * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
-	 * 41 - 			500 samples of raw data 
+	 * 41 - 			512 samples of raw data 
 	 */
 	
 	/**
@@ -82,7 +86,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	
 	static final int MINDSET_PREMSG_SIZE 				    = 3;   // 	3 bytes in front of every payload, MINDSET_FUNCT_CODE, MINDSET_SENSOR_CODE, EXECode)	
 	static final int MINDSET_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE;		
-	static final int MINDSET_ACCUM_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE + 1000;		
+	static final int MINDSET_ACCUM_MSG_SIZE 				= 33 + MINDSET_PREMSG_SIZE + NUM_RAW * 2;		
 	
 	
 	// Note that each Spine mindset message has all of the mindset attribuites
@@ -158,10 +162,10 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	/**
 	 * Begins a Mindset message, populating common fields
 	 */
-	private void startMessage()
+	private void startMessage(int messageSize)
 	{
 		mMessageIndex = 0;
-		mMindsetMessage = new byte[MINDSET_MSG_SIZE + SPINE_HEADER_SIZE];		
+		mMindsetMessage = new byte[messageSize];		
 		mMindsetMessage[mMessageIndex++] = (byte) 0xc4; 
 		mMindsetMessage[mMessageIndex++] = (byte) 0xab;
 		mMindsetMessage[mMessageIndex++] = (byte) 0xff;
@@ -217,81 +221,71 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		{
 		case EXECODE_POOR_SIG_QUALITY:
 			//Log.i(TAG, "siq Q");
-			startMessage();
+			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_POOR_SIG_QUALITY_POS] = valueBytes[0];
 			break;
 			
 		case EXECODE_ATTENTION:
 			//Log.i(TAG, "Atten");
-			startMessage();
+			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_ATTENTION_POS] = valueBytes[0];
 			break;
 		case EXECODE_MEDITATION:
-			startMessage();
+			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_MEDITATION_POS] = valueBytes[0];
 			break;
 		case EXECODE_BLINK_STRENGTH:
-			startMessage();
+			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
 			mMindsetMessage[mMessageIndex++] = (byte) code;
 			mMindsetMessage[EXECODE_BLINK_STRENGTH_POS] = valueBytes[0];
 			break;
 		
 		case EXECODE_RAW_WAVE:
-			// For now we'll ignore raw wave data (comes in every 2 ms)
+			// For now we'll NOT ignore raw wave data (comes in every 2 ms)
 			if (mSendRawWave) {
-//				mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] << 8 | valueBytes[1];
-				mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
-				mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
-				if (mRawAccumDataIndex >= 1000) {
-					mRawAccumDataIndex = 0;
-					
-					
-					mMessageIndex = 0;
-					mMindsetMessage = new byte[MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE];		
-					mMindsetMessage[mMessageIndex++] = (byte) 0xc4; 
-					mMindsetMessage[mMessageIndex++] = (byte) 0xab;
-					mMindsetMessage[mMessageIndex++] = (byte) 0xff;
-					mMindsetMessage[mMessageIndex++] = (byte) 0xf2;
-					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
-					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
-					mMindsetMessage[mMessageIndex++] = (byte) 0x00;
-					mMindsetMessage[mMessageIndex++] = (byte) 0x01;
-					mMindsetMessage[mMessageIndex++] = (byte) 0x01;	
-					mMindsetMessage[mMessageIndex++] = MINDSET_FUNCT_CODE;			
-					mMindsetMessage[mMessageIndex++] = MINDSET_SENSOR_CODE;						
-					
-					mMindsetMessage[mMessageIndex++] = (byte) EXECODE_RAW_ACCUM;
-					for (int i = 0; i < 1000; i++) {
-//						mMindsetMessage[EXECODE_ACCUM_MSG_POS + i] = (byte) i; // For testing
-						mMindsetMessage[EXECODE_ACCUM_MSG_POS + i] = mRawAccumData[i];
-					}
-//					Log.i(TAG, "Sending 500 samples of raw data");
-					
-					break;
-					
+				if (mRawAccumDataIndex >= NUM_RAW * 2) {
+
+					// We should never get here
+					Log.e(TAG, "mRawAccumDataIndex overflow");
 				}
 				else {
-					return;
+					mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
+					mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
 				}
-				
+
 			}
-			else {
-				return;
-			}
+			return;
 		
 		case EXECODE_SPECTRAL:
-			Log.i(TAG, "Spectral");
+			
+//			Log.i(TAG, "Spectral, mRawAccumDataIndex = " + mRawAccumDataIndex);
 
-			startMessage();
-			mMindsetMessage[mMessageIndex++] = (byte) code;	
+			if (mSendRawWave) {
+				startMessage(MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE);
+				
+				mMindsetMessage[mMessageIndex++] = (byte) EXECODE_RAW_ACCUM;	
+
+				for (int i = 0; i < NUM_RAW * 2; i++) {
+					mMindsetMessage[EXECODE_ACCUM_MSG_POS + i] = mRawAccumData[i];
+				}
+				mRawAccumDataIndex = 0;
+
+			}
+			else {
+				mMindsetMessage[mMessageIndex++] = (byte) code;	
+				startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
+
+			}
+			
 			int valueSize = valueBytes.length;
 			
 			
 			// this code should ONLY have 24 bytes length, if not don't do anything
-			if (numBytes == 24 && valueSize == 24)
+//			if (numBytes == 24 && valueSize == 24)
+			if (valueSize == 24)
 			{
 				for (int i = 0; i < numBytes; i++)
 				{
