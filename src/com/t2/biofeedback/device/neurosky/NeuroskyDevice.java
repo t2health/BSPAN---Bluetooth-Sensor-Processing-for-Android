@@ -21,6 +21,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	private static final String TAG = Constants.TAG;
 	private static final int NUM_RAW = 512;
 	boolean mTestData = false;
+	int mTestValue = 0;
 	
 	
 	
@@ -54,8 +55,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	 * 14				Meditation							<--- EXECODE_MEDITATION_POS
 	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
 	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
-	 * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
-	 * 41 - 			512 samples of raw data 
+	 * 18 - 41			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
+	 * 42 - 			512 samples of raw data 
 	 */
 	
 	/**
@@ -98,8 +99,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	static final byte EXECODE_BLINK_STRENGTH_POS = EXECODE_MEDITATION_POS + 1; 
 	static final byte EXECODE_RAW_POS = EXECODE_BLINK_STRENGTH_POS + 1; 
 	static final byte EXECODE_SPECTRAL_POS = EXECODE_RAW_POS + 2; 
-
-	static final byte EXECODE_ACCUM_MSG_POS = 41; 
+	static final byte EXECODE_ACCUM_MSG_POS = EXECODE_SPECTRAL_POS + 24; 
 	
 	/**
 	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
@@ -252,8 +252,26 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 					Log.e(TAG, "mRawAccumDataIndex overflow");
 				}
 				else {
-					mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
-					mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
+					
+					if (mTestData) {
+						byte b1 = (byte) ((mTestValue >> 8) & 0xff) ;
+//						byte b1 = 0x55;
+						byte b2 = (byte) (mTestValue & 0xff);
+						if (b1 == 0x1f && b2 == 0x7f) {
+							int i = 0;
+							i++;
+						}
+						
+						mRawAccumData[mRawAccumDataIndex++] = b1 ;
+						mRawAccumData[mRawAccumDataIndex++] = b2;
+						if (mTestValue++ >= 0xffff)
+							mTestValue = 0;
+							
+					}
+					else {
+						mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
+						mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
+					}
 				}
 
 			}
@@ -266,6 +284,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 			if (mSendRawWave) {
 				startMessage(MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE);
 				
+			//	Log.i(TAG, "fred = " + mRawAccumData[0] + " " + mRawAccumData[1]);
 				mMindsetMessage[mMessageIndex++] = (byte) EXECODE_RAW_ACCUM;	
 
 				for (int i = 0; i < NUM_RAW * 2; i++) {
