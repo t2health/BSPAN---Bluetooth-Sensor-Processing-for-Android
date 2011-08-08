@@ -106,6 +106,7 @@ public class MindsetSpineData extends SpineCodec {
 					byte hi = payload[EXECODE_ACCUM_MSG_POS + j++];
 					byte lo = payload[EXECODE_ACCUM_MSG_POS + j++];
 					int value = ((hi << 8) & 0xff00) | (lo & 0xff);
+					if( value >= 32768 ) value = value - 65536;					
 					data.rawWaveData[i] = value;
 				}
 			}			

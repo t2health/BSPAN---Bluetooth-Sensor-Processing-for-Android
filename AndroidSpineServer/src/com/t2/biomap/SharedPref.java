@@ -3,6 +3,9 @@ package com.t2.biomap;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+
+import com.t2.compassionMeditation.ArraysExtra;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -44,6 +47,30 @@ public class SharedPref {
 		}
 		sharedPref.edit().putString(key, sb.toString()).commit();
 	}
+	
+	public static void setIntValues(SharedPreferences sharedPref, String key, String separator, int[] values) {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < values.length; ++i) {
+			sb.append(Integer.toString(values[i]));
+			sb.append(separator);
+		}
+		sharedPref.edit().putString(key, sb.toString()).commit();
+	}
+	
+	public static int[] getIntValues(SharedPreferences sharedPref, String key, String separator) {
+		String dataStr = sharedPref.getString(key, "!<[NULLFOUND]>[");
+		if(dataStr.equals("!<[NULLFOUND]>[")) {
+			return null;
+		}
+		String strResults[] = dataStr.split(separator);
+		int numItems = strResults.length;
+		int results[] = new int[numItems]; 
+		for (int i = 0; i < numItems; i++ ) {
+			results[i] = Integer.parseInt(strResults[i]);
+		}
+		return results;
+	}
+	
 	
 	
 	/**

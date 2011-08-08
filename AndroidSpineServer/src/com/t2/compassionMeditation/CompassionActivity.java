@@ -144,6 +144,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
+	public int[] mScaleData = new int[MindsetData.NUM_BANDS];
+	
 	
 	/**
 	 * @return Static instance of this activity
@@ -176,6 +178,16 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
         image.setImageResource(R.drawable.signal_bars0);  
+        
+        mScaleData = SharedPref.getIntValues(
+				sharedPref, 
+				"BandScales", 
+				","
+		);
+		if (mScaleData == null) {
+			mScaleData = new int[] {1,1,1,1,1,1,1,1};
+		}
+        
 
 //        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
 //        mMeditationBar.setProgress(50);
@@ -414,6 +426,23 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					
 					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Raw Wave Data" );
+						
+						// Scale the data and save scaling data to mScaleData
+						// (which will be saved when activity finishes)
+						for (int i = 0; i < MindsetData.NUM_BANDS; i++)
+						{
+							if (currentMindsetData.rawSpectralData[i] > this.mScaleData[i]) {
+								this.mScaleData[i] = currentMindsetData.rawSpectralData[i];
+							}
+							if (this.mScaleData[i] != 0) {
+								double scale = (double) currentMindsetData.rawSpectralData[i] / (double) this.mScaleData[i];
+								currentMindsetData.scaledSpectralData[i] = (int) (scale * 100);
+							}
+							else {
+								currentMindsetData.scaledSpectralData[i] = (currentMindsetData.rawSpectralData[i]) * 100;
+							}
+						}
+						
 						currentMindsetData.updateSpectral(mindsetData);
 						currentMindsetData.updateRawWave(mindsetData);
 						numSecsWithoutData = 0;		
@@ -427,7 +456,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 								continue;
 							}
 
-							item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+//							item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+							item.series.add(mSpineChartX, currentMindsetData.getScaledFeature((int) item.id));
 							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 								item.series.remove(0);
 							}
@@ -703,6 +733,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
+    	SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);    	
+    	
     	saveState();
     	
         try {

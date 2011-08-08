@@ -2,6 +2,8 @@ package spine.datamodel;
 
 import com.t2.Constants;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 
@@ -23,11 +25,11 @@ public class MindsetData  extends Data {
 	
 	public int[] rawWaveData = new int[Constants.RAW_ACCUM_SIZE];
 	
-	
 	/**
 	 * Spectral band power data normalized to 0-100 by ratio to total power
 	 */
 	public int[] ratioSpectralData = new int[NUM_BANDS];
+	public int[] scaledSpectralData = new int[NUM_BANDS];
 	
 	public static final int DELTA_ID = 0;
 	public static final int THETA_ID = 1;
@@ -45,7 +47,8 @@ public class MindsetData  extends Data {
 	public byte functionCode;	
 	public byte sensorCode;
 	public byte exeCode;
-	
+	protected SharedPreferences sharedPref;
+
 	public MindsetData() {
 		
 	}
@@ -61,6 +64,10 @@ public class MindsetData  extends Data {
 		this.attention = attention;
 		this.meditation = meditation;
 		this.blinkStrength = blinkStrength;
+		
+		
+		
+		
 	}	
 
 	public int getRawFeature(int feature) {
@@ -81,11 +88,30 @@ public class MindsetData  extends Data {
 			return -1;
 	}
 
+	/**
+	 * @param feature Band of interest
+	 * @return Spectral power for specified data normalized to 0-100 by ratio to HIGHEST value encountered
+	 */
+	public int getScaledFeature(int feature) {
+		if (feature <= NUM_BANDS)
+			return this.scaledSpectralData[feature];
+		else
+			return -1;
+	}
+
 	public String getSpectralName(int band) {
 		return spectralNames[band];
 	}
 	
 	public void updateSpectral(MindsetData d) {
+
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			this.rawSpectralData[i] = d.rawSpectralData[i];
+			this.ratioSpectralData[i] = d.ratioSpectralData[i];
+		}
+	}
+	
+	public void scaleSpectral(MindsetData d, int[] scaleData) {
 
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			this.rawSpectralData[i] = d.rawSpectralData[i];

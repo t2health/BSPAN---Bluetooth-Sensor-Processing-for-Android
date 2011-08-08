@@ -366,7 +366,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     	}
        	if (true) {
           mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
-          mDeviceChartView.setBackgroundColor(Color.WHITE);
+          mDeviceChartView.setBackgroundColor(Color.BLACK);
+//          mDeviceChartView.setBackgroundColor(Color.WHITE);
           layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         }    
     	
