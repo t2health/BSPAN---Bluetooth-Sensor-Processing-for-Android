@@ -21,8 +21,8 @@ import spine.exceptions.MethodNotSupportedException;
  * 14				Meditation							<--- EXECODE_MEDITATION_POS
  * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
  * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
- * 16 - 40			Spectral Data						<--- EXECODE_SPECTRAL_POS (8 * 3 bytes each big endian)
- * 41 - 			512 samples of raw data 
+ * 18 - 41			Spectral Data						<--- EXECODE_SPECTRAL_POS (8 * 3 bytes each big endian)
+ * 42 - 			512 samples of raw data 
  * 
  */
 
@@ -41,6 +41,8 @@ public class MindsetSpineData extends SpineCodec {
 	static final byte EXECODE_BLINK_STRENGTH_POS = EXECODE_MEDITATION_POS + 1; 				// 6
 	static final byte EXECODE_RAW_POS = EXECODE_BLINK_STRENGTH_POS + 1; 					// 7
 	static final byte EXECODE_SPECTRAL_POS = EXECODE_RAW_POS + 2; 							// 9
+	static final byte EXECODE_ACCUM_MSG_POS = EXECODE_SPECTRAL_POS + 24; 
+	
 
 	public byte[] encode(SpineObject payload) throws MethodNotSupportedException {
 		throw new MethodNotSupportedException("encode");
@@ -101,9 +103,9 @@ public class MindsetSpineData extends SpineCodec {
 				int s1 = data.rawWaveData.length;
 				int j = 0;
 				for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {
-					byte hi = payload[32 + j++];
-					byte lo = payload[32 + j++];
-					int value = hi << 8 | lo;
+					byte hi = payload[EXECODE_ACCUM_MSG_POS + j++];
+					byte lo = payload[EXECODE_ACCUM_MSG_POS + j++];
+					int value = ((hi << 8) & 0xff00) | (lo & 0xff);
 					data.rawWaveData[i] = value;
 				}
 			}			
