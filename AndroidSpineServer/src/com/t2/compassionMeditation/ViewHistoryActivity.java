@@ -136,7 +136,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
-	private MindsetData currentMindsetData = new MindsetData();
+	private MindsetData currentMindsetData;
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
@@ -155,6 +155,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         this.requestWindowFeature(Window.FEATURE_NO_TITLE); // This needs to happen BEFORE setContentView
         setContentView(R.layout.view_history);
         instance = this;
+    	
+        currentMindsetData = new MindsetData(this);
     
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
@@ -223,7 +225,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     	public String comment;
     	
     	MindsetPoint() {
-    		super();
+    		super(context);
     	}
     	
     }
@@ -379,7 +381,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         deviceRenderer.setZoomEnabled(false, false);
         deviceRenderer.setPanEnabled(false, false);
         deviceRenderer.setYAxisMin(0);
-        deviceRenderer.setYAxisMax(255);
+        deviceRenderer.setYAxisMax(150);
+//        deviceRenderer.setYAxisMax(255);
 
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
         

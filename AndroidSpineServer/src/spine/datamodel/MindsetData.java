@@ -1,7 +1,9 @@
 package spine.datamodel;
 
 import com.t2.Constants;
+import com.t2.biomap.SharedPref;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -30,6 +32,7 @@ public class MindsetData  extends Data {
 	 */
 	public int[] ratioSpectralData = new int[NUM_BANDS];
 	public int[] scaledSpectralData = new int[NUM_BANDS];
+	public int[] mScaleData = new int[MindsetData.NUM_BANDS];	
 	
 	public static final int DELTA_ID = 0;
 	public static final int THETA_ID = 1;
@@ -48,9 +51,22 @@ public class MindsetData  extends Data {
 	public byte sensorCode;
 	public byte exeCode;
 	protected SharedPreferences sharedPref;
+	protected static Context context;
 
-	public MindsetData() {
+	public MindsetData(Context aContext) {
+		context = aContext;
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(context);   
 		
+        mScaleData = SharedPref.getIntValues(
+				sharedPref, 
+				"BandScales", 
+				","
+		);
+        
+        
+		if (mScaleData == null) {
+			mScaleData = new int[] {1,1,1,1,1,1,1,1};
+		}		
 	}
 
 	public MindsetData(	byte functionCode, byte sensorCode, byte exeCode, 
@@ -64,12 +80,13 @@ public class MindsetData  extends Data {
 		this.attention = attention;
 		this.meditation = meditation;
 		this.blinkStrength = blinkStrength;
-		
-		
-		
-		
 	}	
 
+	public void saveScaleData() {
+		if (sharedPref != null && mScaleData != null )
+			SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);    	
+	}
+	
 	public int getRawFeature(int feature) {
 		if (feature <= NUM_BANDS)
 			return this.rawSpectralData[feature];
@@ -106,18 +123,31 @@ public class MindsetData  extends Data {
 	public void updateSpectral(MindsetData d) {
 
 		for (int i = 0; i < NUM_BANDS; i++)	{
-			this.rawSpectralData[i] = d.rawSpectralData[i];
+			rawSpectralData[i] = d.rawSpectralData[i];
+			if (rawSpectralData[i] > mScaleData[i]) {
+				Log.i("SensorData", "New max for band " + MindsetData.spectralNames[i]  + " = " + rawSpectralData[i]);
+				mScaleData[i] = rawSpectralData[i];
+			}
+			
+			if (mScaleData[i] != 0) {
+				double scale = (double) rawSpectralData[i] / (double) mScaleData[i];
+				scaledSpectralData[i] = (int) (scale * 100);
+			}
+			else {
+				scaledSpectralData[i] = (rawSpectralData[i]);
+			}
 			this.ratioSpectralData[i] = d.ratioSpectralData[i];
+
 		}
 	}
 	
-	public void scaleSpectral(MindsetData d, int[] scaleData) {
-
-		for (int i = 0; i < NUM_BANDS; i++)	{
-			this.rawSpectralData[i] = d.rawSpectralData[i];
-			this.ratioSpectralData[i] = d.ratioSpectralData[i];
-		}
-	}
+//	public void scaleSpectral(MindsetData d, int[] scaleData) {
+//
+//		for (int i = 0; i < NUM_BANDS; i++)	{
+//			this.rawSpectralData[i] = d.rawSpectralData[i];
+//			this.ratioSpectralData[i] = d.ratioSpectralData[i];
+//		}
+//	}
 	
 	public void updateRawWave(MindsetData d) {
 
@@ -159,13 +189,15 @@ public class MindsetData  extends Data {
 		return (powerToLeft >= powerToRight) ? -1:1;
 	}
 	
+	// This one doesn't print out wave data
 	public String getLogDataLine() {
 		String line = "";							// Comment
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
-			line += this.ratioSpectralData[i] + ", ";
+			line += this.scaledSpectralData[i] + ", ";
+//			line += this.ratioSpectralData[i] + ", ";
 		}
 		line += ", ";								// Visual seperator
 		for (int i = 0; i < NUM_BANDS; i++)	{
@@ -174,23 +206,25 @@ public class MindsetData  extends Data {
 		
 		return line;
 	}
-	
-	public String getLogDataLine(int execode) {
+	public String getLogDataLine(int execode, boolean saveRawWave) {
 		String line = "";							// Comment
 		line += this.poorSignalStrength + ", "; 
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
-			line += this.ratioSpectralData[i] + ", ";
+			line += this.scaledSpectralData[i] + ", ";
+//			line += this.ratioSpectralData[i] + ", ";
 		}
 		line += ", ";								// Visual seperator
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.rawSpectralData[i] + ", ";
 		}
-		
-		if (execode == Constants.EXECODE_RAW_ACCUM) {
-			for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {
-				line += this.rawWaveData[i] + ";";
+
+		if (saveRawWave) {
+			if (execode == Constants.EXECODE_RAW_ACCUM) {
+				for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {
+					line += this.rawWaveData[i] + ";";
+				}
 			}
 		}
 		

@@ -5,11 +5,15 @@ import com.t2.biomap.SharedPref;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Layout;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.widget.CheckBox;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
-public class InstructionsActivity extends Activity {
+public class InstructionsActivity extends Activity implements View.OnTouchListener {
 	private static final String mActivityVersion = "1.0";
 	CheckBox mShowInstructionsCheckbox;	
 
@@ -23,8 +27,9 @@ public class InstructionsActivity extends Activity {
 		
 		boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);
 		mShowInstructionsCheckbox.setChecked(instructionsOnStart);
-        
-        
+
+		final RelativeLayout parent = (RelativeLayout) findViewById(R.id.instructionsLayout	);
+		parent.setOnTouchListener (this);
         
 	}
 	@Override
@@ -36,8 +41,13 @@ public class InstructionsActivity extends Activity {
 	}
 	@Override
 	protected void onStart() {
-		// TODO Auto-generated method stub
 		super.onStart();
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		finish();
+		return false;
 	}
 	
 

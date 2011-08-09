@@ -74,7 +74,7 @@ public class MeditationActivity extends Activity
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
-	private static final String mActivityVersion = "1.0";
+	private static final String mActivityVersion = "2.1";
 
 	private int mIntro = 255;
 	private int mSubTimerClick = 100;
@@ -147,7 +147,7 @@ public class MeditationActivity extends Activity
     private double mAlphaGain = 1;
     
 	protected SharedPreferences sharedPref;
-	MindsetData currentMindsetData = new MindsetData();
+	MindsetData currentMindsetData;
 	
 	
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
@@ -182,6 +182,8 @@ public class MeditationActivity extends Activity
 	private String mSessionName = "";
 	
 	boolean mAllowMultipleUsers;
+	boolean mSaveRawWave;
+	boolean mAllowComments;
 	
 	
     /** Called when the activity is first created. */
@@ -190,6 +192,8 @@ public class MeditationActivity extends Activity
         super.onCreate(savedInstanceState);
 		Log.i(TAG, TAG +  " onCreate");
 		instance = this;
+		
+		mIntro = 255;
         
         // We don't want the screen to timeout in this activity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -200,6 +204,18 @@ public class MeditationActivity extends Activity
         setContentView(R.layout.meditation);
         
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
+
+    	currentMindsetData = new MindsetData(this);
+		mSaveRawWave = SharedPref.getBoolean(this, 
+				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE, 
+				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE_DEFAULT);
+
+
+		mAllowComments = SharedPref.getBoolean(this, 
+				com.t2.compassionMeditation.Constants.PREF_COMMENTS, 
+				com.t2.compassionMeditation.Constants.PREF_COMMENTS_DEFAULT);
+
+        
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
         
         mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
@@ -288,7 +304,10 @@ public class MeditationActivity extends Activity
 			mSelectedUser = "";
 			setNewSessionName();    			
 //			openLogFile();
-	    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+			
+			if (mAllowComments) {
+		    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+			}
 		}
 		
     	saveState();
@@ -490,7 +509,7 @@ public class MeditationActivity extends Activity
 								String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
 								currentDateTimeString = sdf.format(new Date());
 								
-								String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode) + "\n";
+								String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
 								
 						        try {
 						        	if (mLogWriter != null)
@@ -622,7 +641,8 @@ public class MeditationActivity extends Activity
 			numSecsWithoutData++;
 
 			// Update buddah image based on band of interes
-			int value = currentMindsetData.getRatioFeature(mBandOfInterest);
+//			int value = currentMindsetData.getRatioFeature(mBandOfInterest);
+			int value = currentMindsetData.getScaledFeature(mBandOfInterest);
 			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
 			mMovingAverage.pushValue(value);	
 			int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
@@ -650,6 +670,7 @@ public class MeditationActivity extends Activity
 		Log.i(TAG, TAG +  " onPause");
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
+    	currentMindsetData.saveScaleData();	
 		mManager.removeListener(this);	
 
     	saveState();
@@ -823,7 +844,10 @@ public class MeditationActivity extends Activity
     			mSelectedUser = mCurrentUsers.get(mSelection);
     			setNewSessionName();    			
     			openLogFile();
-		    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+    			if (mAllowComments)
+    				handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+          		mIntro = 255;
+
 
             }
         });
@@ -866,7 +890,7 @@ public class MeditationActivity extends Activity
       		mCurrentUsers.add(mSelectedUser);
       		setUsers(mCurrentUsers);
       		SelectUser(); // Go back to main selection dialog
-		  
+
 		  }
 		});
 
@@ -909,10 +933,22 @@ public class MeditationActivity extends Activity
 		  }
 		});
 
+		alert1.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			@Override
+			public void onCancel(DialogInterface arg0) {
+				mPaused = false;
+	      		mIntro = 255;
+				
+			}
+		}
+		);
+
 		alert1.setNegativeButton("Start", new DialogInterface.OnClickListener() {
 		  public void onClick(DialogInterface dialog, int whichButton) {
 				mPaused = false;
 				addNoteToLog(input.getText().toString());
+	      		mIntro = 255;
+
 		  }
 		});
 

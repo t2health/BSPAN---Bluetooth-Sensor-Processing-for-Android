@@ -17,6 +17,12 @@ public class Constants {
 	public static final String PREF_MULTIPLE_USERS = "Allow Multiple Users";
 	public static final boolean PREF_MULTIPLE_USERS_DEFAULT = false;
 
+	public static final String PREF_COMMENTS = "Allow Comments";
+	public static final boolean PREF_COMMENTS_DEFAULT = false;
+
+	public static final String PREF_SAVE_RAW_WAVE = "Save Raw Wave";
+	public static final boolean PREF_SAVE_RAW_WAVE_DEFAULT = false;
+
 	public static final String PREF_BAND_OF_INTEREST = "BandOfInterest";
 	public static final int PREF_BAND_OF_INTEREST_DEFAULT = MindsetData.THETA_ID;;
 

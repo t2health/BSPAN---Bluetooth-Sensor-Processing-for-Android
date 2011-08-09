@@ -85,7 +85,7 @@ import com.t2.R;
 
 public class CompassionActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = "CompassionActivity";
-	private static final String mActivityVersion = "2.0";
+	private static final String mActivityVersion = "2.1";
 
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
@@ -140,11 +140,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
-	private MindsetData currentMindsetData = new MindsetData();
+	private MindsetData currentMindsetData;
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
-	public int[] mScaleData = new int[MindsetData.NUM_BANDS];
 	
 	
 	/**
@@ -161,7 +160,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         this.requestWindowFeature(Window.FEATURE_NO_TITLE); // This needs to happen BEFORE setContentView
         setContentView(R.layout.compassion);
         instance = this;
-    
+    	
+        currentMindsetData = new MindsetData(this);
+
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
@@ -178,15 +179,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         
         ImageView image = (ImageView) findViewById(R.id.imageView1);
         image.setImageResource(R.drawable.signal_bars0);  
-        
-        mScaleData = SharedPref.getIntValues(
-				sharedPref, 
-				"BandScales", 
-				","
-		);
-		if (mScaleData == null) {
-			mScaleData = new int[] {1,1,1,1,1,1,1,1};
-		}
         
 
 //        mMeditationBar = (SeekBar)findViewById(R.id.seekBar1);    
@@ -276,7 +268,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 //        deviceRenderer.setPanEnabled(true, false);
         deviceRenderer.setPanEnabled(false, false);
         deviceRenderer.setYAxisMin(0);
-        deviceRenderer.setYAxisMax(255);
+        deviceRenderer.setYAxisMax(150);
+//        deviceRenderer.setYAxisMax(255);
 
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
         
@@ -427,21 +420,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Raw Wave Data" );
 						
-						// Scale the data and save scaling data to mScaleData
-						// (which will be saved when activity finishes)
-						for (int i = 0; i < MindsetData.NUM_BANDS; i++)
-						{
-							if (currentMindsetData.rawSpectralData[i] > this.mScaleData[i]) {
-								this.mScaleData[i] = currentMindsetData.rawSpectralData[i];
-							}
-							if (this.mScaleData[i] != 0) {
-								double scale = (double) currentMindsetData.rawSpectralData[i] / (double) this.mScaleData[i];
-								currentMindsetData.scaledSpectralData[i] = (int) (scale * 100);
-							}
-							else {
-								currentMindsetData.scaledSpectralData[i] = (currentMindsetData.rawSpectralData[i]) * 100;
-							}
-						}
 						
 						currentMindsetData.updateSpectral(mindsetData);
 						currentMindsetData.updateRawWave(mindsetData);
@@ -733,7 +711,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
 
-    	SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);    	
+    	currentMindsetData.saveScaleData();	
+		mManager.removeListener(this);	
     	
     	saveState();
     	

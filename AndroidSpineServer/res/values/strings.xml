@@ -134,6 +134,10 @@
 	<string name="notes...">Notes...</string>
 	<string name="notes">Notes</string>
 	<string name="do_not_show_again">Do not show this again.</string>
-	<string name="session_length">Session Length</string> 
+	<string name="session_length">Session Length</string>
+	<string name="reScale">Re-Scale inputs</string>
+	<string name="saveRawWave">Save raw wave to file:</string>
+	<string name="screenToExit">Press anywhere on the screen to continue.</string> 
+	<string name="allowComments">Allow comments at start of session:</string> 
     
 </resources>

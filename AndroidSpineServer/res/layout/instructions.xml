@@ -2,10 +2,11 @@
 <RelativeLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
-  android:layout_height="fill_parent" android:gravity="bottom">
+  android:layout_height="fill_parent" android:gravity="bottom" android:id="@+id/instructionsLayout">
     <RelativeLayout android:id="@+id/relativeLayout1" android:layout_width="wrap_content" android:layout_height="fill_parent" android:gravity="top">
         <TextView android:textSize="30px" android:textStyle="bold" android:id="@+id/textView1" android:text="Meditation instructions" android:layout_width="fill_parent" android:layout_height="wrap_content"></TextView>
         <TextView android:layout_below="@+id/textView1" android:layout_alignLeft="@+id/textView1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textViewInstructions" android:text="@string/meditation_instructions"></TextView>
+        <TextView android:layout_height="wrap_content" android:id="@+id/textView2" android:layout_width="wrap_content" android:layout_below="@+id/textViewInstructions" android:layout_alignLeft="@+id/textViewInstructions" android:layout_alignRight="@+id/textViewInstructions" android:text="@string/screenToExit"></TextView>
         <CheckBox android:id="@+id/checkBox1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:text="Do not show this again"></CheckBox>
     </RelativeLayout>
     <RelativeLayout android:id="@+id/relativeLayout2" android:layout_width="wrap_content" android:layout_height="wrap_content">
