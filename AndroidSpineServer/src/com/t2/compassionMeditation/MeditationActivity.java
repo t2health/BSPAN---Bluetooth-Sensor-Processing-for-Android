@@ -60,6 +60,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -76,7 +77,7 @@ public class MeditationActivity extends Activity
 	private static final String TAG = "MeditationActivity";
 	private static final String mActivityVersion = "2.1";
 
-	private int mIntro = 255;
+	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
 	
 	/**
@@ -193,7 +194,7 @@ public class MeditationActivity extends Activity
 		Log.i(TAG, TAG +  " onCreate");
 		instance = this;
 		
-		mIntro = 255;
+		mIntroFade = 255;
         
         // We don't want the screen to timeout in this activity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -311,12 +312,20 @@ public class MeditationActivity extends Activity
 		}
 		
     	saveState();
-		
-		
-		
     } // End onCreate(Bundle savedInstanceState)
     
+    
+    
     @Override
+	public void onBackPressed() {
+    	handlePause("Session Complete"); // Allow opportinuty for a note
+		
+   // 	super.onBackPressed();
+	}
+
+
+
+	@Override
 	protected void onDestroy() {
     	super.onDestroy();
 		Log.i(TAG, TAG +  " onDestroy");
@@ -627,9 +636,9 @@ public class MeditationActivity extends Activity
 			}
 
 			if (mSubTimerClick-- > 0) {
-				if (mIntro > 0) {
+				if (mIntroFade > 0) {
 
-					mBuddahImage.setAlpha(mIntro--);
+					mBuddahImage.setAlpha(mIntroFade--);
 				}
 				return;
 			}
@@ -649,7 +658,7 @@ public class MeditationActivity extends Activity
 			
 			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue);		
 			
-			if (mIntro <= 0) {
+			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha((int) filteredValue);
 			}
 			
@@ -846,7 +855,7 @@ public class MeditationActivity extends Activity
     			openLogFile();
     			if (mAllowComments)
     				handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
-          		mIntro = 255;
+          		mIntroFade = 255;
 
 
             }
@@ -937,7 +946,7 @@ public class MeditationActivity extends Activity
 			@Override
 			public void onCancel(DialogInterface arg0) {
 				mPaused = false;
-	      		mIntro = 255;
+	      		mIntroFade = 255;
 				
 			}
 		}
@@ -947,7 +956,7 @@ public class MeditationActivity extends Activity
 		  public void onClick(DialogInterface dialog, int whichButton) {
 				mPaused = false;
 				addNoteToLog(input.getText().toString());
-	      		mIntro = 255;
+	      		mIntroFade = 255;
 
 		  }
 		});
@@ -1010,6 +1019,12 @@ public class MeditationActivity extends Activity
         			
         			alert.setTitle("ERROR");
         			alert.setMessage("Cannot write to file");	
+        	    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
+        	            public void onClick(DialogInterface dialog, int whichButton) {
+        	            	mIntroFade = 255;
+        	            }
+        	        });
+        			
         			alert.show();			
     		    	
     		    }
