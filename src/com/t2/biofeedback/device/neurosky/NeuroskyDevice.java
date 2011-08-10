@@ -250,6 +250,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 
 					// We should never get here
 					Log.e(TAG, "mRawAccumDataIndex overflow");
+					mRawAccumDataIndex = 0;
+					
 				}
 				else {
 					
