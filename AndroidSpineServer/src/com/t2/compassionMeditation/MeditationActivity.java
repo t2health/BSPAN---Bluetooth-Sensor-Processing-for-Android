@@ -58,6 +58,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -185,6 +186,8 @@ public class MeditationActivity extends Activity
 	boolean mAllowMultipleUsers;
 	boolean mSaveRawWave;
 	boolean mAllowComments;
+	boolean mShowAGain;
+
 	
 	
     /** Called when the activity is first created. */
@@ -210,7 +213,10 @@ public class MeditationActivity extends Activity
 		mSaveRawWave = SharedPref.getBoolean(this, 
 				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE, 
 				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE_DEFAULT);
-
+		
+		mShowAGain = SharedPref.getBoolean(this, 
+				com.t2.compassionMeditation.Constants.PREF_SHOW_A_GAIN, 
+				com.t2.compassionMeditation.Constants.PREF_SHOW_A_GAIN_DEFAULT);
 
 		mAllowComments = SharedPref.getBoolean(this, 
 				com.t2.compassionMeditation.Constants.PREF_COMMENTS, 
@@ -228,7 +234,6 @@ public class MeditationActivity extends Activity
 				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
 				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
 
-        
         
         mMovingAverage = new MovingAverage(mMovingAverageSize);
         
@@ -252,6 +257,7 @@ public class MeditationActivity extends Activity
         // alpha of the buddah image manually for visual testing
         mSeekBar = (SeekBar)findViewById(R.id.seekBar1);
 		mSeekBar.setOnSeekBarChangeListener(this);
+		mSeekBar.setProgress((int) mAlphaGain * 10);      
 		
         // Controls start as invisible, need to touch screen to activate them
 		mCountdownTextView.setVisibility(View.GONE);
@@ -385,7 +391,7 @@ public class MeditationActivity extends Activity
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		this.getMenuInflater().inflate(R.menu.menu_compassion_meditation, menu);
+	//	this.getMenuInflater().inflate(R.menu.menu_compassion_meditation, menu);
 		return true;
 	}
 	
@@ -653,13 +659,18 @@ public class MeditationActivity extends Activity
 //			int value = currentMindsetData.getRatioFeature(mBandOfInterest);
 			int value = currentMindsetData.getScaledFeature(mBandOfInterest);
 			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+
 			mMovingAverage.pushValue(value);	
-			int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
+//			int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
+			int filteredValue = (int) (mMovingAverage.getValue());
+			double  alphaValue = mAlphaGain * (double) filteredValue; 
+			int iAlphaValue = (int) alphaValue;
+			if (iAlphaValue > 255) iAlphaValue = 255; 
 			
-			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue);		
+			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
 			
 			if (mIntroFade <= 0) {
-				mBuddahImage.setAlpha((int) filteredValue);
+				mBuddahImage.setAlpha(iAlphaValue);
 			}
 			
 			if (mSecondsRemaining-- > 0) {
@@ -804,7 +815,9 @@ public class MeditationActivity extends Activity
 			mTextInfoView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
 			mBackButton.setVisibility(View.VISIBLE);
-			mSeekBar.setVisibility(View.VISIBLE);
+//			mSeekBar.setVisibility(View.VISIBLE);
+			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.GONE);
+
 		}
 		return false;
 	}
@@ -812,9 +825,11 @@ public class MeditationActivity extends Activity
 	@Override
 	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
 		// *** For test/debug only
-		double  alpha = arg1 * 2.5;
-		mBuddahImage.setAlpha((int) alpha);
-		mTextInfoView.setText(Integer.toString((int)alpha));
+//		double  alpha = arg1 * 2.5;
+//		mBuddahImage.setAlpha((int) alpha);
+//		mTextInfoView.setText(Integer.toString((int)alpha));
+//		double  alpha = arg1 * 2.5;
+		mAlphaGain = arg1/10;
 	}
 
 	@Override
@@ -824,6 +839,15 @@ public class MeditationActivity extends Activity
 
 	@Override
 	public void onStopTrackingTouch(SeekBar arg0) {
+		
+//		mAlphaGain = SharedPref.getFloat(this, 
+//		com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
+//		com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
+		SharedPref.putFloat(this,
+			com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
+			(float) mAlphaGain);
+		
+		
 	}
 		
 	/**

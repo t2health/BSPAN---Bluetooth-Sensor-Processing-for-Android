@@ -268,7 +268,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 //        deviceRenderer.setPanEnabled(true, false);
         deviceRenderer.setPanEnabled(false, false);
         deviceRenderer.setYAxisMin(0);
-        deviceRenderer.setYAxisMax(150);
+        deviceRenderer.setYAxisMax(100);
 //        deviceRenderer.setYAxisMax(255);
 
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
@@ -671,8 +671,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 				return;
 			}
 	        mTextInfoView.setText(
-	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
-	        		"Time Remaining: "
+	        		"Theta: " + currentMindsetData.getScaledFeature(bandOfInterest)  
 	        		);
 			
 

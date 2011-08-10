@@ -24,6 +24,7 @@ public class PreferenceActivity extends Activity {
 	CheckBox mAllowMultipleUsersCheckbox;
 	CheckBox mAllowCommentsCheckbox;
 	CheckBox mSaveRawWaveCheckbox;
+	CheckBox mShowAlphaGainCheckbox;
 	Spinner mBandOfInterestSpinner;
 	
 	
@@ -73,6 +74,13 @@ public class PreferenceActivity extends Activity {
 			mSaveRawWaveCheckbox = (CheckBox) findViewById(R.id.checkBoxSaveRawWave);
 			mSaveRawWaveCheckbox.setChecked(SharedPref.getBoolean(this, Constants.PREF_SAVE_RAW_WAVE, Constants.PREF_SAVE_RAW_WAVE_DEFAULT));
 
+			mShowAlphaGainCheckbox = (CheckBox) findViewById(R.id.checkBoxAlphaGainVisible);
+			mShowAlphaGainCheckbox.setChecked(SharedPref.getBoolean(this, Constants.PREF_SHOW_A_GAIN, Constants.PREF_SHOW_A_GAIN_DEFAULT));
+
+						
+			
+						
+			
 			mBandOfInterestSpinner = (Spinner) findViewById(R.id.spinnerBandOfInterest);		
 			ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 			        this, R.array.bands_of_interest_array, android.R.layout.simple_spinner_item);
@@ -99,6 +107,10 @@ public class PreferenceActivity extends Activity {
 			SharedPref.putBoolean(this, Constants.PREF_COMMENTS, mAllowCommentsCheckbox.isChecked() );
 			SharedPref.putBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, mShowInstructionsCheckbox.isChecked() );
 			SharedPref.putBoolean(this, Constants.PREF_MULTIPLE_USERS, mAllowMultipleUsersCheckbox.isChecked() );
+			SharedPref.putBoolean(this, Constants.PREF_SHOW_A_GAIN, mShowAlphaGainCheckbox.isChecked() );
+
+			
+			
 			SharedPref.putInt(this, Constants.PREF_BAND_OF_INTEREST , 	mBandOfInterestSpinner.getSelectedItemPosition());
 
 		} catch (NumberFormatException e) {
