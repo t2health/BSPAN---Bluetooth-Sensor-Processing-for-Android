@@ -4,8 +4,8 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:gravity="center_horizontal" android:id="@+id/meditationLayout">
     <RelativeLayout android:id="@+id/relativeLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
-        <Button android:layout_height="wrap_content" android:id="@+id/buttonBack" android:text="@string/button_back" android:onClick="onButtonClick" android:layout_width="wrap_content" ></Button>
-        <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_width="wrap_content" android:layout_alignParentRight="true"></ImageView>
+        <Button android:layout_height="wrap_content" android:id="@+id/buttonBack" android:text="@string/button_back" android:onClick="onButtonClick" android:layout_width="wrap_content" android:visibility="gone"></Button>
+        <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_width="wrap_content" android:layout_alignParentRight="true" android:visibility="gone"></ImageView>
     </RelativeLayout>
     <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buddahView" android:src="@drawable/buddha"></ImageView>
     <RelativeLayout android:id="@+id/relativeLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent">

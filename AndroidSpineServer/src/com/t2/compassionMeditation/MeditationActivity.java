@@ -261,11 +261,11 @@ public class MeditationActivity extends Activity
 		mSeekBar.setProgress((int) mAlphaGain * 10);      
 		
         // Controls start as invisible, need to touch screen to activate them
-		mCountdownTextView.setVisibility(View.GONE);
-		mTextInfoView.setVisibility(View.GONE);
-		mPauseButton.setVisibility(View.GONE);
-		mBackButton.setVisibility(View.GONE);
-		mSeekBar.setVisibility(View.GONE);
+		mCountdownTextView.setVisibility(View.INVISIBLE);
+		mTextInfoView.setVisibility(View.INVISIBLE);
+		mPauseButton.setVisibility(View.INVISIBLE);
+		mBackButton.setVisibility(View.INVISIBLE);
+		mSeekBar.setVisibility(View.INVISIBLE);
 		
         ImageView image = (ImageView) findViewById(R.id.imageView1);
         image.setImageResource(R.drawable.signal_bars0);  
@@ -491,7 +491,7 @@ public class MeditationActivity extends Activity
 						if (mShowingControls || sigQuality == 200)
 							mSignalImage.setVisibility(View.VISIBLE);
 						else
-							mSignalImage.setVisibility(View.GONE);
+							mSignalImage.setVisibility(View.INVISIBLE);
 							
 						
 						
@@ -600,7 +600,7 @@ public class MeditationActivity extends Activity
 		        	mLoggingEnabled = false;
 		        	mToggleLogButton.setText("Log:\nOFF");
 		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.GONE);
+		        	mLlogMarkerButton.setVisibility(View.INVISIBLE);
 
 		        	try {
 		            	if (mLogWriter != null)
@@ -805,11 +805,11 @@ public class MeditationActivity extends Activity
 		// Toggle showing screen buttons/controls
 		if (mShowingControls) {
 			mShowingControls = false;
-			mCountdownTextView.setVisibility(View.GONE);
-			mTextInfoView.setVisibility(View.GONE);
-			mPauseButton.setVisibility(View.GONE);
-			mBackButton.setVisibility(View.GONE);
-			mSeekBar.setVisibility(View.GONE);
+			mCountdownTextView.setVisibility(View.INVISIBLE);
+			mTextInfoView.setVisibility(View.INVISIBLE);
+			mPauseButton.setVisibility(View.INVISIBLE);
+			mBackButton.setVisibility(View.INVISIBLE);
+			mSeekBar.setVisibility(View.INVISIBLE);
 			
 		}
 		else {
@@ -819,7 +819,7 @@ public class MeditationActivity extends Activity
 			mPauseButton.setVisibility(View.VISIBLE);
 			mBackButton.setVisibility(View.VISIBLE);
 //			mSeekBar.setVisibility(View.VISIBLE);
-			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.GONE);
+			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.INVISIBLE);
 
 		}
 		return false;
