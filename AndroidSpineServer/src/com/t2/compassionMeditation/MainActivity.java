@@ -29,6 +29,7 @@ import com.t2.filechooser.FileChooser;
 public class MainActivity extends ListActivity {
 	private static final String TAG = "MainActivity";
 	private static final String mActivityVersion = "1.0";
+	private static boolean firstTime = true;
 	/**
 	 * Application version info determined by the package manager
 	 */
@@ -70,7 +71,8 @@ public class MainActivity extends ListActivity {
         getListView().setTextFilterEnabled(true);
         
 		boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-		if (instructionsOnStart) {
+		if (instructionsOnStart && firstTime) {
+			firstTime = false;
 			Intent intent1 = new Intent(this, InstructionsActivity.class);
 			this.startActivity(intent1);		
 
