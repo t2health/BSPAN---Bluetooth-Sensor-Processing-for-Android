@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 
+import com.j256.ormlite.dao.Dao;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
@@ -303,6 +304,9 @@ public class MeditationActivity extends Activity
 		}
 		
 		mManager.discoveryWsn();
+		
+		//Dao<UserData, Integer> simpleDao = getHelper().getSimpleDataDao();
+		
 		
 		if (mAllowMultipleUsers) {
 			SelectUser();
@@ -656,8 +660,7 @@ public class MeditationActivity extends Activity
 			numSecsWithoutData++;
 
 			// Update buddah image based on band of interes
-//			int value = currentMindsetData.getRatioFeature(mBandOfInterest);
-			int value = currentMindsetData.getScaledFeature(mBandOfInterest);
+			int value = currentMindsetData.getFeatureValue(mBandOfInterest);
 			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
 
 			mMovingAverage.pushValue(value);	

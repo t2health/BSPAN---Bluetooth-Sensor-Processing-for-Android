@@ -434,8 +434,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 								continue;
 							}
 
-//							item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
-							item.series.add(mSpineChartX, currentMindsetData.getScaledFeature((int) item.id));
+							item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
 							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 								item.series.remove(0);
 							}
@@ -671,7 +670,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 				return;
 			}
 	        mTextInfoView.setText(
-	        		"Theta: " + currentMindsetData.getScaledFeature(bandOfInterest)  
+	        		"Theta: " + currentMindsetData.getFeatureValue(bandOfInterest)  
 	        		);
 			
 
@@ -690,7 +689,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 //
 //	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
 //	        
-//	        double valueToPlot = currentMindsetData.getRatioFeature(bandOfInterest) * gain;
+//	        double valueToPlot = currentMindsetData.getFeatureValue(bandOfInterest) * gain;
 //	        if (valueToPlot > BAR_ABS_CENTERVAL) {
 //	        	valueToPlot = BAR_ABS_CENTERVAL;
 //	        }

@@ -33,6 +33,7 @@ public class MindsetData  extends Data {
 	public int[] ratioSpectralData = new int[NUM_BANDS];
 	public int[] scaledSpectralData = new int[NUM_BANDS];
 	public int[] mScaleData = new int[MindsetData.NUM_BANDS];	
+	public int mTotalSamples = 1;
 	
 	public static final int DELTA_ID = 0;
 	public static final int THETA_ID = 1;
@@ -52,7 +53,10 @@ public class MindsetData  extends Data {
 	public byte exeCode;
 	protected SharedPreferences sharedPref;
 	protected static Context context;
+	long mTotalPower = 0;
 
+	
+	
 	public MindsetData(Context aContext) {
 		context = aContext;
         sharedPref = PreferenceManager.getDefaultSharedPreferences(context);   
@@ -63,6 +67,12 @@ public class MindsetData  extends Data {
 				","
 		);
         
+        // For now at least let's not use the stored max. The problem is that
+        // the max can very quite a bit from session to session based on
+        // battery level, different headsets, etc.
+        mScaleData = null;
+        
+        mTotalSamples = SharedPref.getInt(context, "totalSamples", 1);
         
 		if (mScaleData == null) {
 			mScaleData = new int[] {1,1,1,1,1,1,1,1};
@@ -84,7 +94,9 @@ public class MindsetData  extends Data {
 
 	public void saveScaleData() {
 		if (sharedPref != null && mScaleData != null )
-			SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);    	
+			SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);
+		
+		SharedPref.getInt(context, "totalSamples", mTotalSamples);
 	}
 	
 	public int getRawFeature(int feature) {
@@ -94,24 +106,15 @@ public class MindsetData  extends Data {
 			return -1;
 	}
 
-	/**
-	 * @param feature Band of interest
-	 * @return Spectral power for specified data normalized to 0-100 by ratio to total power
-	 */
-	public int getRatioFeature(int feature) {
-		if (feature <= NUM_BANDS)
-			return this.ratioSpectralData[feature];
-		else
-			return -1;
-	}
 
 	/**
 	 * @param feature Band of interest
-	 * @return Spectral power for specified data normalized to 0-100 by ratio to HIGHEST value encountered
+	 * @return Spectral power for specified data normalized to 0-100 by xxx
 	 */
-	public int getScaledFeature(int feature) {
+	public int getFeatureValue(int feature) {
 		if (feature <= NUM_BANDS)
-			return this.scaledSpectralData[feature];
+			//return this.scaledSpectralData[feature];
+			return this.ratioSpectralData[feature];
 		else
 			return -1;
 	}
@@ -122,13 +125,34 @@ public class MindsetData  extends Data {
 	
 	public void updateSpectral(MindsetData d) {
 
+		mTotalSamples++;
+
+		mTotalPower = 0;
+		// First get total of all bins (for ratio data)
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			mTotalPower += d.rawSpectralData[i];
+		}		
+		
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			rawSpectralData[i] = d.rawSpectralData[i];
+
+			// Scale the data based on the total power
+			if (mTotalPower > 0) {
+				double scale = (double) rawSpectralData[i] / (double) mTotalPower;
+				ratioSpectralData[i] = (int) (scale * 100);				
+			}
+			else {
+				// Now scale based on total power
+				ratioSpectralData[i] = 0;
+			}
+			
+			// for new max of each band
 			if (rawSpectralData[i] > mScaleData[i]) {
-				Log.i("SensorData", "New max for band " + MindsetData.spectralNames[i]  + " = " + rawSpectralData[i]);
+//				Log.i("SensorData", "New max for band " + MindsetData.spectralNames[i]  + " = " + rawSpectralData[i] + " - old= " + mScaleData[i]);
 				mScaleData[i] = rawSpectralData[i];
 			}
 			
+			// Now scale the data based on scale data
 			if (mScaleData[i] != 0) {
 				double scale = (double) rawSpectralData[i] / (double) mScaleData[i];
 				scaledSpectralData[i] = (int) (scale * 100);
@@ -136,7 +160,7 @@ public class MindsetData  extends Data {
 			else {
 				scaledSpectralData[i] = (rawSpectralData[i]);
 			}
-			this.ratioSpectralData[i] = d.ratioSpectralData[i];
+			
 
 		}
 	}
@@ -196,13 +220,15 @@ public class MindsetData  extends Data {
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
-			line += this.scaledSpectralData[i] + ", ";
-//			line += this.ratioSpectralData[i] + ", ";
+			line += this.getFeatureValue(i) + ", ";
 		}
+
+		
 		line += ", ";								// Visual seperator
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += this.rawSpectralData[i] + ", ";
 		}
+		line += "; " + mTotalPower;
 		
 		return line;
 	}
@@ -212,7 +238,7 @@ public class MindsetData  extends Data {
 		line += this.attention + ", "; 
 		line += this.meditation + ", "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
-			line += this.scaledSpectralData[i] + ", ";
+			line += getFeatureValue(i) + ", ";
 //			line += this.ratioSpectralData[i] + ", ";
 		}
 		line += ", ";								// Visual seperator
@@ -220,6 +246,7 @@ public class MindsetData  extends Data {
 			line += this.rawSpectralData[i] + ", ";
 		}
 
+		
 		if (saveRawWave) {
 			if (execode == Constants.EXECODE_RAW_ACCUM) {
 				for (int i = 0; i < Constants.RAW_ACCUM_SIZE; i++) {

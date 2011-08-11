@@ -251,8 +251,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 					if(!item.visible) {
 						continue;
 					}
-						int v = currentMindsetData.getRatioFeature((int) item.id);
-						item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+						int v = currentMindsetData.getFeatureValue((int) item.id);
+						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
 						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 							item.series.remove(0);
 						}
@@ -669,7 +669,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 //					continue;
 //				}
 //				
-//				item.series.add(mSpineChartX, currentMindsetData.getRatioFeature((int) item.id));
+//				item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
 //				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 //					item.series.remove(0);
 //				}
@@ -677,7 +677,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 //			} 			
 //			
 //	        mTextInfoView.setText(
-//	        		"Theta: " + currentMindsetData.getRatioFeature(bandOfInterest) + "\n" +  
+//	        		"Theta: " + currentMindsetData.getFeatureValue(bandOfInterest) + "\n" +  
 //	        		"Time Remaining: "
 //	        		);
 //			
@@ -894,7 +894,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		mCursor = start;
 		MindsetPoint p = (MindsetPoint) mSessionData.get(mCursor);
 
-        mTextInfoView.setText(p.dateTime + ":\n " + p.getSpectralName(bandOfInterest) + ":" + p.getRatioFeature(bandOfInterest) + "\n");
+        mTextInfoView.setText(p.dateTime + ":\n " + p.getSpectralName(bandOfInterest) + ":" + p.getFeatureValue(bandOfInterest) + "\n");
         if (!p.comment.equalsIgnoreCase("")) {
         	mTextViewComment.setText("Comment: " + p.comment);
         }
