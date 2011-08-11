@@ -9,6 +9,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
 /**
@@ -246,11 +247,11 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		case EXECODE_RAW_WAVE:
 			// For now we'll NOT ignore raw wave data (comes in every 2 ms)
 			if (mSendRawWave) {
-				if (mRawAccumDataIndex >= NUM_RAW * 2) {
+				if (mRawAccumDataIndex > (NUM_RAW * 2) - 2) {
+					mRawAccumDataIndex = 0;
 
 					// We should never get here
 					Log.e(TAG, "mRawAccumDataIndex overflow");
-					mRawAccumDataIndex = 0;
 					
 				}
 				else {
@@ -281,7 +282,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		
 		case EXECODE_SPECTRAL:
 			
-//			Log.i(TAG, "Spectral, mRawAccumDataIndex = " + mRawAccumDataIndex);
+			Log.i(TAG, "Spectral, mRawAccumDataIndex = " + mRawAccumDataIndex);
 
 			if (mSendRawWave) {
 				startMessage(MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE);
@@ -325,6 +326,7 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		
 		}
 		
+//		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
 //		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
 		
 		// Now we have a message we need to send it to the server via the server listener(s)
