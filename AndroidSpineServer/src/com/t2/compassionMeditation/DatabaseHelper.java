@@ -22,10 +22,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	 * Suggested Copy/Paste code. Everything from here to the done block.
 	 ************************************************/
 
-	private static final String DATABASE_NAME = "cp.db";
+	private static final String DATABASE_NAME = "cp1.db";
 	private static final int DATABASE_VERSION = 6;
 
-	private Dao<UserData, Integer> userDataDao;
+	private Dao<BioUser, Integer> userDataDao;
 
 	public DatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,7 +38,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource) {
 		try {
-			TableUtils.createTable(connectionSource, UserData.class);
+			TableUtils.createTable(connectionSource, BioUser.class);
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
 		}
@@ -47,7 +47,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource, int oldVer, int newVer) {
 		try {
-			TableUtils.dropTable(connectionSource, UserData.class, true);
+			TableUtils.dropTable(connectionSource, BioUser.class, true);
 			onCreate(sqliteDatabase, connectionSource);
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to upgrade database from version " + oldVer + " to new "
@@ -55,9 +55,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		}
 	}
 
-	public Dao<UserData, Integer> getUserDataDao() throws SQLException {
+	public Dao<BioUser, Integer> getUserDataDao() throws SQLException {
 		if (userDataDao == null) {
-			userDataDao = getDao(UserData.class);
+			userDataDao = getDao(BioUser.class);
 		}
 		return userDataDao;
 	}

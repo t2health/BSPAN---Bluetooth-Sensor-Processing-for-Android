@@ -4,22 +4,24 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
+
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
 
@@ -34,6 +36,8 @@ import spine.datamodel.Address;
 import spine.datamodel.Data;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -59,10 +63,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,7 +75,7 @@ import android.widget.Toast;
 import com.t2.R;
 
 
-public class MeditationActivity extends Activity 
+public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
@@ -163,13 +165,19 @@ public class MeditationActivity extends Activity
 	 *   data associated with the name/user
 	 */
 	private ArrayList<String> mCurrentUsers;
+	
+	private List<BioUser> currentUsers;	
 
 	/**
 	 * This is the user that the operator selected when the activity first started
 	 *  All logging for this session will be done for this user/name
 	 */
-	private String mSelectedUser = null;
+	private String mSelectedUserName = null;
 
+//	private BioUser selectedUser = null;	
+
+//	private SessionDataPoint sessionDataPoint;
+	
 	
 	/**
 	 * Temp variable used in SelectUser() to indicate which user was selected
@@ -183,6 +191,7 @@ public class MeditationActivity extends Activity
 	 * Session name which is used for file creation (based on selected user) 
 	 */
 	private String mSessionName = "";
+	private String mLogCatName = "";
 	
 	boolean mAllowMultipleUsers;
 	boolean mSaveRawWave;
@@ -195,6 +204,30 @@ public class MeditationActivity extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+		// Clear the logcat
+        try {
+		    String cmd = "logcat -c ";
+		    Runtime.getRuntime().exec(cmd);
+		} catch (IOException e) {
+			Log.e(TAG, "Error clearing logcat" + e.toString());
+			e.printStackTrace();
+		}			
+        
+//		try {
+//			Account[] accounts = AccountManager.get(this).getAccounts();
+//			for (Account account : accounts) {
+//			  // TODO: Check possibleEmail against an email regex or treat
+//			  // account.name as an email address only for certain account.type values.
+//			  String possibleEmail = account.name;
+//
+//			}
+//		} catch (Exception e1) {
+//			Log.e(TAG, "Error Looking for accounts" + e1.toString());
+//			e1.printStackTrace();
+//		}		
+//        
+		
 		Log.i(TAG, TAG +  " onCreate");
 		instance = this;
 		
@@ -305,16 +338,43 @@ public class MeditationActivity extends Activity
 		
 		mManager.discoveryWsn();
 		
-		//Dao<UserData, Integer> simpleDao = getHelper().getSimpleDataDao();
+//		try {
+//			Dao<BioUser, Integer> userDataDao = getHelper().getUserDataDao();
+//			
+//			currentUsers = userDataDao.queryForAll();
+//			
+//			for (BioUser user: currentUsers) {
+//				if (user.name.equalsIgnoreCase("owner1")) {
+//					selectedUser = user;
+//				}
+//			}
+//			if (selectedUser == null) {
+//				selectedUser = new BioUser("owner1", System.currentTimeMillis());
+//				userDataDao.create(selectedUser);		
+//			}
+//			
+//			
+//		
+//		} catch (SQLException e) {
+//
+//			Log.e(TAG, "Database exception", e);
+//			return;
+//		}
+		
+		// Create a sessioin data point for this session (to put in data
+//		sessionDataPoint = new SessionDataPoint(System.currentTimeMillis(),0);
 		
 		
 		if (mAllowMultipleUsers) {
 			SelectUser();
 		}
 		else {
-			mSelectedUser = "";
+			mSelectedUserName = "owner";
+//			mSelectedUserName = selectedUser.name;
+
+			
+			
 			setNewSessionName();    			
-//			openLogFile();
 			
 			if (mAllowComments) {
 		    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
@@ -715,7 +775,7 @@ public class MeditationActivity extends Activity
 		if (!mSessionName.equalsIgnoreCase("")) {
 			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 		}
-		mSelectedUser = "";
+		mSelectedUserName = "";
 		mSessionName = "";
 		
 		
@@ -746,13 +806,13 @@ public class MeditationActivity extends Activity
 	{
 		 SharedPref.putBoolean(this, "LoggingEnabled", 	mLoggingEnabled);
 		 SharedPref.putString(this, "SessionName", 	mSessionName);
-		 SharedPref.putString(this, "SelectedUser", 	mSelectedUser);
+		 SharedPref.putString(this, "SelectedUser", 	mSelectedUserName);
 	}
 	
 	void restoreState()
 	{
 		mCurrentUsers = getUsers();	
-		mSelectedUser = SharedPref.getString(this, "SelectedUser", 	"");
+		mSelectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
 
 		mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
 		
@@ -877,7 +937,7 @@ public class MeditationActivity extends Activity
                 });
     	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-    			mSelectedUser = mCurrentUsers.get(mSelection);
+    			mSelectedUserName = mCurrentUsers.get(mSelection);
     			setNewSessionName();    			
     			openLogFile();
     			if (mAllowComments)
@@ -922,8 +982,8 @@ public class MeditationActivity extends Activity
 
 		alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int whichButton) {
-			mSelectedUser = input.getText().toString();
-      		mCurrentUsers.add(mSelectedUser);
+			mSelectedUserName = input.getText().toString();
+      		mCurrentUsers.add(mSelectedUserName);
       		setUsers(mCurrentUsers);
       		SelectUser(); // Go back to main selection dialog
 
@@ -932,7 +992,7 @@ public class MeditationActivity extends Activity
 
 		alert1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 		  public void onClick(DialogInterface dialog, int whichButton) {
-			  mSelectedUser = null;
+			  mSelectedUserName = null;
 		  }
 		});
 
@@ -955,13 +1015,38 @@ public class MeditationActivity extends Activity
 		final EditText input = new EditText(this);
 		alert1.setView(input);
 
+		
+		// User pressed the quit key, exit the activity
 		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int whichButton) {
 			
 			addNoteToLog(input.getText().toString());
 			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 			
-			mSelectedUser = "";
+//			if (selectedUser.sessionDataPoints != null)
+//				selectedUser.sessionDataPoints.add(sessionDataPoint);
+//			try {
+//				getHelper().getUserDataDao().update(selectedUser);
+//			} catch (SQLException e) {
+//
+//				Log.e(TAG, "Database exception", e);
+//				return;
+//			}		
+			
+			try {
+				
+			    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+			    filename.createNewFile(); 
+			    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+			    Runtime.getRuntime().exec(cmd);
+			} catch (IOException e) {
+			    // TODO Auto-generated catch block
+			    e.printStackTrace();
+			}			
+			
+			
+			
+			mSelectedUserName = "";
 			mSessionName = "";
 			
 			finish();
@@ -1022,13 +1107,15 @@ public class MeditationActivity extends Activity
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
 		String currentDateTimeString = sdf.format(new Date());
 		
-		mSessionName = mSelectedUser + "_" + currentDateTimeString + ".log";	
+		mSessionName = mSelectedUserName + "_" + currentDateTimeString + ".log";
+		mLogCatName = "Logcat" + currentDateTimeString + ".log";			
+		
 	}
 	
 	void openLogFile() {
 		mLoggingEnabled = true;	
 		
-		if (mLoggingEnabled && this.mSelectedUser != null) {
+		if (mLoggingEnabled && this.mSelectedUserName != null) {
 
 			Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
 

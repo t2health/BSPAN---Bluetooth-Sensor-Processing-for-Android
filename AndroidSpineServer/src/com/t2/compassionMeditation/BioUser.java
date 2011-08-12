@@ -11,10 +11,8 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.logger.Log;
 import com.j256.ormlite.field.DataType;
 
-/**
- * A simple demonstration object we are creating and persisting to the database.
- */
-	public class UserData  implements Serializable {
+
+public class BioUser  implements Serializable {
 
 		private static final long serialVersionUID = -7874823823497497349L;
 	
@@ -45,21 +43,23 @@ import com.j256.ormlite.field.DataType;
 	Vector<Long> data;
 
 	
-	@DatabaseField(dataType=DataType.SERIALIZABLE)
+//	@DatabaseField(dataType=DataType.SERIALIZABLE)
 	List<SessionDataPoint> sessionDataPoints;;	
 	
 
 	//@DatabaseField
 	//Vector data;
 
-	UserData() {
+	BioUser() {
 		// needed by ormlite
 	}
 
-	public UserData(String name, long currentDate) {
+	public BioUser(String name, long currentDate) {
 		this.createDate = new Date(currentDate);
 		this.name = name;
 		this.data = new Vector();
+		
+		this.sessionDataPoints = new ArrayList<SessionDataPoint>();
 //		List<SessionDataPoint> clickGroups = new ArrayList<SessionDataPoint>();	
 
 		

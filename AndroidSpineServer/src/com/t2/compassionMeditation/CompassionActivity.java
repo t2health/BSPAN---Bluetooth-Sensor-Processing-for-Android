@@ -142,7 +142,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	private MindsetData currentMindsetData;
 	
-	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
+	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
 	
@@ -210,7 +210,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		// See public void received(Data data)
         this.mCommandReceiver = new SpineReceiver(this);
      
-        for (int i = 0; i < MindsetData.NUM_BANDS; i++) {
+        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
         	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
@@ -669,8 +669,10 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
 				return;
 			}
+			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+			
 	        mTextInfoView.setText(
-	        		"Theta: " + currentMindsetData.getFeatureValue(bandOfInterest)  
+	        		bandName + ": " + currentMindsetData.getFeatureValue(mBandOfInterest)  
 	        		);
 			
 
@@ -766,6 +768,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     		    Log.e(TAG, "Could not write file " + e.getMessage());
     		}
 		}
+		
+		mBandOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+		
 		
 	}
 

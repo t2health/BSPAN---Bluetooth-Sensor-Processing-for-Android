@@ -43,8 +43,12 @@ public class MindsetData  extends Data {
 	public static final int HIGHBETA_ID = 5;
 	public static final int LOWGAMMA_ID = 6;
 	public static final int MIDGAMMA_ID = 7;
+	public static final int E_ATTENTION_ID = 8;
+	public static final int E_MEDITATION_ID = 9;
 
-	public static final String[] spectralNames = new String[] {"Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma"};
+	public static final String[] spectralNames = new String[] {
+			"Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma",
+			"(e)Attention", "(e)Meditation"};
 	
 	
 	private Node node;
@@ -106,27 +110,41 @@ public class MindsetData  extends Data {
 			return -1;
 	}
 
-
 	/**
 	 * @param feature Band of interest
 	 * @return Spectral power for specified data normalized to 0-100 by xxx
 	 */
 	public int getFeatureValue(int feature) {
-		if (feature <= NUM_BANDS)
+		if (feature < NUM_BANDS) {
 			//return this.scaledSpectralData[feature];
 			return this.ratioSpectralData[feature];
-		else
-			return -1;
+		}
+		else {
+			if (feature == E_ATTENTION_ID)
+				return attention;
+			else if (feature == E_MEDITATION_ID)
+				return meditation;
+			else
+				return -1;
+			
+		}
 	}
 
 	public String getSpectralName(int band) {
-		return spectralNames[band];
+		if (band <= E_MEDITATION_ID)
+			return spectralNames[band];
+		else
+			return "error";
 	}
 	
 	public void updateSpectral(MindsetData d) {
 
 		mTotalSamples++;
 
+//		this.attention = d.attention;
+//		this.meditation = d.meditation;
+//		this.poorSignalStrength = d.poorSignalStrength;
+		
 		mTotalPower = 0;
 		// First get total of all bins (for ratio data)
 		for (int i = 0; i < NUM_BANDS; i++)	{

@@ -8,9 +8,11 @@ import java.util.List;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -32,6 +34,39 @@ public class FileChooser extends ListActivity {
         currentDir = Environment.getExternalStorageDirectory();
         
         fill(currentDir);
+        
+        // Set a listener for long click to email file
+        ListView lv = getListView();         
+        lv.setOnItemLongClickListener( new AdapterView.OnItemLongClickListener () { 
+        	@Override 
+            public boolean onItemLongClick(AdapterView<?> av, View v, int  pos, long id) { 
+
+        		Option o = adapter.getItem(pos);
+        		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
+        		}
+        		else {
+        			 Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory(), o.getName()));        		
+            		
+            		Intent i = new Intent(Intent.ACTION_SEND);
+            		i.setType("text/plain");
+            		i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"scott.coleman@tee2.org"});
+            		i.putExtra(Intent.EXTRA_SUBJECT, "session results: " + o.getName());
+//            		i.putExtra(Intent.EXTRA_TEXT   , o.getName());
+            		i.putExtra(Intent.EXTRA_STREAM, uri);        		
+            		try {
+            		    startActivity(Intent.createChooser(i, "Send mail..."));
+            		} catch (android.content.ActivityNotFoundException ex) {
+            		    Toast.makeText(FileChooser.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+            		}        		
+        		}        		
+        		
+        		
+        		
+        		
+        		return true; 
+            } 
+        });         
+        
     }
     private void fill(File f)
     {
@@ -64,6 +99,9 @@ public class FileChooser extends ListActivity {
 		 adapter = new FileArrayAdapter(FileChooser.this,R.layout.file_view,dir);
 		 this.setListAdapter(adapter);
     }
+    
+    
+    
     @Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		// TODO Auto-generated method stub
@@ -75,7 +113,8 @@ public class FileChooser extends ListActivity {
 		}
 		else
 		{
-			onFileClick(o);
+			if (!o.getName().contains("Logcat"))
+				onFileClick(o);
 		}
 	}
     private void onFileClick(Option o)
