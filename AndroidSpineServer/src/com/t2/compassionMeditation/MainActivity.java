@@ -78,6 +78,8 @@ public class MainActivity extends ListActivity {
 
 		}
         
+		Intent intent2 = new Intent(this, SelectUserActivity.class);
+		this.startActivity(intent2);		
 
         
         

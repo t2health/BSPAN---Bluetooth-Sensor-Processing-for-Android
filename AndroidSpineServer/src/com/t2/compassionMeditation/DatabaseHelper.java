@@ -22,10 +22,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	 * Suggested Copy/Paste code. Everything from here to the done block.
 	 ************************************************/
 
-	private static final String DATABASE_NAME = "cp1.db";
+	private static final String DATABASE_NAME = "helloAndroid34.db";	
 	private static final int DATABASE_VERSION = 6;
 
-	private Dao<BioUser, Integer> userDataDao;
+	private Dao<BioUser, Integer> bioUserDao = null;
+	private Dao<BioSession, Integer> bioSessionDao = null;
+	
 
 	public DatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -39,6 +41,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	public void onCreate(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource) {
 		try {
 			TableUtils.createTable(connectionSource, BioUser.class);
+			TableUtils.createTable(connectionSource, BioSession.class);
+			
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
 		}
@@ -48,6 +52,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	public void onUpgrade(SQLiteDatabase sqliteDatabase, ConnectionSource connectionSource, int oldVer, int newVer) {
 		try {
 			TableUtils.dropTable(connectionSource, BioUser.class, true);
+			TableUtils.dropTable(connectionSource, BioSession.class, true);
 			onCreate(sqliteDatabase, connectionSource);
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to upgrade database from version " + oldVer + " to new "
@@ -55,11 +60,26 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		}
 	}
 
-	public Dao<BioUser, Integer> getUserDataDao() throws SQLException {
-		if (userDataDao == null) {
-			userDataDao = getDao(BioUser.class);
+	public Dao<BioUser, Integer> getBioUserDao() throws SQLException {
+		if (bioUserDao == null) {
+			bioUserDao = getDao(BioUser.class);
 		}
-		return userDataDao;
+		return bioUserDao;
 	}
-
+	public Dao<BioSession, Integer> getBioSessionDao() throws SQLException {
+		if (bioSessionDao == null) {
+			bioSessionDao = getDao(BioSession.class);
+		}
+		return bioSessionDao;
+	}
+	/**
+	 * Close the database connections and clear any cached DAOs.
+	 */
+	@Override
+	public void close() {
+		super.close();
+		bioUserDao = null;
+		bioSessionDao = null;
+	}	
+	
 }

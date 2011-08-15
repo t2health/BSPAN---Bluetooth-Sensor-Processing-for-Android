@@ -1,0 +1,196 @@
+package com.t2.compassionMeditation;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+
+import android.widget.ArrayAdapter;
+
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.dao.Dao;
+//Need the following import to get access to the app resources, since this
+//class is in a sub-package.
+import com.t2.R;
+
+public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+//	public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
+	private static final String TAG = "BFDemo";
+	private static final String mActivityVersion = "1.0";
+	
+	private ListView listView;
+	
+	private BioUser selectedUser = null;	
+	private List<BioUser> currentUsers;	
+	private Cursor notesCursor;
+	
+	static private SelectUserActivity instance;
+	Dao<BioUser, Integer> bioUserDao;
+	Dao<BioSession, Integer> bioSessionDao;
+	String selectedUserName;
+	int selectedId;
+	
+	public void onButtonClick(View v)
+	{
+		 final int id = v.getId();
+		    switch (id) {
+		    case R.id.buttonAddUser:
+				AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
+
+				alert1.setMessage("Enter new user name");
+
+				// Set an EditText view to get user input 
+				final EditText input = new EditText(this);
+				alert1.setView(input);
+
+				alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String newUserName = input.getText().toString();
+					BioUser newuser = new BioUser(newUserName, System.currentTimeMillis());
+					try {
+						bioUserDao.create(newuser);
+						updateListView();						
+					} catch (SQLException e) {
+						Log.e(TAG, "Error adding new user" + e.toString());
+					}
+
+				  }
+				});
+
+				alert1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				  public void onClick(DialogInterface dialog, int whichButton) {
+				  }
+				});
+
+				alert1.show();		    	
+				break;
+		    }
+	}
+	
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+		instance = this;
+		
+		this.setContentView(R.layout.select_user_layout);
+		listView = (ListView)findViewById(R.id.listViewUsers);
+		
+		
+		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+				String seletedItem = (String) listView.getAdapter().getItem(i);
+				int ix = 0;
+				
+			}
+		});		
+		
+		listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+			public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+				selectedUserName = (String) listView.getAdapter().getItem(i);
+				selectedId = i;
+				
+				
+				AlertDialog.Builder alert = new AlertDialog.Builder(instance);
+				alert.setTitle("Choose Activity");
+		    	alert.setPositiveButton("Edit User", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int whichButton) {
+		            }
+		        });				
+				
+		    	alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int whichButton) {
+		            }
+		        });				
+				
+		    	alert.setNeutralButton("Delete User", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int whichButton) {
+		            	
+						AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
+
+						alert2.setMessage("Are you sure?");
+
+
+						alert2.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int whichButton) {
+			            	try {
+								bioUserDao.delete(currentUsers.get(selectedId));
+								updateListView();						
+								
+							} catch (SQLException e) {
+								Log.e(TAG, "Error deleting user" + e.toString());
+							}
+						}
+						});
+
+						alert2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+						  public void onClick(DialogInterface dialog, int whichButton) {
+						  }
+						});
+
+						alert2.show();
+		            }
+		        });				
+				
+				alert.show();					
+				return true;
+			}
+		});		
+		
+		
+		updateListView();		
+		
+	}
+
+	void updateListView() {
+		ArrayList<String>  strUsers = new ArrayList<String>();
+		
+		try {
+
+			bioUserDao = getHelper().getBioUserDao();
+			bioSessionDao = getHelper().getBioSessionDao();
+			currentUsers = bioUserDao.queryForAll();				
+			
+			for (BioUser user: currentUsers) {
+				strUsers.add(user.name);
+			}
+			
+		} catch (SQLException e) {
+			Log.e(TAG, "Error Looking for accounts" + e.toString());
+		}
+	
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.row_layout, R.id.label, strUsers);
+	
+		listView.setAdapter(adapter);
+		
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+	}
+	
+	// The main ArrayList .
+	private ArrayList PrepareList() {
+		ArrayList todoItems = new ArrayList();
+		todoItems.add("Fill up Gasoline");
+		todoItems.add("Wash car");
+		todoItems.add("Dinner with friends");
+		todoItems.add("Watch Movie");
+		return todoItems;
+
+	}	
+
+}
