@@ -30,6 +30,10 @@ public class MainActivity extends ListActivity {
 	private static final String TAG = "MainActivity";
 	private static final String mActivityVersion = "1.0";
 	private static boolean firstTime = true;
+	
+	boolean mAllowMultipleUsers;
+	
+	
 	/**
 	 * Application version info determined by the package manager
 	 */
@@ -47,6 +51,11 @@ public class MainActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         
+        mAllowMultipleUsers = SharedPref.getBoolean(this, 
+        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS, 
+        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS_DEFAULT);        
+        
+        
 		try {
 			PackageManager packageManager = this.getPackageManager();
 			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
@@ -57,7 +66,14 @@ public class MainActivity extends ListActivity {
 			   	Log.e(TAG, e.toString());
 		}
         
-        
+		if (mAllowMultipleUsers) {
+			Intent intent2 = new Intent(this, SelectUserActivity.class);
+			this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
+			
+		} else {
+	    	SharedPref.putString(this, "SelectedUser", 	"");
+
+		}        
 
         View header = getLayoutInflater().inflate(R.layout.layout_header, null);
         ListView listView = getListView();
@@ -70,18 +86,7 @@ public class MainActivity extends ListActivity {
         this.setListAdapter(new ArrayAdapter<String>(this, R.layout.main1,R.id.label, mStrings));        
         getListView().setTextFilterEnabled(true);
         
-		boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-		if (instructionsOnStart && firstTime) {
-			firstTime = false;
-			Intent intent1 = new Intent(this, InstructionsActivity.class);
-			this.startActivity(intent1);		
 
-		}
-        
-		Intent intent2 = new Intent(this, SelectUserActivity.class);
-		this.startActivity(intent2);		
-
-        
         
     }
 
@@ -108,8 +113,20 @@ public class MainActivity extends ListActivity {
 		if (keyword.equalsIgnoreCase("new session")) {
 			
 			
-			intent = new Intent(this, MeditationActivity.class);
-			this.startActivity(intent);		
+			boolean instructionsOnStart = SharedPref.getBoolean(this, 
+					com.t2.compassionMeditation.Constants.PREF_INSTRUCTIONS_ON_START, 
+					com.t2.compassionMeditation.Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+
+			if (instructionsOnStart) {
+				Intent intent1 = new Intent(this, InstructionsActivity.class);
+				this.startActivityForResult(intent1, Constants.INSTRUCTIONS_USER_ACTIVITY);		
+			} else {
+				intent = new Intent(this, MeditationActivity.class);
+				this.startActivity(intent);		
+
+			}
+			
+			
 			
 		}
 		if (keyword.equalsIgnoreCase("view eeg activity")) {
@@ -120,7 +137,7 @@ public class MainActivity extends ListActivity {
 		if (keyword.equalsIgnoreCase("View Previous Session")) {
 			intent = new Intent(this, FileChooser.class);
 			
-			this.startActivityForResult(intent, Constants.fileChooserRequestCode);
+			this.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);
 
 //			this.startActivity(intent);		
 			
@@ -135,12 +152,12 @@ public class MainActivity extends ListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		if (data == null)
-			return;
 		
 		switch(requestCode) {
-			case Constants.fileChooserRequestCode:
-				String sessionName = data.getStringExtra(Constants.FILE_CHOOSER_EXTRA);
+			case Constants.FILECHOOSER_USER_ACTIVITY:
+				if (data == null)
+					return;
+				String sessionName = data.getStringExtra(Constants.FILECHOOSER_USER_ACTIVITY_RESULT);
 		    	Toast.makeText(this, "File Clicked: " + sessionName, Toast.LENGTH_SHORT).show();
 		    	
 		    	
@@ -156,6 +173,33 @@ public class MainActivity extends ListActivity {
 				this.startActivity(intent);			    	
 
 				break;
+				
+		    case (com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY) :  
+			      if (resultCode == RESULT_OK) {
+			  		if (data == null)
+						return;
+			    	  
+
+			    	// We can't write the note yet because we may not have been re-initialized
+			    	// since the not dialog put us into pause.
+			    	// We'll save the note and write it at restore
+			    	String userName = data.getStringExtra(com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY_RESULT);
+
+			    	if (userName == null) {
+			    		userName = "";
+			    	}
+
+			    	SharedPref.putString(this, "SelectedUser", 	userName);
+			    	  
+			      } 
+			      break; 	
+			      
+		    case (Constants.INSTRUCTIONS_USER_ACTIVITY):
+				intent = new Intent(this, MeditationActivity.class);
+				this.startActivity(intent);		
+		    	break;
+		    	
+				
 		}
 	}
 	
@@ -196,6 +240,7 @@ public class MainActivity extends ListActivity {
 			return super.onOptionsItemSelected(item);
 		}
 	}
+	
 	
 	
 	

@@ -121,7 +121,7 @@ public class FileChooser extends ListActivity {
     {
 		Intent resultIntent;
 		resultIntent = new Intent();
-		resultIntent.putExtra(Constants.FILE_CHOOSER_EXTRA, o.getName());		
+		resultIntent.putExtra(Constants.FILECHOOSER_USER_ACTIVITY_RESULT, o.getName());		
 		setResult(RESULT_OK, resultIntent);
 		finish();
     }

@@ -3,7 +3,6 @@ package com.t2.compassionMeditation;
 import spine.datamodel.MindsetData;
 
 public class Constants {
-	public static final String FILE_CHOOSER_EXTRA = "File";
 	
 	public static final String PREF_SESSION_LENGTH = "SessionLength";
 	public static final int PREF_SESSION_LENGTH_DEFAULT = 1800;
@@ -31,8 +30,17 @@ public class Constants {
 
 	
 	
-	
 	public static final String EXTRA_SESSION_NAME = "SessionName";
+	
+	// Intent constants for StartActivityForResult
+	
+	public static final int SELECT_USER_ACTIVITY = 0x301;	
+	public static final String SELECT_USER_ACTIVITY_RESULT = "SelectUserActivityResult";	
 
-	public static final int fileChooserRequestCode = 0x300;
+	public static final int INSTRUCTIONS_USER_ACTIVITY = 0x302;	
+	public static final String INSTRUCTIONS_USER_ACTIVITY_RESULT = "InstructionsActivityResult";	
+
+	public static final int FILECHOOSER_USER_ACTIVITY = 0x303;
+	public static final String FILECHOOSER_USER_ACTIVITY_RESULT = "File";
+	
 }

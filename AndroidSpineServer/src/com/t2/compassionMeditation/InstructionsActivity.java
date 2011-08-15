@@ -4,6 +4,7 @@ import com.t2.R;
 import com.t2.biomap.SharedPref;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Layout;
 import android.view.MotionEvent;
@@ -34,9 +35,15 @@ public class InstructionsActivity extends Activity implements View.OnTouchListen
 	}
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
 		boolean isChecked = mShowInstructionsCheckbox.isChecked();
 		SharedPref.putBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, isChecked );
+		
+		Intent resultIntent;
+		resultIntent = new Intent();
+		resultIntent.putExtra(Constants.INSTRUCTIONS_USER_ACTIVITY_RESULT, "");
+		setResult(RESULT_OK, resultIntent);
+		super.onDestroy();
+		
 		
 	}
 	@Override

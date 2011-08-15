@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,10 +22,10 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
+import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
 
 public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
-//	public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
 	
@@ -91,7 +92,12 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 				String seletedItem = (String) listView.getAdapter().getItem(i);
-				int ix = 0;
+				
+				Intent resultIntent;
+				resultIntent = new Intent();
+				resultIntent.putExtra(Constants.SELECT_USER_ACTIVITY_RESULT, seletedItem);
+				setResult(RESULT_OK, resultIntent);
+				finish();				
 				
 			}
 		});		
@@ -182,15 +188,5 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		super.onDestroy();
 	}
 	
-	// The main ArrayList .
-	private ArrayList PrepareList() {
-		ArrayList todoItems = new ArrayList();
-		todoItems.add("Fill up Gasoline");
-		todoItems.add("Wash car");
-		todoItems.add("Dinner with friends");
-		todoItems.add("Watch Movie");
-		return todoItems;
-
-	}	
 
 }

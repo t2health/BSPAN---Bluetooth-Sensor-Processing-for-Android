@@ -82,11 +82,11 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
-	private static final String mActivityVersion = "2.1";
+	private static final String mActivityVersion = "2.2";
 
 	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
-	
+
 	/**
 	 * Number of seconds remaining in the session
 	 *   This is set initially from SharedPref.PREF_SESSION_LENGTH
@@ -129,8 +129,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private boolean mLoggingEnabled = false;
 	private boolean mPaused = false;
 	
-	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
-	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 	
 	// UI Elements
 	private Button mToggleLogButton;
@@ -160,22 +158,9 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
-	/**
-	 * Non-volatile list of users that the system knows about
-	 *   Note that this is a list of names only which
-	 *   is used to determine file names.
-	 *   Deleting a user from this list DOES NOT delete the
-	 *   data associated with the name/user
-	 */
-	private ArrayList<String> mCurrentUsers;
 	
 	private List<BioUser> currentUsers;	
 
-	/**
-	 * This is the user that the operator selected when the activity first started
-	 *  All logging for this session will be done for this user/name
-	 */
-	private String mSelectedUserName = null;
 
 	private BioUser selectedUser = null;	
 
@@ -196,7 +181,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private String mSessionName = "";
 	private String mLogCatName = "";
 	
-	boolean mAllowMultipleUsers;
 	boolean mSaveRawWave;
 	boolean mAllowComments;
 	boolean mShowAGain;
@@ -209,6 +193,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         super.onCreate(savedInstanceState);
 
         
+                
 		// Clear the logcat
         try {
 		    String cmd = "logcat -c ";
@@ -265,9 +250,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         
         mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
 		
-        mAllowMultipleUsers = SharedPref.getBoolean(this, 
-        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS, 
-        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS_DEFAULT);
+
 		mAlphaGain = SharedPref.getFloat(this, 
 				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
 				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
@@ -367,23 +350,31 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		// Create a sessioin data point for this session (to put in data
 //		sessionDataPoint = new SessionDataPoint(System.currentTimeMillis(),0);
-		
-		
-		if (mAllowMultipleUsers) {
-			SelectUser();
-		}
-		else {
-			mSelectedUserName = "owner";
-//			mSelectedUserName = selectedUser.name;
 
-			
-			
-			setNewSessionName();    			
-			
-			if (mAllowComments) {
-		    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
-			}
-		}
+//		public void SelectUser() {
+//			if (mAllowMultipleUsers) {
+//				Intent intent2 = new Intent(this, SelectUserActivity.class);
+//				this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
+//				
+//			} else {
+//				setNewSessionName("");    			
+//				
+//				if (mAllowComments) {
+//			    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
+//				}
+//				
+//			}
+//		}
+//		
+		
+		String selectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
+		
+		// Create a log file name from the seledcted user and date/time
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
+		String currentDateTimeString = sdf.format(new Date());
+		
+		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
+		mLogCatName = "Logcat" + currentDateTimeString + ".log";			
 		
     	saveState();
     } // End onCreate(Bundle savedInstanceState)
@@ -683,10 +674,10 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		        }
 		    	break;
 
-		    case R.id.LogMarkerButton:
-				Intent i1 = new Intent(this, LogNoteActivity.class);
-				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
-		    	break;
+//		    case R.id.LogMarkerButton:
+//				Intent i1 = new Intent(this, LogNoteActivity.class);
+//				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
+//		    	break;
 		    } // End switch		
 	}
 	
@@ -779,9 +770,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		if (!mSessionName.equalsIgnoreCase("")) {
 			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 		}
-		mSelectedUserName = "";
-		mSessionName = "";
-		
 		
 		super.onStop();
 	}	
@@ -810,15 +798,12 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	{
 		 SharedPref.putBoolean(this, "LoggingEnabled", 	mLoggingEnabled);
 		 SharedPref.putString(this, "SessionName", 	mSessionName);
-		 SharedPref.putString(this, "SelectedUser", 	mSelectedUserName);
 	}
 	
 	void restoreState()
 	{
-		mCurrentUsers = getUsers();	
-		mSelectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
-
-		mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
+		if (mSessionName.equalsIgnoreCase(""))
+			mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
 		
 		mBandOfInterest = SharedPref.getInt(this, 
 				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
@@ -830,38 +815,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		}
 	}
 
-	
-	/**
-	 * @return List of current users from shared preference
-	 */
-	private ArrayList<String> getUsers() {
-		String[] usersStrArr = SharedPref.getValues(
-				sharedPref, 
-				"CurrentUsers", 
-				",",
-				new String[0]
-//				new String[] {""}
-		);
-		
-		return new ArrayList<String>(
-				Arrays.asList(
-						ArraysExtra.toStringArray(usersStrArr)
-				)
-		);		
-	}	
-
-	/**
-	 * Saves list of current users to shared preferences
-	 * @param users List of users to save
-	 */
-	private void setUsers(ArrayList<String> users) {
-		SharedPref.setValues(
-				sharedPref, 
-				"CurrentUsers", 
-				",", 
-				ArraysExtra.toStringArray(users.toArray(new String[users.size()]))
-		);
-	}	
 	
 	@Override
 	public boolean onTouch(View arg0, MotionEvent arg1) {
@@ -916,92 +869,8 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		
 	}
-		
-	/**
-	 * Presents a dialog allowing the operator to choose/add/delete specific users for session
-	 * Sets up the following
-	 *   mSelectedUser
-	 *   mCurrentUsers
-	 *   
-	 */
-	public void SelectUser() {
-		mCurrentUsers = getUsers();	
-		mSelection = 0;
-
-    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
-    	alert.setTitle(R.string.select_users_text);
-    	alert.setSingleChoiceItems(ArraysExtra.toStringArray(mCurrentUsers.toArray()),0,
-    			new DialogInterface.OnClickListener() {
-
-	    			public void onClick(DialogInterface dialog, int whichButton) {
 	
-	    				mSelection = whichButton;
-	        			
-	                }
-                });
-    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-    			mSelectedUserName = mCurrentUsers.get(mSelection);
-    			setNewSessionName();    			
-    			openLogFile();
-    			if (mAllowComments)
-    				handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
-          		mIntroFade = 255;
 
-
-            }
-        });
-    	alert.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-          		String s = mCurrentUsers.get(mSelection);
-            	mCurrentUsers.remove(s);
-          		setUsers(mCurrentUsers);
-          		SelectUser(); // Go back to main selection dialog
-            }
-        });
-    	// Add new user
-    	alert.setNeutralButton(R.string.new_user_text, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-        		getNewUserName("Enter new user name");
-            }
-        });
-
-		alert.show();		
-		
-	}
-	
-	/**
-	 * Presents a dialog to the operator to enter the name of a new user
-	 * @param message Prompt message for dialog
-	 */
-	public void getNewUserName(String message) {
-		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
-
-		alert1.setMessage(message);
-
-		// Set an EditText view to get user input 
-		final EditText input = new EditText(this);
-		alert1.setView(input);
-
-		alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		public void onClick(DialogInterface dialog, int whichButton) {
-			mSelectedUserName = input.getText().toString();
-      		mCurrentUsers.add(mSelectedUserName);
-      		setUsers(mCurrentUsers);
-      		SelectUser(); // Go back to main selection dialog
-
-		  }
-		});
-
-		alert1.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		  public void onClick(DialogInterface dialog, int whichButton) {
-			  mSelectedUserName = null;
-		  }
-		});
-
-		alert1.show();
-	}
 
 	/**
 	 * Handles the pause button press
@@ -1049,9 +918,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			}			
 			
 			
-			
-			mSelectedUserName = "";
-			mSessionName = "";
 			
 			finish();
 		  
@@ -1106,20 +972,15 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	/**
 	 * Sets the session name (file name to be saved) based on current time/date
 	 */
-	private void setNewSessionName() {
-		// Create a log file name from the seledcted user and date/time
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
-		String currentDateTimeString = sdf.format(new Date());
-		
-		mSessionName = mSelectedUserName + "_" + currentDateTimeString + ".log";
-		mLogCatName = "Logcat" + currentDateTimeString + ".log";			
+	private void setNewSessionName(String userName) {
 		
 	}
 	
 	void openLogFile() {
 		mLoggingEnabled = true;	
 		
-		if (mLoggingEnabled && this.mSelectedUserName != null) {
+		if (mLoggingEnabled) {
+//			if (mLoggingEnabled && this.mSelectedUserName != null) {
 
 			Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
 
@@ -1157,4 +1018,5 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
     		}
 		}
 	}
+
 }
