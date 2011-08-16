@@ -1,9 +1,13 @@
 package com.t2.biofeedback.device.zephyr;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
 
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -22,9 +26,12 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
 	boolean mDebug = true;	
+	long timout;
+	static ZephyrDevice instance;
 	
 	ZephyrDevice(ArrayList<Messenger> serverListeners)
 	{
+		instance = this;
 		this.mServerListeners = serverListeners;
 	}
 	
@@ -33,17 +40,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 	 */
 	@Override
 	protected void onSetLinkTimeout(long linkTimeout) {
-		ZephyrMessage m = new ZephyrMessage(
-				0xA4,
-				new byte[] {
-					(byte) linkTimeout,
-					(byte) linkTimeout,
-					0x1,
-					0x1,
-				},
-				ZephyrMessage.ETX
-		);
-		this.write(m);
+		timout = linkTimeout;
 	}
 
 	/* (non-Javadoc)
@@ -52,17 +49,68 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 	@Override
 	protected void onDeviceConnected() {
 		super.onDeviceConnected();
+	    Handler handler = new Handler(); 
+	    handler.postDelayed(new Runnable() { 
+	         public void run() { 
+					Log.v(TAG, "Tell the device to start sending periodic data.");
+					ZephyrMessage m = new ZephyrMessage(
+							0xA4,
+							new byte[] {
+								(byte) 0,
+								(byte) 0,
+								(byte) 0x10,		// 10 sec			
+								(byte) 0x27,
+//								(byte) 0x38,		// 1 sec			
+//								(byte) 0x03,
+							},
+							ZephyrMessage.ETX
+					);
+					instance.write(m);		
+
+				    Handler handler1 = new Handler(); 
+				    handler1.postDelayed(new Runnable() { 
+				         public void run() { 
+								
+								
+								// Tell the device to return periodic data.
+				        	 ZephyrMessage m = new ZephyrMessage(
+										0x14,
+										new byte[] {
+											0x01
+										},
+										ZephyrMessage.ETX
+								);
+						    	instance.write(m);				
+				        	 
+				        	 
+				         } 
+				    }, 500);				
+					
+
+	        	 
+	         } 
+	    }, 500);				
 		
-		Log.v(TAG, "Tell the device to start sending periodic data.");
-		// Tell the device to return periodic data.
-		ZephyrMessage m = new ZephyrMessage(
-				0x14,
-				new byte[] {
-					0x01
-				},
-				ZephyrMessage.ETX
-		);
-    	this.write(m);
+		
+		
+//		AsyncTask<Integer, Void, Void> asyncTask = new AsyncTask<Integer, Void, Void>() {
+//
+//			@Override
+//			protected Void doInBackground(Integer... integers) {
+//				
+//				
+//				return null;
+//			}
+//
+//			@Override
+//			protected void onPostExecute(Void aVoid) {
+//			}
+//		};
+//
+//		asyncTask.execute(0, 0);
+//		
+		
+
 	}
 
 	/* (non-Javadoc)
@@ -92,6 +140,18 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		if (bytes[1]== 0x20)
 		{
 			this.onMessageReceived(ZephyrMessage.parse(bytes));
+		}
+		if (bytes[1]== 0x14)
+		{
+			Log.v(TAG, " *********** Received response to start sending");
+		}
+		if (bytes[1]== 0xa4)
+		{
+			Log.v(TAG, " *********** Received response to Timeout");
+		}
+		if (bytes[1]== 0x23)
+		{
+			Log.v(TAG, "ZephyrHeartbeat ");
 		}
 	}
 	
