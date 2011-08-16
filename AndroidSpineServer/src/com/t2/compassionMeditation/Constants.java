@@ -43,4 +43,7 @@ public class Constants {
 	public static final int FILECHOOSER_USER_ACTIVITY = 0x303;
 	public static final String FILECHOOSER_USER_ACTIVITY_RESULT = "File";
 	
+	public static final int VIEW_SESSIONS_ACTIVITY = 0x304;
+	public static final String VIEW_SESSIONS_ACTIVITY_RESULT = "ViewSessions";
+	
 }

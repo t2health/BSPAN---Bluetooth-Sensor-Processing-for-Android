@@ -18,6 +18,7 @@ import java.util.Vector;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
@@ -86,6 +87,14 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
 	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
+	
+	Dao<BioUser, Integer> mBioUserDao;
+	Dao<BioSession, Integer> mBioSessionDao;
+
+	BioUser mCurrentBioUser = null;
+	BioSession mCurrentBioSession = null;
+	List<BioUser> currentUsers;	
+	
 
 	/**
 	 * Number of seconds remaining in the session
@@ -159,12 +168,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
-	private List<BioUser> currentUsers;	
 
-
-	private BioUser selectedUser = null;	
-
-//	private SessionDataPoint sessionDataPoint;
 	
 	
 	/**
@@ -325,56 +329,52 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		mManager.discoveryWsn();
 		
-//		try {
-//			Dao<BioUser, Integer> userDataDao = getHelper().getUserDataDao();
-//			
-//			currentUsers = userDataDao.queryForAll();
-//			
-//			for (BioUser user: currentUsers) {
-//				if (user.name.equalsIgnoreCase("owner1")) {
-//					selectedUser = user;
-//				}
-//			}
-//			if (selectedUser == null) {
-//				selectedUser = new BioUser("owner1", System.currentTimeMillis());
-//				userDataDao.create(selectedUser);		
-//			}
-//			
-//			
-//		
-//		} catch (SQLException e) {
-//
-//			Log.e(TAG, "Database exception", e);
-//			return;
-//		}
+		String selectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
+		
+		// Now get the database object associated with this user
+		
+		try {
+			mBioUserDao = getHelper().getBioUserDao();
+			mBioSessionDao = getHelper().getBioSessionDao();
+
+			QueryBuilder<BioUser, Integer> builder = mBioUserDao.queryBuilder();
+			builder.where().eq(BioUser.NAME_FIELD_NAME, selectedUserName);
+			builder.limit(1);
+//			builder.orderBy(ClickCount.DATE_FIELD_NAME, false).limit(30);
+			List<BioUser> list = mBioUserDao.query(builder.prepare());	
+			
+			if (list.size() == 1) {
+				mCurrentBioUser = list.get(0);
+			}
+			else if (list.size() == 0)
+			{
+				try {
+					mCurrentBioUser = new BioUser(selectedUserName, System.currentTimeMillis());
+					mBioUserDao.create(mCurrentBioUser);
+				} catch (SQLException e1) {
+					Log.e(TAG, "Error creating user " + selectedUserName , e1);
+				}		
+			}
+			else {
+				Log.e(TAG, "General Database error" + selectedUserName);
+			}
+			
+		} catch (SQLException e) {
+			Log.e(TAG, "Can't find user: " + selectedUserName , e);
+
+		}
 		
 		// Create a sessioin data point for this session (to put in data
 //		sessionDataPoint = new SessionDataPoint(System.currentTimeMillis(),0);
-
-//		public void SelectUser() {
-//			if (mAllowMultipleUsers) {
-//				Intent intent2 = new Intent(this, SelectUserActivity.class);
-//				this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
-//				
-//			} else {
-//				setNewSessionName("");    			
-//				
-//				if (mAllowComments) {
-//			    	handlePause(mSessionName + " Paused"); // Allow opportinuty for a note
-//				}
-//				
-//			}
-//		}
-//		
+		mCurrentBioSession = new BioSession(mCurrentBioUser, System.currentTimeMillis());
 		
-		String selectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
 		
 		// Create a log file name from the seledcted user and date/time
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
 		String currentDateTimeString = sdf.format(new Date());
 		
 		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
-		mLogCatName = "Logcat" + currentDateTimeString + ".log";			
+		mLogCatName = "Logcat" + currentDateTimeString + ".log";		
 		
     	saveState();
     } // End onCreate(Bundle savedInstanceState)
@@ -547,8 +547,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 							mSignalImage.setVisibility(View.VISIBLE);
 						else
 							mSignalImage.setVisibility(View.INVISIBLE);
-							
-						
 						
 						if (sigQuality == 200)
 							mSignalImage.setImageResource(R.drawable.signal_bars0);
@@ -637,6 +635,10 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		return val;
 	}
 	
+	/**
+	 * Hansles UI button clicks
+	 * @param v
+	 */
 	public void onButtonClick(View v)
 	{
 		 final int id = v.getId();
@@ -674,10 +676,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		        }
 		    	break;
 
-//		    case R.id.LogMarkerButton:
-//				Intent i1 = new Intent(this, LogNoteActivity.class);
-//				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
-//		    	break;
 		    } // End switch		
 	}
 	
@@ -737,9 +735,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			else {
 		    	handlePause("Session Complete"); // Allow opportinuty for a note
 			}
-			
-						
-			
 		}
 	};
 
@@ -895,19 +890,20 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			
 			addNoteToLog(input.getText().toString());
 			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+			mCurrentBioSession.comments += input.getText();
 			
-//			if (selectedUser.sessionDataPoints != null)
-//				selectedUser.sessionDataPoints.add(sessionDataPoint);
-//			try {
-//				getHelper().getUserDataDao().update(selectedUser);
-//			} catch (SQLException e) {
-//
-//				Log.e(TAG, "Database exception", e);
-//				return;
-//			}		
-			
+			// Udpate the database with the current session
 			try {
 				
+				mBioSessionDao.create(mCurrentBioSession);
+				
+			} catch (SQLException e1) {
+				Log.e(TAG, "Error saving current session to database", e1);
+			}			
+			
+			
+			// Save catlog file for possible debugging
+			try {
 			    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
 			    filename.createNewFile(); 
 			    String cmd = "logcat -d -f "+filename.getAbsolutePath();
@@ -916,8 +912,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			    // TODO Auto-generated catch block
 			    e.printStackTrace();
 			}			
-			
-			
 			
 			finish();
 		  
@@ -938,6 +932,8 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		  public void onClick(DialogInterface dialog, int whichButton) {
 				mPaused = false;
 				addNoteToLog(input.getText().toString());
+				mCurrentBioSession.comments += input.getText();
+
 	      		mIntroFade = 255;
 
 		  }

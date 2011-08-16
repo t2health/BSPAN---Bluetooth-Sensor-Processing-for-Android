@@ -29,17 +29,16 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
 	
-	private ListView listView;
+	private ListView mListView;
 	
-	private BioUser selectedUser = null;	
-	private List<BioUser> currentUsers;	
-	private Cursor notesCursor;
+	private List<BioUser> mCurrentUsers;	
 	
-	static private SelectUserActivity instance;
-	Dao<BioUser, Integer> bioUserDao;
-	Dao<BioSession, Integer> bioSessionDao;
-	String selectedUserName;
-	int selectedId;
+	static private SelectUserActivity mI;
+	Dao<BioUser, Integer> mBioUserDao;
+	Dao<BioSession, Integer> mBioSessionDao;
+
+	String mSelectedUserName;
+	int mSelectedId;
 	
 	public void onButtonClick(View v)
 	{
@@ -59,7 +58,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 					String newUserName = input.getText().toString();
 					BioUser newuser = new BioUser(newUserName, System.currentTimeMillis());
 					try {
-						bioUserDao.create(newuser);
+						mBioUserDao.create(newuser);
 						updateListView();						
 					} catch (SQLException e) {
 						Log.e(TAG, "Error adding new user" + e.toString());
@@ -83,15 +82,15 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		instance = this;
+		mI = this;
 		
 		this.setContentView(R.layout.select_user_layout);
-		listView = (ListView)findViewById(R.id.listViewUsers);
+		mListView = (ListView)findViewById(R.id.listViewUsers);
 		
 		
-		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-				String seletedItem = (String) listView.getAdapter().getItem(i);
+				String seletedItem = (String) mListView.getAdapter().getItem(i);
 				
 				Intent resultIntent;
 				resultIntent = new Intent();
@@ -102,13 +101,13 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 			}
 		});		
 		
-		listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 			public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-				selectedUserName = (String) listView.getAdapter().getItem(i);
-				selectedId = i;
+				mSelectedUserName = (String) mListView.getAdapter().getItem(i);
+				mSelectedId = i;
 				
 				
-				AlertDialog.Builder alert = new AlertDialog.Builder(instance);
+				AlertDialog.Builder alert = new AlertDialog.Builder(mI);
 				alert.setTitle("Choose Activity");
 		    	alert.setPositiveButton("Edit User", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int whichButton) {
@@ -123,7 +122,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		    	alert.setNeutralButton("Delete User", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int whichButton) {
 		            	
-						AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
+						AlertDialog.Builder alert2 = new AlertDialog.Builder(mI);
 
 						alert2.setMessage("Are you sure?");
 
@@ -131,7 +130,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 						alert2.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
 			            	try {
-								bioUserDao.delete(currentUsers.get(selectedId));
+								mBioUserDao.delete(mCurrentUsers.get(mSelectedId));
 								updateListView();						
 								
 							} catch (SQLException e) {
@@ -162,13 +161,15 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	void updateListView() {
 		ArrayList<String>  strUsers = new ArrayList<String>();
 		
+		
+		
 		try {
 
-			bioUserDao = getHelper().getBioUserDao();
-			bioSessionDao = getHelper().getBioSessionDao();
-			currentUsers = bioUserDao.queryForAll();				
+			mBioUserDao = getHelper().getBioUserDao();
+			mBioSessionDao = getHelper().getBioSessionDao();
+			mCurrentUsers = mBioUserDao.queryForAll();				
 			
-			for (BioUser user: currentUsers) {
+			for (BioUser user: mCurrentUsers) {
 				strUsers.add(user.name);
 			}
 			
@@ -178,7 +179,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.row_layout, R.id.label, strUsers);
 	
-		listView.setAdapter(adapter);
+		mListView.setAdapter(adapter);
 		
 	}
 	

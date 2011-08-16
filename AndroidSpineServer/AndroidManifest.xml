@@ -118,6 +118,7 @@
         	>
         </activity>
         <activity android:name=".compassionMeditation.SelectUserActivity"></activity>
+        <activity android:name=".compassionMeditation.ViewSessionsActivity"></activity>
         
 
         

@@ -28,6 +28,7 @@ import org.achartengine.renderer.XYSeriesRenderer;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.biomap.BioLocation;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
 
@@ -40,6 +41,8 @@ import spine.SPINEListener;
 import spine.SPINEManager;
 import spine.datamodel.Address;
 import spine.datamodel.Data;
+import spine.datamodel.Feature;
+import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
@@ -90,6 +93,11 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 
+	private int[] bioHarnessData = new int[3];
+	private int heartRatePos = 0;
+	private int respRatePos = 1;
+	private int skinTempPos = 2;
+	
 	/**
 	 * Application version info determined by the package manager
 	 */
@@ -200,6 +208,12 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
 		mManager.getActiveNodes().add(mindsetNode);
 				
+		Node zepherNode = null;
+		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
+		mManager.getActiveNodes().add(zepherNode);
+		
+		
+		
 		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
 		// to receive sensor node data from the Spine server
 		// (I register myself since I'm a SPINEListener implementation!)
@@ -209,11 +223,21 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
 		// See public void received(Data data)
         this.mCommandReceiver = new SpineReceiver(this);
-     
-        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+
+        int i;
+        for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
         	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
+    	KeyItem key = new KeyItem(i++, "HeartRate", "");
+        keyItems.add(key);
+        
+    	key = new KeyItem(i++, "RespRate", "");
+        keyItems.add(key);
+        
+    	key = new KeyItem(i, "SkinTemp", "");
+        keyItems.add(key);
+        
 
         // Set up Device data chart
         generateChart();
@@ -273,7 +297,9 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
         
-		ArrayList<Long> visibleIds = getVisibleIds("measure");
+		ArrayList<Long> visibleIds = getVisibleIds("measure1");
+		Object[] l = visibleIds.toArray();
+		
 		int keyCount = keyItems.size();
         keyCount = keyItems.size();
         
@@ -292,7 +318,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			// Add name of the measure to the displayed text field
 			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
 			int start = sMeasuresText.length();
-			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
+			sMeasuresText.append(keyItems.get(i).title1 + ", ");
+//			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
 			int end = sMeasuresText.length();
 			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			if (sMeasuresText.length() > 40 && lineNum == 0) {
@@ -411,6 +438,30 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		
 		if (data != null) {
 			switch (data.getFunctionCode()) {
+			
+			case SPINEFunctionConstants.ZEPHYR: {
+				Node source = data.getNode();
+				Feature[] feats = ((FeatureData)data).getFeatures();
+				Feature firsFeat = feats[0];
+				
+				byte sensor = firsFeat.getSensorCode();
+				byte featCode = firsFeat.getFeatureCode();
+				int batLevel = firsFeat.getCh1Value();
+				int heartRate = firsFeat.getCh2Value();
+				double respRate = firsFeat.getCh3Value() / 10;
+				int skinTemp = firsFeat.getCh4Value() / 10;
+				double skinTempF = (skinTemp * 9 / 5) + 32;				
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+				
+				bioHarnessData[heartRatePos] = heartRate;
+				bioHarnessData[respRatePos] = (int) respRate * 10;
+				bioHarnessData[skinTempPos] = (int) skinTempF;
+				numSecsWithoutData = 0;		
+				
+				
+
+				break;
+			} // End case SPINEFunctionConstants.ZEPHYR:			
 
 			case SPINEFunctionConstants.MINDSET: {
 					Node source = data.getNode();
@@ -425,49 +476,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 						currentMindsetData.updateRawWave(mindsetData);
 						numSecsWithoutData = 0;		
 
-						// Output a point for each visible key item
-						int keyCount = keyItems.size();
-						for(int i = 0; i < keyItems.size(); ++i) {
-							KeyItem item = keyItems.get(i);
-							
-							if(!item.visible) {
-								continue;
-							}
-
-							item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-								item.series.remove(0);
-							}
-						} 			
-						mSpineChartX++;
-						
-						if (mDeviceChartView != null) {
-				            mDeviceChartView.repaint();
-				        }   				
 						
 
-
-//						int keyCount = keyItems.size();
-//						for(int i = 0; i < keyItems.size(); ++i) {
-//							KeyItem item = keyItems.get(i);
-//							
-//							if(!item.visible) {
-//								continue;
-//							}
-//
-//							for (int j = 0; j < 512; j++) {
-//								item.series.add(mSpineChartX, currentMindsetData.rawWaveData[j]);
-//								mSpineChartX++;
-//								
-//							}
-//							if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-//								//item.series.remove(0);
-//							}
-//						} 			
-//						if (mDeviceChartView != null) {
-//				            mDeviceChartView.repaint();
-//				        }   				
-						
 						Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 						
 						
@@ -570,9 +580,16 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					
 				}		    	
 		    	
+				String[] measureNames = new String[keyItems.size()];
+				int i = 0;
+				for (KeyItem item: keyItems) {
+					measureNames[i++] = item.title1;
+				}
+				
 		    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		    	alert.setTitle(R.string.alert_dialog_measure_selector);
-		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
+//		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
+				    	alert.setMultiChoiceItems(measureNames,
 		    			toggleArray,
 	                    new DialogInterface.OnMultiChoiceClickListener() {
 
@@ -675,6 +692,37 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	        		bandName + ": " + currentMindsetData.getFeatureValue(mBandOfInterest)  
 	        		);
 			
+			// Output a point for each visible key item
+			int keyCount = keyItems.size();
+			for(int i = 0; i < keyItems.size(); ++i) {
+				KeyItem item = keyItems.get(i);
+				
+				if(!item.visible) {
+					continue;
+				}
+
+				if (i <= 10) {
+					item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
+					if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+						item.series.remove(0);
+					}
+				}
+				else {
+					item.series.add(mSpineChartX, bioHarnessData[i - 10]);
+					if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+						item.series.remove(0);
+					}
+					
+				}
+			} 			
+			mSpineChartX++;
+			
+			if (mDeviceChartView != null) {
+	            mDeviceChartView.repaint();
+	        }   				
+	        
+	        
+	        
 
 
 			
@@ -879,7 +927,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	}
 
 	private void saveVisibleKeyIds() {
-		String keySuffix = "measure";
+		String keySuffix = "measure1";
 		ArrayList<Long> toggledIds = new ArrayList<Long>();
 		for(int i = 0; i < keyItems.size(); ++i) {
 			KeyItem item = keyItems.get(i);

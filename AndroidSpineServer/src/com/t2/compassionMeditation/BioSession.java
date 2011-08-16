@@ -31,21 +31,25 @@ public class BioSession {
 	public double minValue = 0.00;
 	@DatabaseField
 	public double maxValue = 0.00;
+	
+	@DatabaseField
+	public String comments = "";
+
+	@DatabaseField
+	public String category = "";
+
+	
 
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
 	private ArrayList<Double> values = new ArrayList<Double>();
-	
-	@DatabaseField
-	private double defaultValue = 0.00;
 	
 	public BioSession() {
 		// needed by ormlite
 	}
 	
-	public BioSession(BioUser bioUser, long time, double defaultValue) {
+	public BioSession(BioUser bioUser, long time) {
 		this.bioUser = bioUser;
 		this.time = time;
-		this.defaultValue = defaultValue;
 	}
 	
 	public void addValue(double val) {
@@ -62,12 +66,12 @@ public class BioSession {
 		}
 	}
 	
-	public double getAverageValue() {
-		if(valueSum == 0 && count == 0) {
-			return defaultValue;
-		}
-		return valueSum / count;
-	}
+//	public double getAverageValue() {
+//		if(valueSum == 0 && count == 0) {
+//			return defaultValue;
+//		}
+//		return valueSum / count;
+//	}
 	
 	public double[] getValues() {
 		double[] out = new double[values.size()];

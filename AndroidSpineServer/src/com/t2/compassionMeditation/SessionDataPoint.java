@@ -24,6 +24,12 @@ public class SessionDataPoint  implements Serializable {
 	@DatabaseField
 	public double maxValue = 0.00;
 
+	@DatabaseField
+	public String comments = "";
+
+	@DatabaseField
+	public String category = "";
+
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
 	private ArrayList<Double> values = new ArrayList<Double>();
 	
