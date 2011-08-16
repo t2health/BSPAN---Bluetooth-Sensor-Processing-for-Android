@@ -82,10 +82,6 @@ public abstract class SpineDevice extends BioFeedbackDevice {
 		}
 	}
 	
-   	// Not used for Spine devices
-   	protected void onSetLinkTimeout(long linkTimeout) {
-	}
-
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()
 	 */

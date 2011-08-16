@@ -30,11 +30,6 @@ public abstract class MobiDevice extends BioFeedbackDevice{
 		this.mServerListeners = serverListeners;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onSetLinkTimeout(long)
-	 */
-	protected void onSetLinkTimeout(long linkTimeout) {
-	}
 
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()

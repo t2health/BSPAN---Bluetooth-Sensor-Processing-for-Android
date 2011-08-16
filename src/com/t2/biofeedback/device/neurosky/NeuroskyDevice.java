@@ -110,11 +110,6 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		this.mServerListeners = serverListeners;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onSetLinkTimeout(long)
-	 */
-	protected void onSetLinkTimeout(long linkTimeout) {
-	}
 
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()

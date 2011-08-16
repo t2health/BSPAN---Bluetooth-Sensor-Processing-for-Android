@@ -22,23 +22,16 @@ public abstract class BioFeedbackDevice extends SerialBTDevice {
 	
 	@Override
 	protected void onDeviceConnected() {
-		this.setLinkTimeout(linkTimeout);
 	}
 	
 	@Override
 	protected void onConnectedClosed() {}
-
-	public final void setLinkTimeout(long linkTimeout) {
-		this.linkTimeout = linkTimeout;
-		this.onSetLinkTimeout(linkTimeout);
-	}
 
 	public final long getLinkTimeout() {
 		return linkTimeout;
 	}
 	
 	
-	protected abstract void onSetLinkTimeout(long linkTimeout);
 	public abstract ModelInfo getModelInfo();
 	
 	
