@@ -28,6 +28,12 @@ public class Constants {
 	public static final String PREF_BAND_OF_INTEREST = "BandOfInterest";
 	public static final int PREF_BAND_OF_INTEREST_DEFAULT = MindsetData.THETA_ID;;
 
+	public static final String PREF_USER_MODE = "UserMode";
+	public static final int PREF_USER_MODE_DEFAULT = 0;
+
+	public static final int PREF_USER_MODE_SINGLE_USER = 1;
+	public static final int PREF_USER_MODE_PROVIDER = 2;
+
 	
 	
 	public static final String EXTRA_SESSION_NAME = "SessionName";
@@ -46,4 +52,7 @@ public class Constants {
 	public static final int VIEW_SESSIONS_ACTIVITY = 0x304;
 	public static final String VIEW_SESSIONS_ACTIVITY_RESULT = "ViewSessions";
 	
+	public static final int USER_MODE_ACTIVITY = 0x305;	
+	public static final String USER_MODE_ACTIVITY_RESULT = "UserModeResult";	
+
 }

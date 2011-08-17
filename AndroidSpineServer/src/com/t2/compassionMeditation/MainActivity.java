@@ -32,6 +32,7 @@ public class MainActivity extends ListActivity {
 	private static boolean firstTime = true;
 	
 	boolean mAllowMultipleUsers;
+	int mUserMode;
 	
 	
 	/**
@@ -55,6 +56,10 @@ public class MainActivity extends ListActivity {
         		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS, 
         		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS_DEFAULT);        
         
+        mUserMode = SharedPref.getInt(this, 
+        		com.t2.compassionMeditation.Constants.PREF_USER_MODE, 
+        		com.t2.compassionMeditation.Constants.PREF_USER_MODE_DEFAULT);        
+        
         
 		try {
 			PackageManager packageManager = this.getPackageManager();
@@ -66,6 +71,22 @@ public class MainActivity extends ListActivity {
 			   	Log.e(TAG, e.toString());
 		}
         
+		if (mUserMode == Constants.PREF_USER_MODE_DEFAULT) {
+			Intent intent2 = new Intent(this, UserModeActivity.class);
+			this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.USER_MODE_ACTIVITY);		
+			
+		}
+		else {
+			
+			GoAhead();
+	        
+		}
+		
+
+        
+    }
+
+    void GoAhead() {
 		if (mAllowMultipleUsers) {
 			Intent intent2 = new Intent(this, SelectUserActivity.class);
 			this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
@@ -85,11 +106,7 @@ public class MainActivity extends ListActivity {
         
         this.setListAdapter(new ArrayAdapter<String>(this, R.layout.main1,R.id.label, mStrings));        
         getListView().setTextFilterEnabled(true);
-        
-
-        
     }
-
     
     @Override
 	protected void onStart() {
@@ -199,6 +216,10 @@ public class MainActivity extends ListActivity {
 		    case (Constants.INSTRUCTIONS_USER_ACTIVITY):
 				intent = new Intent(this, MeditationActivity.class);
 				this.startActivity(intent);		
+		    	break;
+		    	
+		    case (Constants.USER_MODE_ACTIVITY):
+		    	GoAhead();
 		    	break;
 		    	
 				

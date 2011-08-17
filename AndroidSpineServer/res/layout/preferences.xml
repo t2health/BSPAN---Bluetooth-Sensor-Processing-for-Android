@@ -44,4 +44,7 @@
   	<TableRow android:id="@+id/tableRow2" android:layout_width="wrap_content" android:layout_height="wrap_content">
   		<Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonReScale" android:text="@string/reScale" android:onClick="onButtonClick"></Button>
   	</TableRow>
+  	<TableRow android:id="@+id/tableRow4" android:layout_width="wrap_content" android:layout_height="wrap_content">
+  		<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/buttonGotoUserModeActivity" android:text="Change User Mode" android:onClick="onButtonClick"></Button>
+  	</TableRow>
 </TableLayout>

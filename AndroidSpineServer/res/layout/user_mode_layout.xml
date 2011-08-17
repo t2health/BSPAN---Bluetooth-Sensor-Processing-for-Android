@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Layout for a number input dialog
+Author: Connor Garvey
+Created: Jan 11, 2009
+Version 0.0.4
+Since 0.0.4
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="7dip">
+
+	<TableLayout android:id="@+id/row1"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+        android:layout_weight="1">
+		<TableRow android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/tableRow2">
+			<TextView 
+				android:layout_height="wrap_content" 
+				android:layout_width="wrap_content" 
+				android:id="@+id/textView1" 
+				android:text="Compassion Meditation"
+				android:textSize="30px"
+				></TextView>
+		</TableRow>
+    <TableRow
+        android:layout_weight="1">
+      <Button android:layout_width="0dip"
+          android:layout_height="fill_parent"
+          android:layout_weight="1" android:text="Single User Mode" android:id="@+id/buttonSingleUser" android:onClick="onButtonClick"/>
+    </TableRow>
+    <TableRow
+        android:layout_weight="1">
+      <Button android:layout_width="0dip"
+          android:layout_height="fill_parent"
+          android:text="Provider Mode"
+          android:layout_weight="1" android:id="@+id/buttonProvider" android:onClick="onButtonClick"/>
+    </TableRow>
+    <TableRow android:id="@+id/tableRow1" android:layout_width="wrap_content" android:layout_height="wrap_content">
+        <CheckBox android:text="Save My Preferrence" android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/checkBoxSaveUserMode"></CheckBox>
+    </TableRow>
+    <TableRow android:id="@+id/tableRow3" android:layout_width="wrap_content" android:layout_height="wrap_content">
+        <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OK" android:onClick="onButtonClick" android:id="@+id/buttonEndUserMode"></Button>
+    </TableRow>
+
+  </TableLayout>
+</RelativeLayout>

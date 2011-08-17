@@ -6,6 +6,7 @@ import com.t2.R;
 import com.t2.biomap.SharedPref;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -41,6 +42,13 @@ public class PreferenceActivity extends Activity {
 		    	
 		    	finish();
 		    	break;
+		    	
+		    case R.id.buttonGotoUserModeActivity:
+				Intent intent2 = new Intent(this, UserModeActivity.class);
+				this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.USER_MODE_ACTIVITY);		
+		    	finish();
+		    	break;
+		    	
 		    }
 	}
 	
