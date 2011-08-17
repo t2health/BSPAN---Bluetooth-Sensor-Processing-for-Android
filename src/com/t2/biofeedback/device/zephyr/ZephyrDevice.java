@@ -77,12 +77,12 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 				        	 
 				        	 
 				         } 
-				    }, 500);				
+				    }, 1000);				
 					
 
 	        	 
 	         } 
-	    }, 500);				
+	    }, 1000);				
 		
 		
 		
@@ -256,7 +256,11 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		        	mServerListeners.remove(i);
 		        }
 	        }			
-		}			
+		}	
+		else {
+			Log.i(TAG, "** No Listeners ** " );
+		}
+		
 	}
 	
 	private void write(ZephyrMessage msg) {

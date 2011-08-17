@@ -341,6 +341,10 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		        	mServerListeners.remove(i);
 		        }
 	        }			
-		}		
+		}
+		else {
+			Log.i(TAG, "** No Listeners ** " );
+			
+		}
 	}
 }
