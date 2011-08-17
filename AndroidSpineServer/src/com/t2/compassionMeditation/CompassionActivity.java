@@ -94,9 +94,13 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
 
 	private int[] bioHarnessData = new int[3];
-	private int heartRatePos = 0;
-	private int respRatePos = 1;
-	private int skinTempPos = 2;
+	private int heartRatePos;
+	private int respRatePos;
+	private int skinTempPos;
+	
+    private RateOfChange mRateOfChange;
+    private int mRateOfChangeSize = 6;
+
 	
 	/**
 	 * Application version info determined by the package manager
@@ -153,6 +157,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
+	private static Object mKeysLock = new Object();
+
 	
 	/**
 	 * @return Static instance of this activity
@@ -169,6 +175,8 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         setContentView(R.layout.compassion);
         instance = this;
     	
+        mRateOfChange = new RateOfChange(mRateOfChangeSize);
+        
         currentMindsetData = new MindsetData(this);
 
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
@@ -229,12 +237,15 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
+        heartRatePos = i;
     	KeyItem key = new KeyItem(i++, "HeartRate", "");
         keyItems.add(key);
         
-    	key = new KeyItem(i++, "RespRate", "");
+        respRatePos = i;
+        key = new KeyItem(i++, "RespRate", "");
         keyItems.add(key);
         
+        skinTempPos = i;
     	key = new KeyItem(i, "SkinTemp", "");
         keyItems.add(key);
         
@@ -298,7 +309,6 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         SpannableStringBuilder sMeasuresText = new SpannableStringBuilder("Displaying: ");
         
 		ArrayList<Long> visibleIds = getVisibleIds("measure1");
-		Object[] l = visibleIds.toArray();
 		
 		int keyCount = keyItems.size();
         keyCount = keyItems.size();
@@ -451,13 +461,24 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 				double respRate = firsFeat.getCh3Value() / 10;
 				int skinTemp = firsFeat.getCh4Value() / 10;
 				double skinTempF = (skinTemp * 9 / 5) + 32;				
-				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
-				
-				bioHarnessData[heartRatePos] = heartRate;
-				bioHarnessData[respRatePos] = (int) respRate * 10;
-				bioHarnessData[skinTempPos] = (int) skinTempF;
+//				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+//				
+//				bioHarnessData[heartRatePos] = heartRate / 2;
+//				bioHarnessData[respRatePos] = (int) respRate * 10;
+//				bioHarnessData[skinTempPos] = (int) skinTempF;
 				numSecsWithoutData = 0;		
+
+	        	synchronized(mKeysLock) {				
+					keyItems.get(heartRatePos).value = heartRate/3;
+					keyItems.get(respRatePos).value = (int) respRate * 5;
+					keyItems.get(skinTempPos).value = (int) skinTempF;
+	        	}
 				
+				mRateOfChange.pushValue((float)skinTempF);	
+//				int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
+				int skinTempROC = (int) (mRateOfChange.getValue());
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF +  ", skinTempROC= " + skinTempROC);
+	        	
 				
 
 				break;
@@ -474,6 +495,12 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 						
 						currentMindsetData.updateSpectral(mindsetData);
 						currentMindsetData.updateRawWave(mindsetData);
+						
+			        	synchronized(mKeysLock) {				
+					        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+					        	keyItems.get(i).value = currentMindsetData.getFeatureValue(i);
+					        }
+			        	}				        
 						numSecsWithoutData = 0;		
 
 						
@@ -686,12 +713,17 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			if (mPaused == true || currentMindsetData == null || numSecsWithoutData > 2) {
 				return;
 			}
-			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
-			
-	        mTextInfoView.setText(
-	        		bandName + ": " + currentMindsetData.getFeatureValue(mBandOfInterest)  
-	        		);
-			
+
+			String bandValuesString = "";
+//			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+//			
+//	        mTextInfoView.setText(
+//	        		bandName + ": " + currentMindsetData.getFeatureValue(mBandOfInterest)  
+//	        		);
+//	
+	        
+	        
+	        
 			// Output a point for each visible key item
 			int keyCount = keyItems.size();
 			for(int i = 0; i < keyItems.size(); ++i) {
@@ -701,19 +733,14 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 					continue;
 				}
 
-				if (i <= 10) {
-					item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-					if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-						item.series.remove(0);
-					}
+				bandValuesString += item.title1 + ":" + item.value + ", ";				
+				
+				
+				item.series.add(mSpineChartX, item.value);
+				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
+					item.series.remove(0);
 				}
-				else {
-					item.series.add(mSpineChartX, bioHarnessData[i - 10]);
-					if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-						item.series.remove(0);
-					}
 					
-				}
 			} 			
 			mSpineChartX++;
 			
@@ -721,6 +748,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 	            mDeviceChartView.repaint();
 	        }   				
 	        
+	        mTextInfoView.setText(bandValuesString);
 	        
 	        
 
@@ -832,6 +860,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		public boolean visible;
 		public boolean reverseData = false; 
 		public XYSeries series;		
+		int value;
 		
 		public KeyItem(long id, String title1, String title2) {
 			this.id = id;

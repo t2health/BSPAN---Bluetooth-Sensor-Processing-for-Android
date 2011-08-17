@@ -35,6 +35,8 @@ import spine.SPINEListener;
 import spine.SPINEManager;
 import spine.datamodel.Address;
 import spine.datamodel.Data;
+import spine.datamodel.Feature;
+import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import android.accounts.Account;
@@ -95,6 +97,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	BioSession mCurrentBioSession = null;
 	List<BioUser> currentUsers;	
 	
+	private int[] bioHarnessData = new int[3];
 
 	/**
 	 * Number of seconds remaining in the session
@@ -153,8 +156,10 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
      * Moving average used to smooth the display of the band of interest
      */
     private MovingAverage mMovingAverage;
-    
     private int mMovingAverageSize = 30;
+
+    private MovingAverage mMovingAverageROC;
+    private int mMovingAverageSizeROC = 6;
 
     /**
      * Gain used to determine how band of interest affects the buddah image 
@@ -168,6 +173,9 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
+	private static Object mKeysLock = new Object();
+    private RateOfChange mRateOfChange;
+    private int mRateOfChangeSize = 6;
 
 	
 	
@@ -223,6 +231,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		Log.i(TAG, TAG +  " onCreate");
 		instance = this;
+        mRateOfChange = new RateOfChange(mRateOfChangeSize);
 		
 		mIntroFade = 255;
         
@@ -261,6 +270,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
         
         mMovingAverage = new MovingAverage(mMovingAverageSize);
+        mMovingAverageROC = new MovingAverage(mMovingAverageSizeROC);
         
         View v1 = findViewById (R.id.buddahView); 
         v1.setOnTouchListener (this);        
@@ -310,7 +320,13 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		Node mindsetNode = null;
 		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
 		mManager.getActiveNodes().add(mindsetNode);
-				
+			
+		
+		Node zepherNode = null;
+		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
+		mManager.getActiveNodes().add(zepherNode);
+		
+		
                 
 		// Create a broadcast receiver. Note that this is used ONLY for command messages from the service
 		// All data from the service goes through the mail SPINE mechanism (received(Data data)).
@@ -528,6 +544,30 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		if (data != null) {
 			switch (data.getFunctionCode()) {
+			case SPINEFunctionConstants.ZEPHYR: {
+				Node source = data.getNode();
+				Feature[] feats = ((FeatureData)data).getFeatures();
+				Feature firsFeat = feats[0];
+				
+				byte sensor = firsFeat.getSensorCode();
+				byte featCode = firsFeat.getFeatureCode();
+				int batLevel = firsFeat.getCh1Value();
+				int heartRate = firsFeat.getCh2Value();
+				double respRate = firsFeat.getCh3Value() / 10;
+				int skinTemp = firsFeat.getCh4Value() / 10;
+				double skinTempF = (skinTemp * 9 / 5) + 32;				
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+
+				numSecsWithoutData = 0;		
+	        	synchronized(mKeysLock) {					
+	        		bioHarnessData[0] = heartRate/3;
+	        		bioHarnessData[1] = (int) respRate * 5;
+	        		bioHarnessData[2] = (int) skinTempF;
+	        	}
+
+				break;
+			} // End case SPINEFunctionConstants.ZEPHYR:			
+			
 
 			case SPINEFunctionConstants.MINDSET: {
 					Node source = data.getNode();
@@ -539,7 +579,9 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 					
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
 						
-						currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+			        	synchronized(mKeysLock) {	
+			        		currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
+			        	}
 
 						int sigQuality = mindsetData.poorSignalStrength & 0xff;
 
@@ -565,32 +607,33 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 					
 					if (mindsetData.exeCode == Constants.EXECODE_SPECTRAL || mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Spectral Data");
-
-						if (mPaused == false) {
-							if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM)
-								currentMindsetData.updateRawWave(mindsetData);
-
-							currentMindsetData.updateSpectral(mindsetData);
-							numSecsWithoutData = 0;				
-							Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
-							
-
-							if (mLoggingEnabled == true) {
-								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+			        	synchronized(mKeysLock) {	
+							if (mPaused == false) {
+								if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM)
+									currentMindsetData.updateRawWave(mindsetData);
+	
+								currentMindsetData.updateSpectral(mindsetData);
+								numSecsWithoutData = 0;				
+								Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 								
-								String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
-								currentDateTimeString = sdf.format(new Date());
-								
-								String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
-								
-						        try {
-						        	if (mLogWriter != null)
-						        		mLogWriter.write(logData);
-								} catch (IOException e) {
-									Log.e(TAG, e.toString());
-								}
-							}			
-						} // End if (mPaused == false)
+	
+								if (mLoggingEnabled == true) {
+									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+									
+									String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+									currentDateTimeString = sdf.format(new Date());
+									
+									String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
+									
+							        try {
+							        	if (mLogWriter != null)
+							        		mLogWriter.write(logData);
+									} catch (IOException e) {
+										Log.e(TAG, e.toString());
+									}
+								}			
+							} // End if (mPaused == false)
+			        	}
 					}
 					
 					if (mindsetData.exeCode == Constants.EXECODE_ATTENTION) {
@@ -712,18 +755,40 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			
 			numSecsWithoutData++;
 
-			// Update buddah image based on band of interes
-			int value = currentMindsetData.getFeatureValue(mBandOfInterest);
-			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+			int value;
+			int filteredValue;
+			String bandName;
+			
+			if (mBandOfInterest <= MindsetData.NUM_BANDS + 2 - 1) {
+				// Update buddah image based on band of interes
+				value = currentMindsetData.getFeatureValue(mBandOfInterest);
+				mMovingAverage.pushValue(value);	
+				filteredValue = (int) (mMovingAverage.getValue());
+				bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+				
+			}
+			else {
+				String[] sa = getResources().getStringArray(R.array.bands_of_interest_array);
+				bandName = sa[mBandOfInterest];
+	        	synchronized(mKeysLock) {	
+	        		// TODO: Hacked for Dr. Gahm demo - fix later
+	        		int i = mBandOfInterest - MindsetData.NUM_BANDS - 2;
+	        		value = bioHarnessData[i];
 
-			mMovingAverage.pushValue(value);	
-//			int filteredValue = (int) (mMovingAverage.getValue() * mAlphaGain);
-			int filteredValue = (int) (mMovingAverage.getValue());
+	        		mRateOfChange.pushValue((float)value);	
+					filteredValue = 100 - ((int) (mRateOfChange.getValue()) * 10);
+
+	        	}
+				
+			}
+			
+
 			double  alphaValue = mAlphaGain * (double) filteredValue; 
 			int iAlphaValue = (int) alphaValue;
 			if (iAlphaValue > 255) iAlphaValue = 255; 
 			
-			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
+//			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
+			mTextInfoView.setText(bandName + ": " + filteredValue );		
 			
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iAlphaValue);

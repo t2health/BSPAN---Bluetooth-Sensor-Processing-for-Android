@@ -61,7 +61,7 @@
 	<string name="state_meditation_session">Start Meditation Session</string>
 	
     <string-array name="bands_of_interest_array">
-    "Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma", "(e)Attention", "(e)Meditation"
+    "Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma", "(e)Attention", "(e)Meditation", "Heart Rate", Respiration Rate", "Skin Temp"
         <item>Delta</item>
         <item>Theta</item>
         <item>LowAlpha</item>
@@ -72,6 +72,9 @@
         <item>MidGamma</item>
         <item>(e)Attention</item>
         <item>(e)Meditation</item>
+        <item>Heart Rate</item>
+        <item>Respiration Rate</item>
+        <item>Skin Temp</item>
     </string-array>	
 	
 <!-- New Session -->
