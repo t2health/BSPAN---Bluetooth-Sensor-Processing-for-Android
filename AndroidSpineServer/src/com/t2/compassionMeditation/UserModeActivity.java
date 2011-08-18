@@ -38,7 +38,6 @@ public class UserModeActivity extends Activity {
     private Button mProviderButton;
 	int mUserMode;
 	
-	
 	public void onButtonClick(View v)
 	{
 		 final int id = v.getId();
@@ -46,14 +45,16 @@ public class UserModeActivity extends Activity {
 
 	    case R.id.buttonSingleUser:
 	    	mUserMode = Constants.PREF_USER_MODE_SINGLE_USER;
-	//		mSingleUserButton.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY);
-			mProviderButton.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
+	    	setButtonColors();
+			mProviderButton.invalidate();
+			mSingleUserButton.invalidate();
 	        break;
 	    
 	    case R.id.buttonProvider:
 	    	mUserMode = Constants.PREF_USER_MODE_PROVIDER;
-		//	mSingleUserButton.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
-			mProviderButton.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY);
+	    	setButtonColors();
+			mSingleUserButton.invalidate();
+			mProviderButton.invalidate();
 	        break;
 	    
 	    case R.id.buttonEndUserMode:
@@ -64,15 +65,27 @@ public class UserModeActivity extends Activity {
 	    }
 	}
 	
+	void setButtonColors() {
+		switch (mUserMode) {
+		case Constants.PREF_USER_MODE_SINGLE_USER:
+			mProviderButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+			mSingleUserButton.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY);
+			
+			break;
+
+		case Constants.PREF_USER_MODE_PROVIDER:
+			mProviderButton.getBackground().setColorFilter(Color.GREEN, PorterDuff.Mode.MULTIPLY);
+			mSingleUserButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+			
+			break;
+		
+		}
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		
-        mUserMode = SharedPref.getInt(this, 
-        		com.t2.compassionMeditation.Constants.PREF_USER_MODE, 
-        		com.t2.compassionMeditation.Constants.PREF_USER_MODE_DEFAULT);  		
 		
 		this.setContentView(R.layout.user_mode_layout);
 		mSaveUserMode = (CheckBox) findViewById(R.id.checkBoxSaveUserMode);
@@ -80,8 +93,11 @@ public class UserModeActivity extends Activity {
 		mSingleUserButton = (Button) findViewById(R.id.buttonSingleUser);		
 		mProviderButton = (Button) findViewById(R.id.buttonProvider);		
 		
+        mUserMode = SharedPref.getInt(this, 
+        		com.t2.compassionMeditation.Constants.PREF_USER_MODE, 
+        		com.t2.compassionMeditation.Constants.PREF_USER_MODE_DEFAULT);  		
 		
-
+		setButtonColors();		
 	}
 
 	

@@ -22,7 +22,6 @@ public class PreferenceActivity extends Activity {
 	EditText mSessionLengthEdit;
 	EditText mAlphaGainEdit;
 	CheckBox mShowInstructionsCheckbox;
-	CheckBox mAllowMultipleUsersCheckbox;
 	CheckBox mAllowCommentsCheckbox;
 	CheckBox mSaveRawWaveCheckbox;
 	CheckBox mShowAlphaGainCheckbox;
@@ -73,9 +72,6 @@ public class PreferenceActivity extends Activity {
 			mShowInstructionsCheckbox = (CheckBox) findViewById(R.id.checkBoxShowInstructions);
 			mShowInstructionsCheckbox.setChecked(SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT));
 
-			mAllowMultipleUsersCheckbox = (CheckBox) findViewById(R.id.checkBoxMultipleUsers);
-			mAllowMultipleUsersCheckbox.setChecked(SharedPref.getBoolean(this, Constants.PREF_MULTIPLE_USERS, Constants.PREF_MULTIPLE_USERS_DEFAULT));
-
 			mAllowCommentsCheckbox = (CheckBox) findViewById(R.id.checkBoxAllowComments);
 			mAllowCommentsCheckbox.setChecked(SharedPref.getBoolean(this, Constants.PREF_COMMENTS, Constants.PREF_COMMENTS_DEFAULT));
 
@@ -114,7 +110,6 @@ public class PreferenceActivity extends Activity {
 			SharedPref.putBoolean(this, Constants.PREF_SAVE_RAW_WAVE, mSaveRawWaveCheckbox.isChecked() );
 			SharedPref.putBoolean(this, Constants.PREF_COMMENTS, mAllowCommentsCheckbox.isChecked() );
 			SharedPref.putBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, mShowInstructionsCheckbox.isChecked() );
-			SharedPref.putBoolean(this, Constants.PREF_MULTIPLE_USERS, mAllowMultipleUsersCheckbox.isChecked() );
 			SharedPref.putBoolean(this, Constants.PREF_SHOW_A_GAIN, mShowAlphaGainCheckbox.isChecked() );
 
 			

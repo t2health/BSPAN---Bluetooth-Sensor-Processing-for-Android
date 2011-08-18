@@ -31,7 +31,6 @@ public class MainActivity extends ListActivity {
 	private static final String mActivityVersion = "1.0";
 	private static boolean firstTime = true;
 	
-	boolean mAllowMultipleUsers;
 	int mUserMode;
 	
 	
@@ -51,10 +50,6 @@ public class MainActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
-        mAllowMultipleUsers = SharedPref.getBoolean(this, 
-        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS, 
-        		com.t2.compassionMeditation.Constants.PREF_MULTIPLE_USERS_DEFAULT);        
         
         mUserMode = SharedPref.getInt(this, 
         		com.t2.compassionMeditation.Constants.PREF_USER_MODE, 
@@ -87,7 +82,7 @@ public class MainActivity extends ListActivity {
     }
 
     void GoAhead() {
-		if (mAllowMultipleUsers) {
+		if (mUserMode == Constants.PREF_USER_MODE_PROVIDER) {
 			Intent intent2 = new Intent(this, SelectUserActivity.class);
 			this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
 			

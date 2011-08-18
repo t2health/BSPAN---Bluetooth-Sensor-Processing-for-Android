@@ -13,9 +13,6 @@ public class Constants {
 	public static final String PREF_INSTRUCTIONS_ON_START = "InstructionsOnStart";
 	public static final boolean PREF_INSTRUCTIONS_ON_START_DEFAULT = true;
 
-	public static final String PREF_MULTIPLE_USERS = "Allow Multiple Users";
-	public static final boolean PREF_MULTIPLE_USERS_DEFAULT = false;
-
 	public static final String PREF_COMMENTS = "Allow Comments";
 	public static final boolean PREF_COMMENTS_DEFAULT = false;
 

@@ -3,11 +3,11 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:gravity="center_horizontal" android:id="@+id/meditationLayout">
-    <RelativeLayout android:id="@+id/relativeLayout1" android:layout_height="wrap_content" android:layout_width="fill_parent">
-        <Button android:layout_height="wrap_content" android:id="@+id/buttonBack" android:text="@string/button_back" android:onClick="onButtonClick" android:layout_width="wrap_content" android:visibility="gone"></Button>
-        <ImageView android:layout_height="wrap_content" android:src="@drawable/icon" android:id="@+id/imageView1" android:layout_width="wrap_content" android:layout_alignParentRight="true" android:visibility="gone"></ImageView>
-    </RelativeLayout>
-    <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buddahView" android:src="@drawable/buddha"></ImageView>
+    <ImageView android:visibility="gone" android:id="@+id/imageView1" android:src="@drawable/icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="right"></ImageView>
+    <FrameLayout android:id="@+id/frameLayout1" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@+id/buddahView" android:src="@drawable/buddha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"></ImageView>
+        <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/lotus_flower" android:layout_gravity="center_horizontal" android:id="@+id/lotusView"></ImageView>
+    </FrameLayout>
     <RelativeLayout android:id="@+id/relativeLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent">
         <TextView android:id="@+id/countdownTextView" android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
         <TextView android:visibility="visible" android:id="@+id/textViewInfo" android:layout_height="wrap_content" android:text="TextView" android:gravity="center_horizontal" android:layout_width="wrap_content" android:layout_alignParentRight="true"></TextView>

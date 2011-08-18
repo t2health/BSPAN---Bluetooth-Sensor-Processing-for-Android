@@ -146,10 +146,11 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private Button mToggleLogButton;
     private Button mLlogMarkerButton;
     private Button mPauseButton;
-    private Button mBackButton;
+//    private Button mBackButton;
     private TextView mTextInfoView;
     private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
+    private ImageView mLotusImage; 
     private SeekBar mSeekBar;
     private ImageView mSignalImage;    
     /**
@@ -284,7 +285,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
-        mBackButton = (Button) findViewById(R.id.buttonBack);
+//        mBackButton = (Button) findViewById(R.id.buttonBack);
         mSignalImage = (ImageView) findViewById(R.id.imageView1);    
                 
 
@@ -298,7 +299,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		mCountdownTextView.setVisibility(View.INVISIBLE);
 		mTextInfoView.setVisibility(View.INVISIBLE);
 		mPauseButton.setVisibility(View.INVISIBLE);
-		mBackButton.setVisibility(View.INVISIBLE);
+//		mBackButton.setVisibility(View.INVISIBLE);
 		mSeekBar.setVisibility(View.INVISIBLE);
 		
         ImageView image = (ImageView) findViewById(R.id.imageView1);
@@ -306,7 +307,11 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         
         mBuddahImage = (ImageView) findViewById(R.id.buddahView);
         mBuddahImage.setImageResource(R.drawable.buddha);
+
+        mLotusImage = (ImageView) findViewById(R.id.lotusView);
+        mLotusImage.setImageResource(R.drawable.lotus_flower);
         
+
 		// Initialize SPINE by passing the fileName with the configuration properties
 		try {
 			mManager = SPINEFactory.createSPINEManager("SPINETestApp.properties", resources);
@@ -745,6 +750,8 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				if (mIntroFade > 0) {
 
 					mBuddahImage.setAlpha(mIntroFade--);
+					mLotusImage.setAlpha(mIntroFade--);
+					
 				}
 				return;
 			}
@@ -777,21 +784,19 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
 	        		mRateOfChange.pushValue((float)value);	
 					filteredValue = 100 - ((int) (mRateOfChange.getValue()) * 10);
-
 	        	}
-				
 			}
 			
-
 			double  alphaValue = mAlphaGain * (double) filteredValue; 
 			int iAlphaValue = (int) alphaValue;
 			if (iAlphaValue > 255) iAlphaValue = 255; 
 			
-//			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
-			mTextInfoView.setText(bandName + ": " + filteredValue );		
+			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
+//			mTextInfoView.setText(bandName + ": " + filteredValue );		
 			
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iAlphaValue);
+				mLotusImage.setAlpha(255 - iAlphaValue);
 			}
 			
 			if (mSecondsRemaining-- > 0) {
@@ -885,7 +890,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			mCountdownTextView.setVisibility(View.INVISIBLE);
 			mTextInfoView.setVisibility(View.INVISIBLE);
 			mPauseButton.setVisibility(View.INVISIBLE);
-			mBackButton.setVisibility(View.INVISIBLE);
+//			mBackButton.setVisibility(View.INVISIBLE);
 			mSeekBar.setVisibility(View.INVISIBLE);
 			
 		}
@@ -894,7 +899,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			mCountdownTextView.setVisibility(View.VISIBLE);
 			mTextInfoView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
-			mBackButton.setVisibility(View.VISIBLE);
+//			mBackButton.setVisibility(View.VISIBLE);
 //			mSeekBar.setVisibility(View.VISIBLE);
 			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.INVISIBLE);
 
