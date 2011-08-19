@@ -66,6 +66,11 @@ public class MainActivity extends ListActivity {
 			   	Log.e(TAG, e.toString());
 		}
         
+//		Intent intent2 = new Intent(this, MainChooserActivity.class);
+//		this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.SELECT_USER_ACTIVITY);		
+		
+		
+		
 		if (mUserMode == Constants.PREF_USER_MODE_DEFAULT) {
 			Intent intent2 = new Intent(this, UserModeActivity.class);
 			this.startActivityForResult(intent2, com.t2.compassionMeditation.Constants.USER_MODE_ACTIVITY);		

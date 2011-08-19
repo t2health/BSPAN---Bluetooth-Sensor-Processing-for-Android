@@ -72,9 +72,15 @@
         <item>MidGamma</item>
         <item>(e)Attention</item>
         <item>(e)Meditation</item>
+    </string-array>	
+	
+    <string-array name="bioharness_parameters_array">
+    
+        
         <item>Heart Rate</item>
         <item>Respiration Rate</item>
         <item>Skin Temp</item>
+        <item>None</item>
     </string-array>	
 	
 <!-- New Session -->

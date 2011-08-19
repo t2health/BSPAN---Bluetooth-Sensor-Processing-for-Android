@@ -2,14 +2,24 @@ package com.t2.compassionMeditation;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+
 import com.t2.R;
 import com.t2.biomap.SharedPref;
+
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.dao.Dao;
+
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
@@ -17,7 +27,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-public class PreferenceActivity extends Activity {
+public class PreferenceActivity extends Activity{
+	private static final String TAG = "BFDemo";
 
 	EditText mSessionLengthEdit;
 	EditText mAlphaGainEdit;
@@ -26,6 +37,13 @@ public class PreferenceActivity extends Activity {
 	CheckBox mSaveRawWaveCheckbox;
 	CheckBox mShowAlphaGainCheckbox;
 	Spinner mBandOfInterestSpinner;
+	Spinner mBioHarnessParametersSpinner;
+	
+//	Dao<PreferenceData, Integer> mPeferenceDao;
+//	PreferenceData mPreferenceData;
+//	ArrayList<Boolean> mBioHarnessParameters; 	
+	
+	
 	
 	
 	protected SharedPreferences sharedPref;
@@ -48,6 +66,63 @@ public class PreferenceActivity extends Activity {
 		    	finish();
 		    	break;
 		    	
+//		    case R.id.buttonBioHarnessParameters:
+//
+//		    	String[] measureNames = new String[] {"Heart Rate", "Respiration Rate", "Skin Temp"};
+//		    	//final boolean toggleArray[] = new boolean[measureNames.length];		    	
+//		    	
+//		    	try {
+//					mPeferenceDao.refresh(mPreferenceData);
+//					
+//			    	Object toggleBArray[] =  mPreferenceData.mBioHarnessParameters.toArray();
+//			    	
+////			    	Boolean toggleBArray[] = (Boolean[]) mPreferenceData.mBioHarnessParameters.toArray();
+//			    	final boolean toggleArray[] = new boolean[measureNames.length];	
+//
+//			    	for (int i = 0; i < toggleBArray.length; i++) {
+//			    		Boolean b = (Boolean) toggleBArray[i];
+//			    		toggleArray[i] = b.booleanValue();
+//			    	}
+//			    	                          
+//					
+//			    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+//			    	alert.setTitle("Select Parameters to Use");
+//					    	alert.setMultiChoiceItems(measureNames,
+//			    			toggleArray,
+//		                    new DialogInterface.OnMultiChoiceClickListener() {
+//
+//			    			public void onClick(DialogInterface dialog, int whichButton,boolean isChecked) {
+//			    				toggleArray[whichButton] = isChecked;
+//		                 		
+//		                        }
+//		                    });
+//			    	alert.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
+//		                public void onClick(DialogInterface dialog, int whichButton) {
+//
+//		//                	ArrayList<Boolean> dd = new ArrayList<Boolean>({true});
+//
+//		                	mPreferenceData.mBioHarnessParameters.clear();
+//		                	for (Boolean b : toggleArray) {
+//		                		mPreferenceData.mBioHarnessParameters.add(b);
+//		                	}
+//		                	try {
+//								mPeferenceDao.update(mPreferenceData);
+//							} catch (SQLException e) {
+//								Log.e(TAG, "Database Error", e);
+//							}	                	
+//
+//		                }
+//		            });
+//		
+//					alert.show();					
+//					
+//				} catch (SQLException e) {
+//					Log.e(TAG, "Database Error", e);
+//				}		    	
+//
+//		    			    	
+//		    	break;
+		    	
 		    }
 	}
 	
@@ -58,6 +133,27 @@ public class PreferenceActivity extends Activity {
         setContentView(R.layout.preferences);
 		super.onCreate(savedInstanceState);
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
+        
+//		try {
+//			mPeferenceDao = getHelper().getPreferenceDao();
+//			List<PreferenceData> list = mPeferenceDao.queryForAll();	
+//			
+//			// There should be 1 and only 1
+//			if (list.size() == 0) {
+//				mPreferenceData= new PreferenceData();
+//				mPeferenceDao.create(mPreferenceData);
+//			}
+//			else if (list.size() == 1) {
+//				mPreferenceData = list.get(0);
+//			}
+//			else {
+//				Log.e(TAG, "Database Error");				
+//			}
+//			
+//		} catch (SQLException e) {
+//			Log.e(TAG, "Database Error", e);
+//		}
+//        
 		
 		
 		try {
@@ -84,13 +180,33 @@ public class PreferenceActivity extends Activity {
 						
 			
 						
-			
+			// Mindset band of interest
 			mBandOfInterestSpinner = (Spinner) findViewById(R.id.spinnerBandOfInterest);		
 			ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 			        this, R.array.bands_of_interest_array, android.R.layout.simple_spinner_item);
+			
+			
 			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			mBandOfInterestSpinner.setAdapter(adapter)	;	
-			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST , 	Constants.PREF_BAND_OF_INTEREST_DEFAULT));
+			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST , 	
+					Constants.PREF_BAND_OF_INTEREST_DEFAULT));
+
+
+			// BioHarness parameter of interest
+			mBioHarnessParametersSpinner = (Spinner) findViewById(R.id.spinnerBioHarnessParameters);		
+			adapter = ArrayAdapter.createFromResource(
+			        this, 
+			        R.array.bioharness_parameters_array, 
+			        android.R.layout.simple_spinner_item);
+			
+			
+			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			mBioHarnessParametersSpinner.setAdapter(adapter)	;	
+			mBioHarnessParametersSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST , 	
+					Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT));
+
+		
+		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -114,7 +230,10 @@ public class PreferenceActivity extends Activity {
 
 			
 			
-			SharedPref.putInt(this, Constants.PREF_BAND_OF_INTEREST , 	mBandOfInterestSpinner.getSelectedItemPosition());
+			SharedPref.putInt(this, Constants.PREF_BAND_OF_INTEREST , 	
+					mBandOfInterestSpinner.getSelectedItemPosition());
+			SharedPref.putInt(this, Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST , 	
+					mBioHarnessParametersSpinner.getSelectedItemPosition());
 
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block

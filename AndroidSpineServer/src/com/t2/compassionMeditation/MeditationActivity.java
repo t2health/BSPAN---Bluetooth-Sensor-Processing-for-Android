@@ -10,11 +10,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+
+import org.achartengine.model.XYSeries;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -25,6 +28,7 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
+import com.t2.compassionMeditation.CompassionActivity.GraphKeyItem;
 
 import com.t2.Constants;
 
@@ -97,7 +101,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	BioSession mCurrentBioSession = null;
 	List<BioUser> currentUsers;	
 	
-	private int[] bioHarnessData = new int[3];
 
 	/**
 	 * Number of seconds remaining in the session
@@ -148,6 +151,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
     private Button mPauseButton;
 //    private Button mBackButton;
     private TextView mTextInfoView;
+    private TextView mTextBioHarnessView;
     private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
     private ImageView mLotusImage; 
@@ -171,13 +175,17 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	MindsetData currentMindsetData;
 	
 	
-	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
+	private int mMindsetBandOfInterest = MindsetData.THETA_ID; // Default to theta
+	private int mBioHarnessParameterOfInterest = com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT;
 	private int numSecsWithoutData = 0;
 	
 	private static Object mKeysLock = new Object();
     private RateOfChange mRateOfChange;
     private int mRateOfChangeSize = 6;
 
+	int mLotusRawValue = 0;;     
+	double mLotusScaledValue = 0;;     
+	int mLotusFilteredValue = 0;;     
 	
 	
 	/**
@@ -197,6 +205,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	boolean mSaveRawWave;
 	boolean mAllowComments;
 	boolean mShowAGain;
+	String[] mBioHarnessParameters;	
 
 	
 	
@@ -259,7 +268,8 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				com.t2.compassionMeditation.Constants.PREF_COMMENTS, 
 				com.t2.compassionMeditation.Constants.PREF_COMMENTS_DEFAULT);
 
-        
+		mBioHarnessParameters = getResources().getStringArray(R.array.bioharness_parameters_array);
+		
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
         
         mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
@@ -283,6 +293,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
         mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
+        mTextBioHarnessView = (TextView) findViewById(R.id.textViewBioHarness);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
 //        mBackButton = (Button) findViewById(R.id.buttonBack);
@@ -298,6 +309,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         // Controls start as invisible, need to touch screen to activate them
 		mCountdownTextView.setVisibility(View.INVISIBLE);
 		mTextInfoView.setVisibility(View.INVISIBLE);
+		mTextBioHarnessView.setVisibility(View.INVISIBLE);		
 		mPauseButton.setVisibility(View.INVISIBLE);
 //		mBackButton.setVisibility(View.INVISIBLE);
 		mSeekBar.setVisibility(View.INVISIBLE);
@@ -357,7 +369,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		try {
 			mBioUserDao = getHelper().getBioUserDao();
 			mBioSessionDao = getHelper().getBioSessionDao();
-
+			
 			QueryBuilder<BioUser, Integer> builder = mBioUserDao.queryBuilder();
 			builder.where().eq(BioUser.NAME_FIELD_NAME, selectedUserName);
 			builder.limit(1);
@@ -396,6 +408,10 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
 		mLogCatName = "Logcat" + currentDateTimeString + ".log";		
+		
+
+        
+		
 		
     	saveState();
     } // End onCreate(Bundle savedInstanceState)
@@ -560,14 +576,45 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				int heartRate = firsFeat.getCh2Value();
 				double respRate = firsFeat.getCh3Value() / 10;
 				int skinTemp = firsFeat.getCh4Value() / 10;
-				double skinTempF = (skinTemp * 9 / 5) + 32;				
-				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
+				double mSkinTempF = (skinTemp * 9 / 5) + 32;				
 
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + mSkinTempF);
+				
 				numSecsWithoutData = 0;		
-	        	synchronized(mKeysLock) {					
-	        		bioHarnessData[0] = heartRate/3;
-	        		bioHarnessData[1] = (int) respRate * 5;
-	        		bioHarnessData[2] = (int) skinTempF;
+	        	synchronized(mKeysLock) {
+	        		switch (mBioHarnessParameterOfInterest) {
+	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
+	    				// Skin temp scaling -  absolute range  0  - 110, practical range 70 - 110, alpha range		0 - 255
+	        			mLotusRawValue = (int) mSkinTempF;
+		        		mLotusScaledValue = mSkinTempF - 70;
+	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
+	    				mLotusScaledValue *= (255F / (110F - 70F)); //  6.375
+	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
+	        			break;
+	        			
+	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
+	    				// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
+	        			mLotusRawValue = heartRate;
+		        		mLotusScaledValue = heartRate - 20;
+	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
+	    				mLotusScaledValue *= (255F / (250 - 20F));
+	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
+	        			break;
+	        			
+	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
+	    				// Resp Rate - absolute range  0  - 120, practical range 5 - 120, alpha range		0 - 255
+	        			mLotusRawValue = (int) respRate;
+		        		mLotusScaledValue = respRate - 5;
+	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
+	    				mLotusScaledValue *= (255F / (120 - 5F));
+	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
+	        			break;
+
+	        		default:
+	        			mLotusRawValue = 0;
+	        			mLotusScaledValue = 0;
+	        			
+	        		}
 	        	}
 
 				break;
@@ -762,41 +809,46 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			
 			numSecsWithoutData++;
 
-			int value;
-			int filteredValue;
-			String bandName;
 			
-			if (mBandOfInterest <= MindsetData.NUM_BANDS + 2 - 1) {
-				// Update buddah image based on band of interes
-				value = currentMindsetData.getFeatureValue(mBandOfInterest);
-				mMovingAverage.pushValue(value);	
-				filteredValue = (int) (mMovingAverage.getValue());
-				bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
+			// Update buddah image based on band of interest
+			int rawBuddahValue = currentMindsetData.getFeatureValue(mMindsetBandOfInterest);
+			mMovingAverage.pushValue(rawBuddahValue);	
+			int filteredBuddahValue = (int) (mMovingAverage.getValue());
+			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
 				
-			}
-			else {
-				String[] sa = getResources().getStringArray(R.array.bands_of_interest_array);
-				bandName = sa[mBandOfInterest];
-	        	synchronized(mKeysLock) {	
-	        		// TODO: Hacked for Dr. Gahm demo - fix later
-	        		int i = mBandOfInterest - MindsetData.NUM_BANDS - 2;
-	        		value = bioHarnessData[i];
 
-	        		mRateOfChange.pushValue((float)value);	
-					filteredValue = 100 - ((int) (mRateOfChange.getValue()) * 10);
-	        	}
-			}
+			// Set values for buddah from mindset data
+			double  buddahAlphaValue = mAlphaGain * (double) filteredBuddahValue; 
+			int iBuddahAlphaValue = (int) buddahAlphaValue;
+			if (iBuddahAlphaValue > 255) iBuddahAlphaValue = 255; 
 			
-			double  alphaValue = mAlphaGain * (double) filteredValue; 
-			int iAlphaValue = (int) alphaValue;
-			if (iAlphaValue > 255) iAlphaValue = 255; 
-			
-			mTextInfoView.setText(bandName + ": " + value + ", " + filteredValue +  ", " + iAlphaValue + ": " + mAlphaGain);		
+			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue);		
+//			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue + ": " + (int) mAlphaGain);		
 //			mTextInfoView.setText(bandName + ": " + filteredValue );		
+
+			
+				
+			// Set values for the lotus from BioHarness data
+			mRateOfChange.pushValue((float) mLotusScaledValue);	
+			int filteredLotusValue = (int) (mRateOfChange.getValue() * 10);
+			if (filteredLotusValue > 255) filteredLotusValue = 255;
+			
+			int iLotusAlphaValue = 255 - filteredLotusValue;
+			
+			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
+//			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) mLotusScaledValue+ ", " + (int) filteredLotusValue);		
+			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue + ", " + iLotusAlphaValue);		
 			
 			if (mIntroFade <= 0) {
-				mBuddahImage.setAlpha(iAlphaValue);
-				mLotusImage.setAlpha(255 - iAlphaValue);
+				mBuddahImage.setAlpha(iBuddahAlphaValue);
+				
+				if (mBioHarnessParameterOfInterest == com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PNONE) {
+					mLotusImage.setAlpha(0);
+				}
+				else {
+					mLotusImage.setAlpha(iLotusAlphaValue);
+				}
+				
 			}
 			
 			if (mSecondsRemaining-- > 0) {
@@ -870,9 +922,13 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		if (mSessionName.equalsIgnoreCase(""))
 			mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
 		
-		mBandOfInterest = SharedPref.getInt(this, 
+		mMindsetBandOfInterest = SharedPref.getInt(this, 
 				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
 				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+		
+		mBioHarnessParameterOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT);
 		
 		
 		if (!mSessionName.equalsIgnoreCase("")) {
@@ -889,6 +945,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			mShowingControls = false;
 			mCountdownTextView.setVisibility(View.INVISIBLE);
 			mTextInfoView.setVisibility(View.INVISIBLE);
+			mTextBioHarnessView.setVisibility(View.INVISIBLE);
 			mPauseButton.setVisibility(View.INVISIBLE);
 //			mBackButton.setVisibility(View.INVISIBLE);
 			mSeekBar.setVisibility(View.INVISIBLE);
@@ -898,6 +955,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			mShowingControls = true;
 			mCountdownTextView.setVisibility(View.VISIBLE);
 			mTextInfoView.setVisibility(View.VISIBLE);
+			mTextBioHarnessView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
 //			mBackButton.setVisibility(View.VISIBLE);
 //			mSeekBar.setVisibility(View.VISIBLE);
@@ -1085,4 +1143,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		}
 	}
 
+
+	
 }

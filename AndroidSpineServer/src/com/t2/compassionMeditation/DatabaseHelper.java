@@ -22,11 +22,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	 * Suggested Copy/Paste code. Everything from here to the done block.
 	 ************************************************/
 
-	private static final String DATABASE_NAME = "helloAndroid34.db";	
+	private static final String DATABASE_NAME = "helloAndroid35.db";	
 	private static final int DATABASE_VERSION = 6;
 
 	private Dao<BioUser, Integer> bioUserDao = null;
 	private Dao<BioSession, Integer> bioSessionDao = null;
+	private Dao<PreferenceData, Integer> preferenceDao = null;
 	
 
 	public DatabaseHelper(Context context) {
@@ -42,6 +43,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		try {
 			TableUtils.createTable(connectionSource, BioUser.class);
 			TableUtils.createTable(connectionSource, BioSession.class);
+			TableUtils.createTable(connectionSource, PreferenceData.class);
 			
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to create datbases", e);
@@ -53,6 +55,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		try {
 			TableUtils.dropTable(connectionSource, BioUser.class, true);
 			TableUtils.dropTable(connectionSource, BioSession.class, true);
+			TableUtils.dropTable(connectionSource, PreferenceData.class, true);
 			onCreate(sqliteDatabase, connectionSource);
 		} catch (SQLException e) {
 			Log.e(DatabaseHelper.class.getName(), "Unable to upgrade database from version " + oldVer + " to new "
@@ -72,6 +75,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		}
 		return bioSessionDao;
 	}
+	public Dao<PreferenceData, Integer> getPreferenceDao() throws SQLException {
+		if (preferenceDao == null) {
+			preferenceDao = getDao(PreferenceData.class);
+		}
+		return preferenceDao;
+	}
 	/**
 	 * Close the database connections and clear any cached DAOs.
 	 */
@@ -80,6 +89,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		super.close();
 		bioUserDao = null;
 		bioSessionDao = null;
+		preferenceDao = null;
 	}	
 	
 }

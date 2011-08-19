@@ -151,7 +151,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
     
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
-	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
+	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
 	private MindsetData currentMindsetData;
 	
 	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
@@ -234,19 +234,19 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
         int i;
         for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
-        	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
+        	GraphKeyItem key = new GraphKeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
         heartRatePos = i;
-    	KeyItem key = new KeyItem(i++, "HeartRate", "");
+    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
         keyItems.add(key);
         
         respRatePos = i;
-        key = new KeyItem(i++, "RespRate", "");
+        key = new GraphKeyItem(i++, "RespRate", "");
         keyItems.add(key);
         
         skinTempPos = i;
-    	key = new KeyItem(i, "SkinTemp", "");
+    	key = new GraphKeyItem(i, "SkinTemp", "");
         keyItems.add(key);
         
 
@@ -315,7 +315,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
         
 		int lineNum = 0;
 		for(int i = 0; i < keyItems.size(); ++i) {
-			KeyItem item = keyItems.get(i);
+			GraphKeyItem item = keyItems.get(i);
 			
 			item.visible = visibleIds.contains(item.id);
 			if(!item.visible) {
@@ -599,7 +599,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		    	
 		    	boolean toggleArray[] = new boolean[keyItems.size()];
 				for(int j = 0; j < keyItems.size(); ++j) {
-					KeyItem item = keyItems.get(j);
+					GraphKeyItem item = keyItems.get(j);
 					if(item.visible)
 						toggleArray[j] = true;
 					else
@@ -609,7 +609,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		    	
 				String[] measureNames = new String[keyItems.size()];
 				int i = 0;
-				for (KeyItem item: keyItems) {
+				for (GraphKeyItem item: keyItems) {
 					measureNames[i++] = item.title1;
 				}
 				
@@ -622,7 +622,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 
 		    			public void onClick(DialogInterface dialog, int whichButton,boolean isChecked) {
 
-                			KeyItem item = keyItems.get(whichButton);
+                			GraphKeyItem item = keyItems.get(whichButton);
                 			item.visible = item.visible ? false: true;
 	                 		saveVisibleKeyIds();	
 	                 		generateChart();	                 		
@@ -727,7 +727,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 			// Output a point for each visible key item
 			int keyCount = keyItems.size();
 			for(int i = 0; i < keyItems.size(); ++i) {
-				KeyItem item = keyItems.get(i);
+				GraphKeyItem item = keyItems.get(i);
 				
 				if(!item.visible) {
 					continue;
@@ -852,37 +852,17 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		
 	}
 
-	static class KeyItem {
-		public long id;
-		public String title1;
-		public String title2;
-		public int color;
-		public boolean visible;
-		public boolean reverseData = false; 
+	static class GraphKeyItem extends KeyItem{
 		public XYSeries series;		
-		int value;
 		
-		public KeyItem(long id, String title1, String title2) {
-			this.id = id;
-			this.title1 = title1;
-			this.title2 = title2;
+		public GraphKeyItem(long id, String title1, String title2) {
+			super(id, title1, title2);
 			series = new XYSeries(title1);		
-			this.visible = true;
 		}
 		
-		
-		public HashMap<String,Object> toHashMap() {
-			HashMap<String,Object> data = new HashMap<String,Object>();
-			data.put("id", id);
-			data.put("title1", title1);
-			data.put("title2", title2);
-			data.put("color", color);
-			data.put("visible", visible);
-			return data;
-		}
 	}
 	
-	class KeyItemAdapter extends ArrayAdapter<KeyItem> {
+	class KeyItemAdapter extends ArrayAdapter<GraphKeyItem> {
 		public static final int VIEW_TYPE_ONE_LINE = 1;
 		public static final int VIEW_TYPE_TWO_LINE = 2;
 		
@@ -890,7 +870,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		private int layoutId;
 
 		public KeyItemAdapter(Context context, int viewType,
-				List<KeyItem> objects) {
+				List<GraphKeyItem> objects) {
 			super(context, viewType, objects);
 			
 			layoutInflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -959,7 +939,7 @@ public class CompassionActivity extends Activity implements OnBioFeedbackMessage
 		String keySuffix = "measure1";
 		ArrayList<Long> toggledIds = new ArrayList<Long>();
 		for(int i = 0; i < keyItems.size(); ++i) {
-			KeyItem item = keyItems.get(i);
+			GraphKeyItem item = keyItems.get(i);
 			if(item.visible) {
 				toggledIds.add(item.id);
 			}
