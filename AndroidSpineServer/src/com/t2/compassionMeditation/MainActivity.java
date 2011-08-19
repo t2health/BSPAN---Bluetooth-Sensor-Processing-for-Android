@@ -152,12 +152,11 @@ public class MainActivity extends ListActivity {
 			
 		}
 		if (keyword.equalsIgnoreCase("View Previous Session")) {
-//			intent = new Intent(this, FileChooser.class);
-//			this.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);
+			intent = new Intent(this, FileChooser.class);
+			this.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);
 
-			intent = new Intent(this, ViewSessionsActivity.class);
-			
-			this.startActivityForResult(intent, Constants.VIEW_SESSIONS_ACTIVITY);
+//			intent = new Intent(this, ViewSessionsActivity.class);
+//			this.startActivityForResult(intent, Constants.VIEW_SESSIONS_ACTIVITY);
 
 			
 		}

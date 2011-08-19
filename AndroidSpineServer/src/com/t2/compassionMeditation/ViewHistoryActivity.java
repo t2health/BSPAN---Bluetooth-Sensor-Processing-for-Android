@@ -28,6 +28,7 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
+import com.t2.compassionMeditation.CompassionActivity.GraphKeyItem;
 
 import com.t2.Constants;
 
@@ -135,11 +136,16 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
-	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
+	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
 	private MindsetData currentMindsetData;
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
+	
+	private int heartRatePos;
+	private int respRatePos;
+	private int skinTempPos;
+	
 	
 	/**
 	 * @return Static instance of this activity
@@ -182,10 +188,23 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         
 
      
-        for (int i = 0; i < MindsetData.NUM_BANDS; i++) {
-        	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
+        int i;
+        for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+        	GraphKeyItem key = new GraphKeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
+        heartRatePos = i;
+    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
+        keyItems.add(key);
+        
+        respRatePos = i;
+        key = new GraphKeyItem(i++, "RespRate", "");
+        keyItems.add(key);
+        
+        skinTempPos = i;
+    	key = new GraphKeyItem(i, "SkinTemp", "");
+        keyItems.add(key);
+                
 
         // Set up Device data chart
         generateChart();
@@ -315,9 +334,14 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		        
 		        String lineToParse;
 		        while ((lineToParse = mLogReader.readLine()) != null) {
-		        	MindsetPoint point = parseLine(lineToParse);
-		        	mSessionData.add(point);
-		        	Log.i(TAG,lineToParse);
+		        	try {
+						MindsetPoint point = parseLine(lineToParse);
+						mSessionData.add(point);
+						Log.i(TAG,lineToParse);
+					} catch (NumberFormatException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 		        }
 		        TextView textViewSessionName = (TextView) findViewById(R.id.textViewSessionName);
 		        textViewSessionName.setText("Session: " + mSessionName);
@@ -392,35 +416,35 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         
 		int lineNum = 0;
 		for(int i = 0; i < keyItems.size(); ++i) {
-			KeyItem item = keyItems.get(i);
+//			GraphKeyItem item = GraphKeyItem.get(i);
 			
-			item.visible = visibleIds.contains(item.id);
-			if(!item.visible) {
-				continue;
-			}
-			
-			deviceDataset.addSeries(item.series);
-			item.color = getKeyColor(i, keyCount);
-			
-			// Add name of the measure to the displayed text field
-			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
-			int start = sMeasuresText.length();
-			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
-			int end = sMeasuresText.length();
-			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			if (sMeasuresText.length() > 40 && lineNum == 0) {
-				lineNum++;
-			}
-			
-			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
-			seriesRenderer.setColor(item.color);
-			
-			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-//			seriesRenderer.setFillPoints(true);
-//			seriesRenderer.setLineWidth(2 * displayMetrics.density);			
-			
-			
-			deviceRenderer.addSeriesRenderer(seriesRenderer);
+//			item.visible = visibleIds.contains(item.id);
+//			if(!item.visible) {
+//				continue;
+//			}
+//			
+//			deviceDataset.addSeries(item.series);
+//			item.color = getKeyColor(i, keyCount);
+//			
+//			// Add name of the measure to the displayed text field
+//			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
+//			int start = sMeasuresText.length();
+//			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
+//			int end = sMeasuresText.length();
+//			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+//			if (sMeasuresText.length() > 40 && lineNum == 0) {
+//				lineNum++;
+//			}
+//			
+//			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+//			seriesRenderer.setColor(item.color);
+//			
+//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+////			seriesRenderer.setFillPoints(true);
+////			seriesRenderer.setLineWidth(2 * displayMetrics.density);			
+//			
+//			
+//			deviceRenderer.addSeriesRenderer(seriesRenderer);
 			
 		}     
 		mMeasuresDisplayText.setText(sMeasuresText) ;       
@@ -587,7 +611,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		    		    
 		    case R.id.buttonAddMeasure:
 		    	
-		    	boolean toggleArray[] = new boolean[keyItems.size()];
+		    	boolean toggleArray[] = new boolean[keyItems.size() + 2];
 				for(int j = 0; j < keyItems.size(); ++j) {
 					KeyItem item = keyItems.get(j);
 					if(item.visible)
@@ -918,4 +942,15 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		// TODO Auto-generated method stub
 		
 	}
+	
+	private static class GraphKeyItem extends KeyItem{
+		public XYSeries series;		
+		
+		public GraphKeyItem(long id, String title1, String title2) {
+			super(id, title1, title2);
+			series = new XYSeries(title1);		
+		}
+		
+	}
+	
 }

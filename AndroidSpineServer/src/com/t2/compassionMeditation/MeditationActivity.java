@@ -101,7 +101,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	BioSession mCurrentBioSession = null;
 	List<BioUser> currentUsers;	
 	
-
+	File mLogFile;
 	/**
 	 * Number of seconds remaining in the session
 	 *   This is set initially from SharedPref.PREF_SESSION_LENGTH
@@ -161,7 +161,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
      * Moving average used to smooth the display of the band of interest
      */
     private MovingAverage mMovingAverage;
-    private int mMovingAverageSize = 30;
+    private int mMovingAverageSize = 10;
 
     private MovingAverage mMovingAverageROC;
     private int mMovingAverageSizeROC = 6;
@@ -398,7 +398,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		}
 		
 		// Create a sessioin data point for this session (to put in data
-//		sessionDataPoint = new SessionDataPoint(System.currentTimeMillis(),0);
 		mCurrentBioSession = new BioSession(mCurrentBioUser, System.currentTimeMillis());
 		
 		
@@ -816,11 +815,25 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			int filteredBuddahValue = (int) (mMovingAverage.getValue());
 			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
 				
-
+			int iBuddahAlphaValue;
 			// Set values for buddah from mindset data
-			double  buddahAlphaValue = mAlphaGain * (double) filteredBuddahValue; 
-			int iBuddahAlphaValue = (int) buddahAlphaValue;
-			if (iBuddahAlphaValue > 255) iBuddahAlphaValue = 255; 
+//			double  buddahAlphaValue = mAlphaGain * (double) filteredBuddahValue; 
+//			iBuddahAlphaValue = (int) buddahAlphaValue;
+//			if (iBuddahAlphaValue > 255) iBuddahAlphaValue = 255; 
+			
+			// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
+			double buddahAlphaValue = (double) filteredBuddahValue - 20;
+			if (buddahAlphaValue < 0) buddahAlphaValue = 0;
+//			buddahAlphaValue *= (255F / (85F - 40F));
+			buddahAlphaValue *= mAlphaGain;
+			if (buddahAlphaValue > 255) buddahAlphaValue = 255;
+			iBuddahAlphaValue = (int) buddahAlphaValue;
+			
+			
+			
+			// Scale it
+			
+			
 			
 			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue);		
 //			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue + ": " + (int) mAlphaGain);		
@@ -836,8 +849,8 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			int iLotusAlphaValue = 255 - filteredLotusValue;
 			
 			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
-//			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) mLotusScaledValue+ ", " + (int) filteredLotusValue);		
-			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue + ", " + iLotusAlphaValue);		
+//			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue + ", " + iLotusAlphaValue);		
+			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue );		
 			
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iBuddahAlphaValue);
@@ -884,9 +897,6 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	@Override
 	protected void onStop() {
 		Log.i(TAG, TAG +  " onStop");
-		if (!mSessionName.equalsIgnoreCase("")) {
-			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-		}
 		
 		super.onStop();
 	}	
@@ -1015,32 +1025,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		// User pressed the quit key, exit the activity
 		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int whichButton) {
-			
-			addNoteToLog(input.getText().toString());
-			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-			mCurrentBioSession.comments += input.getText();
-			
-			// Udpate the database with the current session
-			try {
-				
-				mBioSessionDao.create(mCurrentBioSession);
-				
-			} catch (SQLException e1) {
-				Log.e(TAG, "Error saving current session to database", e1);
-			}			
-			
-			
-			// Save catlog file for possible debugging
-			try {
-			    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
-			    filename.createNewFile(); 
-			    String cmd = "logcat -d -f "+filename.getAbsolutePath();
-			    Runtime.getRuntime().exec(cmd);
-			} catch (IOException e) {
-			    // TODO Auto-generated catch block
-			    e.printStackTrace();
-			}			
-			
+			mLogFile.delete();
 			finish();
 		  
 		  }
@@ -1056,7 +1041,42 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		}
 		);
 
-		alert1.setNegativeButton("Start", new DialogInterface.OnClickListener() {
+		alert1.setNeutralButton("Save", new DialogInterface.OnClickListener() {
+			  public void onClick(DialogInterface dialog, int whichButton) {
+					addNoteToLog(input.getText().toString());
+					Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+					mCurrentBioSession.comments += input.getText();
+					
+					// Udpate the database with the current session
+					try {
+						
+						mBioSessionDao.create(mCurrentBioSession);
+						
+					} catch (SQLException e1) {
+						Log.e(TAG, "Error saving current session to database", e1);
+					}			
+					
+					
+					// Save catlog file for possible debugging
+					try {
+					    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+					    filename.createNewFile(); 
+					    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+					    Runtime.getRuntime().exec(cmd);
+					} catch (IOException e) {
+					    // TODO Auto-generated catch block
+					    e.printStackTrace();
+					}			
+					
+					if (!mSessionName.equalsIgnoreCase("")) {
+						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+					}
+					
+					finish();
+			  }
+			});		
+		
+		alert1.setNegativeButton("Re-Start", new DialogInterface.OnClickListener() {
 		  public void onClick(DialogInterface dialog, int whichButton) {
 				mPaused = false;
 				addNoteToLog(input.getText().toString());
@@ -1112,9 +1132,18 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
     		try {
     		    File root = Environment.getExternalStorageDirectory();
     		    if (root.canWrite()){
-    		        File gpxfile = new File(root, mSessionName);
-    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+    		        mLogFile = new File(root, mSessionName);
+    		        FileWriter gpxwriter = new FileWriter(mLogFile, true); // open for append
     		        mLogWriter = new BufferedWriter(gpxwriter);
+
+			        try {
+			        	if (mLogWriter != null)
+			        		mLogWriter.write(currentMindsetData.getLogDataLineHeader());
+					} catch (IOException e) {
+						Log.e(TAG, e.toString());
+					}
+    		        
+    		        
     		    } 
     		    else {
         		    Log.e(TAG, "Could not write file " );

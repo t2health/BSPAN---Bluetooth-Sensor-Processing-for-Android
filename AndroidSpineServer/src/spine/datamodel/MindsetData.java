@@ -277,5 +277,20 @@ public class MindsetData  extends Data {
 		return line;
 	}
 	
+	public String getLogDataLineHeader() {
+		String line = "Time,,SignalStrength,";							// Comment
+		line += "Attention, "; 
+		line += "Meditation, "; 		
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			line += spectralNames[i] + ", ";
+		}
+		line += ", ";								// Visual seperator
+		for (int i = 0; i < NUM_BANDS; i++)	{
+			line += spectralNames[i] + ", ";
+		}
+		line += "\n";
+		return line;
+	}
+	
 
 }
