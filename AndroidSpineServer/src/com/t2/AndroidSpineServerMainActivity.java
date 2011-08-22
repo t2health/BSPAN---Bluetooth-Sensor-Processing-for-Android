@@ -2,7 +2,7 @@ package com.t2;
 
 import com.t2.biomap.BioMapActivity;
 import com.t2.compassionMeditation.CompassionActivity;
-import com.t2.compassionMeditation.MainActivity;
+import com.t2.compassionMeditation.MainChooserActivity;
 import com.t2.compassionMeditation.MeditationActivity;
 import com.t2.Constants;
 
@@ -179,7 +179,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 //			Intent i = new Intent(this, BioMapActivity.class);
 //			Intent i = new Intent(this, CompassionActivity.class);
 //			Intent i = new Intent(this, MeditationActivity.class);
-			Intent i = new Intent(this, MainActivity.class);
+			Intent i = new Intent(this, MainChooserActivity.class);
 //			Intent i = new Intent(this, BioDetailActivity.class);
 			this.startActivity(i);
 		}

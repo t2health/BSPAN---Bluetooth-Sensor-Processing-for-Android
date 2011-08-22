@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biozen">BioZen</string>
     <string name="hello">Hello World, AndroidSpineServerMainActivity!</string>
     <string name="app_name">AndroidSpineServer</string>
     <string name="StatusLogLabelText">Status/Log</string>
