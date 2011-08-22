@@ -3,9 +3,6 @@ package com.t2.biomap;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-
-import com.t2.compassionMeditation.ArraysExtra;
 
 import android.content.Context;
 import android.content.SharedPreferences;

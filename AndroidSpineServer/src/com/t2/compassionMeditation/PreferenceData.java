@@ -1,11 +1,11 @@
 package com.t2.compassionMeditation;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.t2.compassionDB.BioUser;
 
 @DatabaseTable
 public class PreferenceData {

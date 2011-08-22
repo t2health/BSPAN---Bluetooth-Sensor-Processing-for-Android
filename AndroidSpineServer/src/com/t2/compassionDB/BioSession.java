@@ -1,6 +1,5 @@
-package com.t2.compassionMeditation;
+package com.t2.compassionDB;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.j256.ormlite.field.DataType;

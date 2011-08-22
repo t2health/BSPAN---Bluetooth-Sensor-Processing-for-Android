@@ -2,16 +2,9 @@ package com.t2.compassionMeditation;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-
 import com.t2.R;
 import com.t2.biomap.SharedPref;
 
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
-import com.j256.ormlite.dao.Dao;
 
 
 import android.app.Activity;
@@ -19,7 +12,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;

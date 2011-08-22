@@ -7,17 +7,13 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import org.achartengine.model.XYSeries;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -26,9 +22,12 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
+import com.t2.compassionDB.BioSession;
+import com.t2.compassionDB.BioUser;
+import com.t2.compassionDB.DatabaseHelper;
+import com.t2.compassionUtils.MovingAverage;
+import com.t2.compassionUtils.RateOfChange;
 
 import com.t2.Constants;
 
@@ -43,9 +42,6 @@ import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -67,14 +63,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -85,7 +78,7 @@ import android.widget.Toast;
 import com.t2.R;
 
 
-public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
+public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
@@ -127,7 +120,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	/**
 	 * Static instance of this activity
 	 */
-	private static MeditationActivity instance;
+	private static BuddahActivity instance;
 	
     /**
      * Toggled by screen press, indicates whether or not to show buttons/tools on screen
@@ -251,7 +244,7 @@ public class MeditationActivity extends OrmLiteBaseActivity<DatabaseHelper>
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
         
         
-        setContentView(R.layout.meditation);
+        setContentView(R.layout.buddah_activity_layout);
         
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
 

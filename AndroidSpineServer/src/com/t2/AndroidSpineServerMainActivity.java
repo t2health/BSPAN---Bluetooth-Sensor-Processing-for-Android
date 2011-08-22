@@ -1,9 +1,7 @@
 package com.t2;
 
 import com.t2.biomap.BioMapActivity;
-import com.t2.compassionMeditation.GraphsActivity;
 import com.t2.compassionMeditation.MainChooserActivity;
-import com.t2.compassionMeditation.MeditationActivity;
 import com.t2.Constants;
 
 import spine.SPINEFactory;

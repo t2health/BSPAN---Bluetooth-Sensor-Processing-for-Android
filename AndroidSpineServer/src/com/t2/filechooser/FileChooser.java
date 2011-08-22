@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.net.Uri;
@@ -18,7 +17,6 @@ import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
 import com.t2.compassionMeditation.Constants;
 

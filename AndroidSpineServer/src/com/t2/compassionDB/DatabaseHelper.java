@@ -1,4 +1,4 @@
-package com.t2.compassionMeditation;
+package com.t2.compassionDB;
 
 import java.sql.SQLException;
 
@@ -10,6 +10,7 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import com.t2.compassionMeditation.PreferenceData;
 
 /**
  * Database helper which creates and upgrades the database and provides the DAOs for the app.

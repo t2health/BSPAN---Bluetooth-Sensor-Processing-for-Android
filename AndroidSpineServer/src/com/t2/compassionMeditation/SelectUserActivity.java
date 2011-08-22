@@ -7,14 +7,12 @@ import java.util.List;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemClickListener;
 
 import android.widget.ArrayAdapter;
 
@@ -22,8 +20,10 @@ import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
-import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
+import com.t2.compassionDB.BioSession;
+import com.t2.compassionDB.BioUser;
+import com.t2.compassionDB.DatabaseHelper;
 
 public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	private static final String TAG = "BFDemo";
@@ -84,7 +84,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		super.onCreate(savedInstanceState);
 		mI = this;
 		
-		this.setContentView(R.layout.select_user_layout);
+		this.setContentView(R.layout.select_user_activity_layout);
 		mListView = (ListView)findViewById(R.id.listViewUsers);
 		
 		

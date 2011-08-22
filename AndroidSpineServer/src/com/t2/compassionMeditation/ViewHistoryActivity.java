@@ -1,10 +1,8 @@
 package com.t2.compassionMeditation;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,29 +21,18 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
 
-import com.t2.SpineReceiver;
-import com.t2.SpineReceiver.BioFeedbackStatus;
-import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
 
 import com.t2.Constants;
 
-import spine.datamodel.Node;
-import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
-import spine.SPINEListener;
-import spine.SPINEManager;
-import spine.datamodel.Address;
+import spine.datamodel.Node;
 import spine.datamodel.Data;
 import spine.datamodel.MindsetData;
-import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -75,7 +62,6 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 //Need the following import to get access to the app resources, since this
@@ -239,7 +225,11 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     } // End onCreate(Bundle savedInstanceState)
     
     class MindsetPoint extends MindsetData {
-    	public String dateTime;
+    	/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5647398490731023479L;
+		public String dateTime;
     	public String comment;
     	
     	MindsetPoint() {

@@ -6,13 +6,11 @@ import com.t2.biomap.SharedPref;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 
 public class InstructionsActivity extends Activity implements View.OnTouchListener {
 	private static final String mActivityVersion = "1.0";
@@ -23,7 +21,7 @@ public class InstructionsActivity extends Activity implements View.OnTouchListen
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		
-        setContentView(R.layout.instructions);        
+        setContentView(R.layout.instructions_activity_layout);        
 		mShowInstructionsCheckbox = (CheckBox) findViewById(R.id.checkBox1);
 		
 		boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);

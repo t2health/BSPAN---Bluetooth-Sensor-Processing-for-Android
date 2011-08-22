@@ -1,6 +1,5 @@
 package com.t2.compassionMeditation;
 
-import com.t2.R;
 
 import spine.datamodel.MindsetData;
 

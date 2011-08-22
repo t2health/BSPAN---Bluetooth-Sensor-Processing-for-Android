@@ -6,7 +6,6 @@ import com.t2.biomap.SharedPref;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 
 public class MindsetData  extends Data {

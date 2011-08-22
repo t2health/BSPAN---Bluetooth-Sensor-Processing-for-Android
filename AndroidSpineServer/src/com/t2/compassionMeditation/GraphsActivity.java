@@ -4,14 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -28,9 +23,9 @@ import org.achartengine.renderer.XYSeriesRenderer;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.BioLocation;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
+import com.t2.compassionUtils.RateOfChange;
 
 import com.t2.Constants;
 
@@ -172,7 +167,7 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE); // This needs to happen BEFORE setContentView
-        setContentView(R.layout.compassion);
+        setContentView(R.layout.graphs_activity_layout);
         instance = this;
     	
         mRateOfChange = new RateOfChange(mRateOfChangeSize);

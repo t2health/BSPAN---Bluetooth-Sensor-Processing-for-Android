@@ -82,7 +82,7 @@
 
 
         <activity 
-        	android:name=".compassionMeditation.MeditationActivity" 
+        	android:name=".compassionMeditation.BuddahActivity" 
         	android:label=""
         	android:screenOrientation="portrait"
         	>

@@ -1,26 +1,38 @@
- package com.t2.compassionMeditation;
+ package com.t2.compassionUtils;
 
- public class MovingAverage {
+ public class RateOfChange {
 	 private float circularBuffer[];
-        private float mean;
+	 	private float mean;
+	 	private float instantChange;
         private int circularIndex;
         private int count;
 
-        public MovingAverage(int size) {
+        public RateOfChange(int size) {
             circularBuffer = new float[size];
             reset();
         }
 
         public float getValue() {
-            return mean;
+        	float total = 0;
+        	int len = count < circularBuffer.length  ? count: circularBuffer.length;
+        	for (int i = 0; i < len - 1; ++i) {
+        		float v1 = circularBuffer[i];
+        		float v2 = circularBuffer[nextIndex(i)];
+        		float diff = Math.abs(v2 - v1);
+        		total += diff;
+            }
+
+           float  roc = total / (float) len;
+           return roc;
         }
+
 
         public void pushValue(float x) {
             if (count++ == 0) {
-                primeBuffer(x);
+                primeBuffer(0);
             }
             float lastValue = circularBuffer[circularIndex];
-            mean = mean + (x - lastValue) / circularBuffer.length;
+            instantChange = x - lastValue;
             circularBuffer[circularIndex] = x;
             circularIndex = nextIndex(circularIndex);
         }

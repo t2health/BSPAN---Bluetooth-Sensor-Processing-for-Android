@@ -72,7 +72,7 @@ public class MainChooserActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
-        setContentView(R.layout.main_chooser_layout);
+        setContentView(R.layout.main_chooser_activity_layout);
         
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);    
         setTitle("BioZen");
@@ -122,7 +122,7 @@ public class MainChooserActivity extends Activity {
         				Intent intent1 = new Intent(instance, InstructionsActivity.class);
         				instance.startActivityForResult(intent1, Constants.INSTRUCTIONS_USER_ACTIVITY);		
         			} else {
-        				intent = new Intent(instance, MeditationActivity.class);
+        				intent = new Intent(instance, BuddahActivity.class);
         				instance.startActivity(intent);		
         			}
         			break;
@@ -183,7 +183,7 @@ public class MainChooserActivity extends Activity {
 			      break; 	
 			      
 		    case (Constants.INSTRUCTIONS_USER_ACTIVITY):
-				intent = new Intent(this, MeditationActivity.class);
+				intent = new Intent(this, BuddahActivity.class);
 				this.startActivity(intent);		
 		    	break;
 		    	

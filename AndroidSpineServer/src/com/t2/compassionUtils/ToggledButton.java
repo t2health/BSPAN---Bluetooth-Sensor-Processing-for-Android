@@ -1,4 +1,4 @@
-package com.t2.compassionMeditation;
+package com.t2.compassionUtils;
 
 import android.content.Context;
 import android.util.AttributeSet;
