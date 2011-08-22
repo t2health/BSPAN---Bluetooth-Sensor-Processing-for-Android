@@ -277,7 +277,7 @@ public class MindsetData  extends Data {
 	}
 	
 	public String getLogDataLineHeader() {
-		String line = "Time,,SignalStrength,";							// Comment
+		String line = "SignalStrength,";							// Comment
 		line += "Attention, "; 
 		line += "Meditation, "; 		
 		for (int i = 0; i < NUM_BANDS; i++)	{
@@ -287,7 +287,6 @@ public class MindsetData  extends Data {
 		for (int i = 0; i < NUM_BANDS; i++)	{
 			line += spectralNames[i] + ", ";
 		}
-		line += "\n";
 		return line;
 	}
 	

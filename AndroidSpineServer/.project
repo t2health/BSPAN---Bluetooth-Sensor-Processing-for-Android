@@ -30,26 +30,4 @@
 		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>T2AndroidLib_activity</name>
-			<type>2</type>
-			<location>E:/dev/RIM/T2AndroidLib/src/org/t2health/lib/activity</location>
-		</link>
-		<link>
-			<name>T2AndroidLib_analytics</name>
-			<type>2</type>
-			<location>E:/dev/RIM/T2AndroidLib/src/org/t2health/lib/analytics</location>
-		</link>
-		<link>
-			<name>T2AndroidLib_db</name>
-			<type>2</type>
-			<location>E:/dev/RIM/T2AndroidLib/src/org/t2health/lib/db</location>
-		</link>
-		<link>
-			<name>T2AndroidLib_security</name>
-			<type>2</type>
-			<location>E:/dev/RIM/T2AndroidLib/src/org/t2health/lib/security</location>
-		</link>
-	</linkedResources>
 </projectDescription>

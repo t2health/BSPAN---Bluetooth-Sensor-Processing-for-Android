@@ -42,6 +42,7 @@ import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
+import spine.datamodel.ZephyrData;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -166,6 +167,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
     
 	protected SharedPreferences sharedPref;
 	MindsetData currentMindsetData;
+	ZephyrData currentZephyrData = new ZephyrData();
 	
 	
 	private int mMindsetBandOfInterest = MindsetData.THETA_ID; // Default to theta
@@ -568,7 +570,11 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				int heartRate = firsFeat.getCh2Value();
 				double respRate = firsFeat.getCh3Value() / 10;
 				int skinTemp = firsFeat.getCh4Value() / 10;
-				double mSkinTempF = (skinTemp * 9 / 5) + 32;				
+				double mSkinTempF = (skinTemp * 9 / 5) + 32;		
+				
+				currentZephyrData.heartRate = heartRate;
+				currentZephyrData.respRate = (int) respRate;
+				currentZephyrData.skinTemp = skinTemp;
 
 				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + mSkinTempF);
 				
@@ -667,7 +673,9 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 									String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
 									currentDateTimeString = sdf.format(new Date());
 									
-									String logData = currentDateTimeString + ",, " + currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
+									String logData = currentDateTimeString + ", " + currentZephyrData.getLogDataLine();
+									logData += currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
+									
 									
 							        try {
 							        	if (mLogWriter != null)
@@ -1130,8 +1138,11 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
     		        mLogWriter = new BufferedWriter(gpxwriter);
 
 			        try {
-			        	if (mLogWriter != null)
-			        		mLogWriter.write(currentMindsetData.getLogDataLineHeader());
+			        	if (mLogWriter != null) {
+			        		String line = "Time, " + currentZephyrData.getLogDataLineHeader();
+			        		line += currentMindsetData.getLogDataLineHeader();
+			        		mLogWriter.write(line + "\n");
+			        	}
 					} catch (IOException e) {
 						Log.e(TAG, e.toString());
 					}

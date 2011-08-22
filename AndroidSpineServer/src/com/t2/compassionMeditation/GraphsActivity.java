@@ -857,78 +857,7 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 		
 	}
 	
-	class KeyItemAdapter extends ArrayAdapter<GraphKeyItem> {
-		public static final int VIEW_TYPE_ONE_LINE = 1;
-		public static final int VIEW_TYPE_TWO_LINE = 2;
-		
-		private LayoutInflater layoutInflater;
-		private int layoutId;
 
-		public KeyItemAdapter(Context context, int viewType,
-				List<GraphKeyItem> objects) {
-			super(context, viewType, objects);
-			
-			layoutInflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
-			if(viewType == VIEW_TYPE_TWO_LINE) {
-				layoutId = R.layout.list_item_result_key_2;
-			} else {
-				layoutId = R.layout.list_item_result_key_1;
-			}
-		}
-		
-//		@Override
-//		public View getView(int position, View convertView, ViewGroup parent) {
-//			if(convertView == null) {
-//				convertView = layoutInflater.inflate(layoutId, null);
-//			}
-//
-//			final KeyItem item = this.getItem(position);
-//			TextView tv1 = (TextView)convertView.findViewById(R.id.text1);
-//			TextView tv2 = (TextView)convertView.findViewById(R.id.text2);
-//			ToggleButton tb = (ToggleButton)convertView.findViewById(R.id.showKeyToggleButton);
-//			View keyBox = convertView.findViewById(R.id.keyBox);
-//			
-//			boolean tv1Null = tv1 == null;
-//			boolean tv2Null = tv2 == null;
-//			if(reverseLabels && !tv1Null && !tv2Null) {
-//				if(!tv1Null) {
-//					tv1.setText(item.title2);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title1);
-//				}
-//			} else {
-//				if(!tv1Null) {
-//					tv1.setText(item.title1);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title2);
-//				}				
-//			}
-//			
-//			if(tb != null) {
-//				if(isKeyItemsClickable()) {
-//					tb.setFocusable(false);
-//				}
-//				tb.setOnCheckedChangeListener(null);
-//				tb.setChecked(item.visible);
-//				tb.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-//					@Override
-//					public void onCheckedChanged(
-//							CompoundButton buttonView, boolean isChecked) {
-//						item.visible = isChecked;
-//						onKeyToggleButtonCheckedChanged();
-//					}
-//				});
-//			}
-//			
-//			if(keyBox != null) {
-//				keyBox.setBackgroundColor(item.color);
-//			}
-//			
-//			return convertView;
-//		}
-	}
 
 	private void saveVisibleKeyIds() {
 		String keySuffix = "measure1";

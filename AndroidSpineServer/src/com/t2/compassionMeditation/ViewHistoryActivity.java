@@ -22,7 +22,6 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 
 import com.t2.Constants;
 
@@ -30,6 +29,7 @@ import spine.SPINEFunctionConstants;
 import spine.datamodel.Node;
 import spine.datamodel.Data;
 import spine.datamodel.MindsetData;
+import spine.datamodel.ZephyrData;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -151,7 +151,12 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         currentMindsetData = new MindsetData(this);
     
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);      
+        
+        bandOfInterest = SharedPref.getInt(this, 
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
+				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+        
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
@@ -233,6 +238,11 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		public String dateTime;
     	public String comment;
     	
+    	public ZephyrData zephyrData = new ZephyrData();;
+    	
+
+    	
+    	
     	MindsetPoint() {
     		super(context);
     	}
@@ -251,18 +261,27 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 			}
 			MindsetPoint p = (MindsetPoint) mSessionData.get(j + mCursor);
 			if (p.comment.equalsIgnoreCase("")) {
+				MindsetPoint data = (MindsetPoint) mSessionData.get(j + mCursor);
 				currentMindsetData = (MindsetPoint) mSessionData.get(j + mCursor);
+
+				for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+		        	keyItems.get(i).value = currentMindsetData.getFeatureValue(i);
+		        }				
+				
+				keyItems.get(heartRatePos).value = data.zephyrData.heartRate / 3;
+				keyItems.get(respRatePos).value = data.zephyrData.respRate * 5;
+				keyItems.get(skinTempPos).value = data.zephyrData.skinTemp;				
 				
 				int keyCount = keyItems.size();
 				for(int i = 0; i < keyItems.size(); ++i) {
-					KeyItem item = keyItems.get(i);
+					GraphKeyItem item = keyItems.get(i);
 					
 					if(!item.visible) {
 						continue;
 					}
 						int v = currentMindsetData.getFeatureValue((int) item.id);
-						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-//						item.series.add(mSpineChartX, item.value);						
+//						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
+						item.series.add(mSpineChartX, item.value);						
 						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 							item.series.remove(0);
 						}
@@ -300,14 +319,32 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     		data.attention = Integer.parseInt(tokens[i++].trim());
     		data.meditation = Integer.parseInt(tokens[i++].trim());
     		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
+    			data.scaledSpectralData[j] = Integer.parseInt(tokens[i++].trim());
+    		}    		
+    		i++;
+    		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
+    			data.rawSpectralData[j] = Integer.parseInt(tokens[i++].trim());
+    		}    		
+    	}
+    	else if (tokens.length == 25) {
+    		int i = 0;
+    		
+    		data.dateTime = tokens[i++];
+    		data.zephyrData.heartRate = Integer.parseInt(tokens[i++].trim());
+    		data.zephyrData.respRate = Integer.parseInt(tokens[i++].trim());
+    		data.zephyrData.skinTemp = Integer.parseInt(tokens[i++].trim());
+    		
+    		data.comment = "";
+    		data.poorSignalStrength = Integer.parseInt(tokens[i++].trim());
+    		data.attention = Integer.parseInt(tokens[i++].trim());
+    		data.meditation = Integer.parseInt(tokens[i++].trim());
+    		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
     			data.ratioSpectralData[j] = Integer.parseInt(tokens[i++].trim());
     		}    		
     		i++;
     		for (int j = 0; j < MindsetData.NUM_BANDS; j++)	{
     			data.rawSpectralData[j] = Integer.parseInt(tokens[i++].trim());
     		}    		
-    		
-    		
     	}
     	return data;
     }
@@ -751,107 +788,6 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 	{
 	}
 
-	static class KeyItem {
-		public long id;
-		public String title1;
-		public String title2;
-		public int color;
-		public boolean visible;
-		public boolean reverseData = false; 
-		public XYSeries series;		
-		
-		public KeyItem(long id, String title1, String title2) {
-			this.id = id;
-			this.title1 = title1;
-			this.title2 = title2;
-			series = new XYSeries(title1);		
-			this.visible = true;
-		}
-		
-		
-		public HashMap<String,Object> toHashMap() {
-			HashMap<String,Object> data = new HashMap<String,Object>();
-			data.put("id", id);
-			data.put("title1", title1);
-			data.put("title2", title2);
-			data.put("color", color);
-			data.put("visible", visible);
-			return data;
-		}
-	}
-	
-	class KeyItemAdapter extends ArrayAdapter<KeyItem> {
-		public static final int VIEW_TYPE_ONE_LINE = 1;
-		public static final int VIEW_TYPE_TWO_LINE = 2;
-		
-		private LayoutInflater layoutInflater;
-		private int layoutId;
-
-		public KeyItemAdapter(Context context, int viewType,
-				List<KeyItem> objects) {
-			super(context, viewType, objects);
-			
-			layoutInflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
-			if(viewType == VIEW_TYPE_TWO_LINE) {
-				layoutId = R.layout.list_item_result_key_2;
-			} else {
-				layoutId = R.layout.list_item_result_key_1;
-			}
-		}
-		
-//		@Override
-//		public View getView(int position, View convertView, ViewGroup parent) {
-//			if(convertView == null) {
-//				convertView = layoutInflater.inflate(layoutId, null);
-//			}
-//
-//			final KeyItem item = this.getItem(position);
-//			TextView tv1 = (TextView)convertView.findViewById(R.id.text1);
-//			TextView tv2 = (TextView)convertView.findViewById(R.id.text2);
-//			ToggleButton tb = (ToggleButton)convertView.findViewById(R.id.showKeyToggleButton);
-//			View keyBox = convertView.findViewById(R.id.keyBox);
-//			
-//			boolean tv1Null = tv1 == null;
-//			boolean tv2Null = tv2 == null;
-//			if(reverseLabels && !tv1Null && !tv2Null) {
-//				if(!tv1Null) {
-//					tv1.setText(item.title2);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title1);
-//				}
-//			} else {
-//				if(!tv1Null) {
-//					tv1.setText(item.title1);
-//				}
-//				if(!tv2Null) {
-//					tv2.setText(item.title2);
-//				}				
-//			}
-//			
-//			if(tb != null) {
-//				if(isKeyItemsClickable()) {
-//					tb.setFocusable(false);
-//				}
-//				tb.setOnCheckedChangeListener(null);
-//				tb.setChecked(item.visible);
-//				tb.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-//					@Override
-//					public void onCheckedChanged(
-//							CompoundButton buttonView, boolean isChecked) {
-//						item.visible = isChecked;
-//						onKeyToggleButtonCheckedChanged();
-//					}
-//				});
-//			}
-//			
-//			if(keyBox != null) {
-//				keyBox.setBackgroundColor(item.color);
-//			}
-//			
-//			return convertView;
-//		}
-	}
 
 	private void saveVisibleKeyIds() {
 		String keySuffix = "measure";
