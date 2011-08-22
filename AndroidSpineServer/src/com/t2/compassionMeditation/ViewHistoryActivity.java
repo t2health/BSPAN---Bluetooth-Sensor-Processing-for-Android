@@ -22,6 +22,7 @@ import org.achartengine.renderer.XYSeriesRenderer;
 
 
 import com.t2.biomap.SharedPref;
+import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 
 import com.t2.Constants;
 
@@ -261,6 +262,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 					}
 						int v = currentMindsetData.getFeatureValue((int) item.id);
 						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
+//						item.series.add(mSpineChartX, item.value);						
 						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 							item.series.remove(0);
 						}
@@ -418,7 +420,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 			// Add name of the measure to the displayed text field
 			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
 			int start = sMeasuresText.length();
-			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
+			sMeasuresText.append(keyItems.get(i).title1 + ", ");			
 			int end = sMeasuresText.length();
 			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			if (sMeasuresText.length() > 40 && lineNum == 0) {
@@ -610,9 +612,16 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 					
 				}		    	
 		    	
+				String[] measureNames = new String[keyItems.size()];
+				int i = 0;
+				for (GraphKeyItem item: keyItems) {
+					measureNames[i++] = item.title1;
+				}
+								
 		    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		    	alert.setTitle(R.string.alert_dialog_measure_selector);
-		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
+		    	alert.setMultiChoiceItems(measureNames,
+//		    	alert.setMultiChoiceItems(R.array.measure_select_dialog_items,
 		    			toggleArray,
 	                    new DialogInterface.OnMultiChoiceClickListener() {
 
