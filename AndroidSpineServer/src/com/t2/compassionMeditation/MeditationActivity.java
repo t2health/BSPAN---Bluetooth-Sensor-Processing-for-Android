@@ -28,7 +28,7 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.CompassionActivity.GraphKeyItem;
+import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 
 import com.t2.Constants;
 

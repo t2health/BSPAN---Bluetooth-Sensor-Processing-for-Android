@@ -128,7 +128,7 @@ public class MainChooserActivity extends Activity {
         			break;
         			
             	case ID_VIEW_ACTIVITY:
-        			intent = new Intent(instance, CompassionActivity.class);
+        			intent = new Intent(instance, GraphsActivity.class);
         			instance.startActivity(intent);	        			
             		break;
             	case ID_REVIEW:

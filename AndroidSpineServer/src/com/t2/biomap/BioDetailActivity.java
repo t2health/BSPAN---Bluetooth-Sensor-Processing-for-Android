@@ -28,7 +28,7 @@ import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.CompassionActivity;
+import com.t2.compassionMeditation.GraphsActivity;
 import com.t2.Constants;
 
 import spine.datamodel.Node;

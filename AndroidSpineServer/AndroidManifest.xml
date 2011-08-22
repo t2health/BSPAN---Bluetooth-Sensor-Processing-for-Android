@@ -46,7 +46,7 @@
 
         <activity 
 
-        	android:name=".compassionMeditation.CompassionActivity" 
+        	android:name=".compassionMeditation.GraphsActivity" 
         	android:excludeFromRecents="true"
         	android:label=""
         	android:screenOrientation="portrait"
