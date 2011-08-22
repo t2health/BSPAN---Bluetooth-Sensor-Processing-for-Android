@@ -28,7 +28,6 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.biomap.LogNoteActivity;
 import com.t2.biomap.SharedPref;
-import com.t2.compassionMeditation.CompassionActivity.GraphKeyItem;
 
 import com.t2.Constants;
 
@@ -416,35 +415,35 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         
 		int lineNum = 0;
 		for(int i = 0; i < keyItems.size(); ++i) {
-//			GraphKeyItem item = GraphKeyItem.get(i);
+			GraphKeyItem item = keyItems.get(i);
 			
-//			item.visible = visibleIds.contains(item.id);
-//			if(!item.visible) {
-//				continue;
-//			}
-//			
-//			deviceDataset.addSeries(item.series);
-//			item.color = getKeyColor(i, keyCount);
-//			
-//			// Add name of the measure to the displayed text field
-//			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
-//			int start = sMeasuresText.length();
-//			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
-//			int end = sMeasuresText.length();
-//			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-//			if (sMeasuresText.length() > 40 && lineNum == 0) {
-//				lineNum++;
-//			}
-//			
-//			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
-//			seriesRenderer.setColor(item.color);
-//			
-//			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-////			seriesRenderer.setFillPoints(true);
-////			seriesRenderer.setLineWidth(2 * displayMetrics.density);			
-//			
-//			
-//			deviceRenderer.addSeriesRenderer(seriesRenderer);
+			item.visible = visibleIds.contains(item.id);
+			if(!item.visible) {
+				continue;
+			}
+			
+			deviceDataset.addSeries(item.series);
+			item.color = getKeyColor(i, keyCount);
+			
+			// Add name of the measure to the displayed text field
+			ForegroundColorSpan fcs = new ForegroundColorSpan(item.color);
+			int start = sMeasuresText.length();
+			sMeasuresText.append(MindsetData.spectralNames[i] + ", ");
+			int end = sMeasuresText.length();
+			sMeasuresText.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			if (sMeasuresText.length() > 40 && lineNum == 0) {
+				lineNum++;
+			}
+			
+			XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+			seriesRenderer.setColor(item.color);
+			
+			seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//			seriesRenderer.setFillPoints(true);
+//			seriesRenderer.setLineWidth(2 * displayMetrics.density);			
+			
+			
+			deviceRenderer.addSeriesRenderer(seriesRenderer);
 			
 		}     
 		mMeasuresDisplayText.setText(sMeasuresText) ;       
