@@ -1,11 +1,8 @@
 package com.t2.biofeedback.device.zephyr;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
 
-import android.media.MediaPlayer;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
