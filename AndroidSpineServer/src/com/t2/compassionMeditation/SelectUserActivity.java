@@ -30,10 +30,10 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	private static final String mActivityVersion = "1.0";
 	
 	private ListView mListView;
-	
 	private List<BioUser> mCurrentUsers;	
 	
-	static private SelectUserActivity mI;
+	static private SelectUserActivity instance;
+
 	Dao<BioUser, Integer> mBioUserDao;
 	Dao<BioSession, Integer> mBioSessionDao;
 
@@ -56,14 +56,28 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 				alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String newUserName = input.getText().toString();
-					BioUser newuser = new BioUser(newUserName, System.currentTimeMillis());
-					try {
-						mBioUserDao.create(newuser);
-						updateListView();						
-					} catch (SQLException e) {
-						Log.e(TAG, "Error adding new user" + e.toString());
+					
+					boolean found = false;
+					// Make sure that the user isn't already there
+					for (BioUser user: mCurrentUsers) {
+						if (user.name.equalsIgnoreCase(newUserName))
+							found = true;
 					}
+					if (found) {
+						AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
 
+						alert2.setMessage("User Already exists");
+						alert2.show();	
+					}
+					else {
+						BioUser newuser = new BioUser(newUserName, System.currentTimeMillis());
+						try {
+							mBioUserDao.create(newuser);
+							updateListView();						
+						} catch (SQLException e) {
+							Log.e(TAG, "Error adding new user" + e.toString());
+						}
+					}
 				  }
 				});
 
@@ -76,13 +90,12 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 				break;
 		    }
 	}
-	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		mI = this;
+		instance = this;
 		
 		this.setContentView(R.layout.select_user_activity_layout);
 		mListView = (ListView)findViewById(R.id.listViewUsers);
@@ -91,7 +104,6 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 				String seletedItem = (String) mListView.getAdapter().getItem(i);
-				
 				Intent resultIntent;
 				resultIntent = new Intent();
 				resultIntent.putExtra(Constants.SELECT_USER_ACTIVITY_RESULT, seletedItem);
@@ -107,12 +119,12 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 				mSelectedId = i;
 				
 				
-				AlertDialog.Builder alert = new AlertDialog.Builder(mI);
+				AlertDialog.Builder alert = new AlertDialog.Builder(instance);
 				alert.setTitle("Choose Activity");
-		    	alert.setPositiveButton("Edit User", new DialogInterface.OnClickListener() {
-		            public void onClick(DialogInterface dialog, int whichButton) {
-		            }
-		        });				
+//		    	alert.setPositiveButton("Edit User", new DialogInterface.OnClickListener() {
+//		            public void onClick(DialogInterface dialog, int whichButton) {
+//		            }
+//		        });				
 				
 		    	alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int whichButton) {
@@ -122,10 +134,8 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		    	alert.setNeutralButton("Delete User", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int whichButton) {
 		            	
-						AlertDialog.Builder alert2 = new AlertDialog.Builder(mI);
-
+						AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
 						alert2.setMessage("Are you sure?");
-
 
 						alert2.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int whichButton) {
@@ -152,17 +162,13 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 				return true;
 			}
 		});		
-		
-		
+
 		updateListView();		
-		
 	}
 
 	void updateListView() {
 		ArrayList<String>  strUsers = new ArrayList<String>();
-		
-		
-		
+	
 		try {
 
 			mBioUserDao = getHelper().getBioUserDao();
@@ -175,6 +181,9 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 			
 		} catch (SQLException e) {
 			Log.e(TAG, "Error Looking for accounts" + e.toString());
+			AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
+			alert2.setMessage("Database error " + e.toString());
+			alert2.show();
 		}
 	
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,R.layout.row_layout, R.id.label, strUsers);
@@ -188,6 +197,4 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		// TODO Auto-generated method stub
 		super.onDestroy();
 	}
-	
-
 }

@@ -46,6 +46,7 @@ public class MainChooserActivity extends Activity {
 	private static final int ID_NEW_SESSION = 1;
 	private static final int ID_VIEW_ACTIVITY = 2;
 	private static final int ID_REVIEW = 3;
+	private static final int ID_DIRECTORY = 4;
 	
     // references to our images - The order MUST match the ID index variables above
     private Integer[] mThumbIds = {
@@ -53,6 +54,7 @@ public class MainChooserActivity extends Activity {
             R.drawable.newsession_tab,
             R.drawable.view_tab,
             R.drawable.review_tab,
+            R.drawable.directory_tab,
     };
 	
 	/**
@@ -131,8 +133,14 @@ public class MainChooserActivity extends Activity {
         			intent = new Intent(instance, GraphsActivity.class);
         			instance.startActivity(intent);	        			
             		break;
-            	case ID_REVIEW:
+            		
+            	case ID_DIRECTORY:
         			intent = new Intent(instance, FileChooser.class);
+        			instance.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);            		
+            		break;
+
+            	case ID_REVIEW:
+        			intent = new Intent(instance, ViewSessionsActivity.class);
         			instance.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);            		
             		break;
             	}

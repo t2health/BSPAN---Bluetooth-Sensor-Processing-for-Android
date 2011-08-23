@@ -5,6 +5,10 @@ import spine.datamodel.MindsetData;
 
 public class Constants {
 	
+	public static final int MAX_KEY_ITEMS = 	MindsetData.NUM_BANDS 
+						+ 2 											// eattention, eMEditation
+						+ 3;												// HeartRate, RespRate, SkinTemp;
+	
 	public static final String PREF_SESSION_LENGTH = "SessionLength";
 	public static final int PREF_SESSION_LENGTH_DEFAULT = 1800;
 

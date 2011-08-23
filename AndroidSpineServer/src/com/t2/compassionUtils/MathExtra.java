@@ -52,4 +52,40 @@ public class MathExtra {
 		}
 		return cal.getTimeInMillis();
 	}
+	
+	/**
+	 * Scales data to 0-outputMax
+	 * @param value - Input value to scale
+	 * @param inputMax - Max practical value of input
+	 * @param inputMin - Min practical value of input
+	 * @param outputMax - Max value of scaled output
+	 * @return
+	 */
+	public static float scaleData(float value, float inputMax, float inputMin, int outputMax) {
+		float scaledValue = value - inputMin;
+		if (scaledValue < 0) scaledValue = 0;
+		scaledValue *= (outputMax / (inputMax - inputMin)); //  
+		if (scaledValue > outputMax) scaledValue = outputMax;		
+
+		return scaledValue;
+	}	
+	
+	/**
+	 * Scales data to 0-outputMax
+	 * @param value - Input value to scale
+	 * @param inputMax - Max practical value of input
+	 * @param inputMin - Min practical value of input
+	 * @param outputMax - Max value of scaled output
+	 * @param gain - gain to use instead of calculated gain
+	 * @return
+	 */
+	public static float scaleData(float value, float inputMax, float inputMin, int outputMax, float gain) {
+		float scaledValue = value - inputMin;
+		if (scaledValue < 0) scaledValue = 0;
+		scaledValue *= gain; //  
+		if (scaledValue > outputMax) scaledValue = outputMax;		
+
+		return scaledValue;
+	}	
+	
 }

@@ -701,7 +701,9 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 								Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
 					        	synchronized(mKeysLock) {				
 							        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+							        	float scaled = MathExtra.scaleData((float)currentMindsetData.getFeatureValue(i), 100F, 20F, 255, (float)mAlphaGain);	
 							        	keyItems.get(i).rawValue = currentMindsetData.getFeatureValue(i);
+										keyItems.get(i).setScaledValue((int) scaled);							        	
 							        }
 					        	}									
 	
@@ -851,22 +853,27 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			// Update buddah image based on band of interest
 //			int rawBuddahValue = currentMindsetData.getFeatureValue(mMindsetBandOfInterest);
 //			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
-			
-			int rawBuddahValue = keyItems.get(mMindsetBandOfInterest).rawValue;			
-			String mindsetBandName = keyItems.get(mMindsetBandOfInterest).title1; 
-			
-			mMovingAverage.pushValue(rawBuddahValue);	
-			int filteredBuddahValue = (int) (mMovingAverage.getValue());
-				
-			int iBuddahAlphaValue;
 
-			// HACK - Since most interesting stuff is above 20 jsut subtract 20 
-			double buddahAlphaValue = (double) filteredBuddahValue - 20;
-			if (buddahAlphaValue < 0) buddahAlphaValue = 0;
-//			buddahAlphaValue *= (255F / (85F - 40F));
-			buddahAlphaValue *= mAlphaGain;
-			if (buddahAlphaValue > 255) buddahAlphaValue = 255;
-			iBuddahAlphaValue = (int) buddahAlphaValue;
+			int iBuddahAlphaValue;
+			KeyItem keyItem = keyItems.get(mMindsetBandOfInterest);
+			
+			int rawBuddahValue = keyItem.rawValue;			
+			String mindsetBandName = keyItem.title1;
+			int filteredBuddahValue = keyItem.getFilteredScaledValue();
+			iBuddahAlphaValue = filteredBuddahValue;
+	//		mMovingAverage.pushValue(rawBuddahValue);	
+//			int filteredBuddahValue = (int) (mMovingAverage.getValue());
+//			iBuddahAlphaValue = (int)MathExtra.scaleData((float)filteredBuddahValue, 100F, 20F, 255, (float)mAlphaGain);	
+			
+			
+			
+//			// HACK - Since most interesting stuff is above 20 jsut subtract 20 
+//			double buddahAlphaValue = (double) filteredBuddahValue - 20;
+//			if (buddahAlphaValue < 0) buddahAlphaValue = 0;
+////			buddahAlphaValue *= (255F / (85F - 40F));
+//			buddahAlphaValue *= mAlphaGain;
+//			if (buddahAlphaValue > 255) buddahAlphaValue = 255;
+//			iBuddahAlphaValue = (int) buddahAlphaValue;
 			
 			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue);		
 				
@@ -888,13 +895,21 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 //    				
 //    		}
 			
-    		mLotusRawValue = keyItems.get(mBioHarnessParameterOfInterest).rawValue;    		
-			mRateOfChange.pushValue((float) keyItems.get(mBioHarnessParameterOfInterest).getScaledValue());	
-//			
-			int filteredLotusValue = (int) (mRateOfChange.getValue() * 10);
-			if (filteredLotusValue > 255) filteredLotusValue = 255;
+			keyItem = keyItems.get(mBioHarnessParameterOfInterest);			
+    		mLotusRawValue = keyItem.rawValue;    		
+//			mRateOfChange.pushValue((float) keyItems.get(mBioHarnessParameterOfInterest).getScaledValue());	
+////			
+//			int filteredLotusValue = (int) (mRateOfChange.getValue() * 10);
+//			if (filteredLotusValue > 255) filteredLotusValue = 255;
 			
+    		// We want to update the rate of change once every second
+    		keyItem.updateRateOfChange();
+			int filteredLotusValue = keyItem.getRateOfChangeScaledValue();
 			int iLotusAlphaValue = 255 - filteredLotusValue;
+			
+			
+			
+			
 			
 			String bioHarnessBandName = keyItems.get(mBioHarnessParameterOfInterest).title1; 
 //			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
@@ -1098,16 +1113,35 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			  public void onClick(DialogInterface dialog, int whichButton) {
 					addNoteToLog(input.getText().toString());
 					Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-					mCurrentBioSession.comments += input.getText();
 					
-					// Udpate the database with the current session
-					try {
+					// -----------------------------
+					// Save stats for session
+					// -----------------------------
+					if (mCurrentBioSession != null) {
+						mCurrentBioSession.comments += input.getText();
+
+				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		// 2 extra, for attention and meditation
+				        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
+				        	mCurrentBioSession.minFilteredValue[i] = keyItems.get(i).getMinFilteredValue();
+				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
+				        }
 						
-						mBioSessionDao.create(mCurrentBioSession);
 						
-					} catch (SQLException e1) {
-						Log.e(TAG, "Error saving current session to database", e1);
-					}			
+						
+						
+						
+						
+						
+						
+						
+						// Udpate the database with the current session
+						try {
+							mBioSessionDao.create(mCurrentBioSession);
+						} catch (SQLException e1) {
+							Log.e(TAG, "Error saving current session to database", e1);
+						}			
+						
+					}
 					
 					
 					// Save catlog file for possible debugging

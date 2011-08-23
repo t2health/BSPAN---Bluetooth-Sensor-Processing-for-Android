@@ -265,12 +265,12 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 				currentMindsetData = (MindsetPoint) mSessionData.get(j + mCursor);
 
 				for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
-		        	keyItems.get(i).value = currentMindsetData.getFeatureValue(i);
+		        	keyItems.get(i).rawValue = currentMindsetData.getFeatureValue(i);
 		        }				
 				
-				keyItems.get(heartRatePos).value = data.zephyrData.heartRate / 3;
-				keyItems.get(respRatePos).value = data.zephyrData.respRate * 5;
-				keyItems.get(skinTempPos).value = data.zephyrData.skinTemp;				
+				keyItems.get(heartRatePos).rawValue = data.zephyrData.heartRate / 3;
+				keyItems.get(respRatePos).rawValue = data.zephyrData.respRate * 5;
+				keyItems.get(skinTempPos).rawValue = data.zephyrData.skinTemp;				
 				
 				int keyCount = keyItems.size();
 				for(int i = 0; i < keyItems.size(); ++i) {
@@ -281,7 +281,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 					}
 						int v = currentMindsetData.getFeatureValue((int) item.id);
 //						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-						item.series.add(mSpineChartX, item.value);						
+						item.series.add(mSpineChartX, item.rawValue);						
 						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 							item.series.remove(0);
 						}

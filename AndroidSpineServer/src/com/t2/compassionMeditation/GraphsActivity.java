@@ -456,17 +456,13 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 				double respRate = firsFeat.getCh3Value() / 10;
 				int skinTemp = firsFeat.getCh4Value() / 10;
 				double skinTempF = (skinTemp * 9 / 5) + 32;				
-//				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
-//				
-//				bioHarnessData[heartRatePos] = heartRate / 2;
-//				bioHarnessData[respRatePos] = (int) respRate * 10;
-//				bioHarnessData[skinTempPos] = (int) skinTempF;
+
 				numSecsWithoutData = 0;		
 
 	        	synchronized(mKeysLock) {				
-					keyItems.get(heartRatePos).value = heartRate/3;
-					keyItems.get(respRatePos).value = (int) respRate * 5;
-					keyItems.get(skinTempPos).value = (int) skinTempF;
+					keyItems.get(heartRatePos).rawValue = heartRate/3;
+					keyItems.get(respRatePos).rawValue = (int) respRate * 5;
+					keyItems.get(skinTempPos).rawValue = (int) skinTempF;
 	        	}
 				
 				mRateOfChange.pushValue((float)skinTempF);	
@@ -493,7 +489,7 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 						
 			        	synchronized(mKeysLock) {				
 					        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
-					        	keyItems.get(i).value = currentMindsetData.getFeatureValue(i);
+					        	keyItems.get(i).rawValue = currentMindsetData.getFeatureValue(i);
 					        }
 			        	}				        
 						numSecsWithoutData = 0;		
@@ -728,10 +724,10 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 					continue;
 				}
 
-				bandValuesString += item.title1 + ":" + item.value + ", ";				
+				bandValuesString += item.title1 + ":" + item.rawValue + ", ";				
 				
 				
-				item.series.add(mSpineChartX, item.value);
+				item.series.add(mSpineChartX, item.rawValue);
 				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
 					item.series.remove(0);
 				}
