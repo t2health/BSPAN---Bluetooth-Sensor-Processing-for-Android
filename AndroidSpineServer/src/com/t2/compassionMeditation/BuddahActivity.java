@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +27,8 @@ import com.t2.biomap.SharedPref;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
+import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
+import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.MovingAverage;
 import com.t2.compassionUtils.RateOfChange;
 
@@ -159,6 +162,10 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
     private MovingAverage mMovingAverageROC;
     private int mMovingAverageSizeROC = 6;
+    
+    float maxMindsetValue = 0;
+    float minMindsetValue = 0;
+    float AverageMindsetValue = 0;
 
     /**
      * Gain used to determine how band of interest affects the buddah image 
@@ -166,6 +173,12 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
     private double mAlphaGain = 1;
     
 	protected SharedPreferences sharedPref;
+	
+	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
+	private int heartRatePos;
+	private int respRatePos;
+	private int skinTempPos;
+	
 	MindsetData currentMindsetData;
 	ZephyrData currentZephyrData = new ZephyrData();
 	
@@ -357,6 +370,24 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		mManager.discoveryWsn();
 		
+        int i;
+        for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+        	GraphKeyItem key = new GraphKeyItem(i, MindsetData.spectralNames[i], "");
+            keyItems.add(key);
+        }
+        heartRatePos = i;
+    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
+        keyItems.add(key);
+        
+        respRatePos = i;
+        key = new GraphKeyItem(i++, "RespRate", "");
+        keyItems.add(key);
+        
+        skinTempPos = i;
+    	key = new GraphKeyItem(i, "SkinTemp", "");
+        keyItems.add(key);
+        		
+		
 		String selectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
 		
 		// Now get the database object associated with this user
@@ -392,20 +423,15 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
 		}
 		
-		// Create a sessioin data point for this session (to put in data
+		// Create a session data point for this session (to put in data
 		mCurrentBioSession = new BioSession(mCurrentBioUser, System.currentTimeMillis());
-		
-		
+
 		// Create a log file name from the seledcted user and date/time
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
 		String currentDateTimeString = sdf.format(new Date());
 		
 		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
 		mLogCatName = "Logcat" + currentDateTimeString + ".log";		
-		
-
-        
-		
 		
     	saveState();
     } // End onCreate(Bundle savedInstanceState)
@@ -547,6 +573,8 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	public void received(ServiceMessage msg) {
 	}
 
+
+	
 	/**
 	 * This is where we receive sensor data that comes through the actual
 	 * Spine channel. 
@@ -570,50 +598,56 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				int heartRate = firsFeat.getCh2Value();
 				double respRate = firsFeat.getCh3Value() / 10;
 				int skinTemp = firsFeat.getCh4Value() / 10;
-				double mSkinTempF = (skinTemp * 9 / 5) + 32;		
+				double skinTempF = (skinTemp * 9 / 5) + 32;		
 				
 				currentZephyrData.heartRate = heartRate;
 				currentZephyrData.respRate = (int) respRate;
 				currentZephyrData.skinTemp = skinTemp;
+				
+	        	synchronized(mKeysLock) {				
+    				float scaled  = MathExtra.scaleData((float)skinTempF, 110F, 70F, 255);
+					keyItems.get(skinTempPos).rawValue = (int) skinTempF;
+					keyItems.get(skinTempPos).setScaledValue((int) scaled);
+					
+    				scaled = MathExtra.scaleData((float)heartRate, 250F, 20F, 255);
+					keyItems.get(heartRatePos).rawValue = heartRate;
+					keyItems.get(heartRatePos).setScaledValue((int) scaled);
 
-				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + mSkinTempF);
+    				scaled = MathExtra.scaleData((float)respRate, 120F, 5F, 255);					
+					keyItems.get(respRatePos).rawValue = (int) respRate;
+					keyItems.get(respRatePos).setScaledValue((int) scaled);
+	        	}				
+				
+
+				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
 				
 				numSecsWithoutData = 0;		
-	        	synchronized(mKeysLock) {
-	        		switch (mBioHarnessParameterOfInterest) {
-	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
-	    				// Skin temp scaling -  absolute range  0  - 110, practical range 70 - 110, alpha range		0 - 255
-	        			mLotusRawValue = (int) mSkinTempF;
-		        		mLotusScaledValue = mSkinTempF - 70;
-	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
-	    				mLotusScaledValue *= (255F / (110F - 70F)); //  6.375
-	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
-	        			break;
-	        			
-	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
-	    				// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
-	        			mLotusRawValue = heartRate;
-		        		mLotusScaledValue = heartRate - 20;
-	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
-	    				mLotusScaledValue *= (255F / (250 - 20F));
-	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
-	        			break;
-	        			
-	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
-	    				// Resp Rate - absolute range  0  - 120, practical range 5 - 120, alpha range		0 - 255
-	        			mLotusRawValue = (int) respRate;
-		        		mLotusScaledValue = respRate - 5;
-	    				if (mLotusScaledValue < 0) mLotusScaledValue = 0;
-	    				mLotusScaledValue *= (255F / (120 - 5F));
-	    				if (mLotusScaledValue > 255) mLotusScaledValue = 255;
-	        			break;
-
-	        		default:
-	        			mLotusRawValue = 0;
-	        			mLotusScaledValue = 0;
-	        			
-	        		}
-	        	}
+//	        	synchronized(mKeysLock) {
+//	        		switch (mBioHarnessParameterOfInterest) {
+//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
+//	    				// Skin temp scaling -  absolute range  0  - 110, practical range 70 - 110, alpha range		0 - 255
+//	        			mLotusRawValue = (int) skinTempF;
+//	    				mLotusScaledValue = MathExtra.scaleData((float)skinTempF, 110F, 70F, 255);
+//	        			break;
+//	        			
+//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
+//	    				// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
+//	        			mLotusRawValue = heartRate;
+//	    				mLotusScaledValue = MathExtra.scaleData((float)heartRate, 250F, 20F, 255);
+//	        			break;
+//	        			
+//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
+//	    				// Resp Rate - absolute range  0  - 120, practical range 5 - 120, alpha range		0 - 255
+//	        			mLotusRawValue = (int) respRate;
+//	    				mLotusScaledValue = MathExtra.scaleData((float)respRate, 120F, 5F, 255);
+//	        			break;
+//
+//	        		default:
+//	        			mLotusRawValue = 0;
+//	        			mLotusScaledValue = 0;
+//	        			
+//	        		}
+//	        	}
 
 				break;
 			} // End case SPINEFunctionConstants.ZEPHYR:			
@@ -665,7 +699,11 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 								currentMindsetData.updateSpectral(mindsetData);
 								numSecsWithoutData = 0;				
 								Log.i("SensorData", ", " + currentMindsetData.getLogDataLine());
-								
+					        	synchronized(mKeysLock) {				
+							        for (int i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
+							        	keyItems.get(i).rawValue = currentMindsetData.getFeatureValue(i);
+							        }
+					        	}									
 	
 								if (mLoggingEnabled == true) {
 									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
@@ -811,18 +849,18 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
 			
 			// Update buddah image based on band of interest
-			int rawBuddahValue = currentMindsetData.getFeatureValue(mMindsetBandOfInterest);
+//			int rawBuddahValue = currentMindsetData.getFeatureValue(mMindsetBandOfInterest);
+//			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
+			
+			int rawBuddahValue = keyItems.get(mMindsetBandOfInterest).rawValue;			
+			String mindsetBandName = keyItems.get(mMindsetBandOfInterest).title1; 
+			
 			mMovingAverage.pushValue(rawBuddahValue);	
 			int filteredBuddahValue = (int) (mMovingAverage.getValue());
-			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
 				
 			int iBuddahAlphaValue;
-			// Set values for buddah from mindset data
-//			double  buddahAlphaValue = mAlphaGain * (double) filteredBuddahValue; 
-//			iBuddahAlphaValue = (int) buddahAlphaValue;
-//			if (iBuddahAlphaValue > 255) iBuddahAlphaValue = 255; 
-			
-			// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
+
+			// HACK - Since most interesting stuff is above 20 jsut subtract 20 
 			double buddahAlphaValue = (double) filteredBuddahValue - 20;
 			if (buddahAlphaValue < 0) buddahAlphaValue = 0;
 //			buddahAlphaValue *= (255F / (85F - 40F));
@@ -830,27 +868,36 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			if (buddahAlphaValue > 255) buddahAlphaValue = 255;
 			iBuddahAlphaValue = (int) buddahAlphaValue;
 			
-			
-			
-			// Scale it
-			
-			
-			
 			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue);		
-//			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue + ": " + (int) mAlphaGain);		
-//			mTextInfoView.setText(bandName + ": " + filteredValue );		
-
-			
 				
 			// Set values for the lotus from BioHarness data
-			mRateOfChange.pushValue((float) mLotusScaledValue);	
+//    		switch (mBioHarnessParameterOfInterest) {
+//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
+//    				mRateOfChange.pushValue((float) keyItems.get(skinTempPos).scaledValue);	
+//    				mLotusRawValue = keyItems.get(skinTempPos).rawValue;
+//    				break;
+//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
+//    				mRateOfChange.pushValue((float) keyItems.get(heartRatePos).scaledValue);	
+//    				mLotusRawValue = keyItems.get(heartRatePos).rawValue;
+//    				break;
+//			
+//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
+//			mRateOfChange.pushValue((float) keyItems.get(respRatePos).scaledValue);	
+//    				mLotusRawValue = keyItems.get(respRatePos).rawValue;
+//    				break;
+//    				
+//    		}
+			
+    		mLotusRawValue = keyItems.get(mBioHarnessParameterOfInterest).rawValue;    		
+			mRateOfChange.pushValue((float) keyItems.get(mBioHarnessParameterOfInterest).getScaledValue());	
+//			
 			int filteredLotusValue = (int) (mRateOfChange.getValue() * 10);
 			if (filteredLotusValue > 255) filteredLotusValue = 255;
 			
 			int iLotusAlphaValue = 255 - filteredLotusValue;
 			
-			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
-//			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue + ", " + iLotusAlphaValue);		
+			String bioHarnessBandName = keyItems.get(mBioHarnessParameterOfInterest).title1; 
+//			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
 			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue );		
 			
 			if (mIntroFade <= 0) {
@@ -940,6 +987,11 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		mBioHarnessParameterOfInterest = SharedPref.getInt(this, 
 				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST ,
 				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT);
+		
+		// Bioharness parameters are located over the mindset parameters now
+		if (mBioHarnessParameterOfInterest != com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT)
+			mBioHarnessParameterOfInterest += MindsetData.NUM_BANDS + 2;
+		
 		
 		
 		if (!mSessionName.equalsIgnoreCase("")) {
