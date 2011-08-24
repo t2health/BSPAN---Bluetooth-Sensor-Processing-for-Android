@@ -5,6 +5,15 @@
 	android:layout_height="wrap_content"
 	android:orientation="vertical"
 	android:background="@color/chart_gradient_end">
+    <LinearLayout 
+    	android:id="@+id/deviceChart" 
+    	android:layout_height="200dip" 
+    	android:orientation="horizontal" 
+    	android:gravity="right" 
+    	android:layout_width="fill_parent">
+    </LinearLayout>
+	
+	
     <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent">
         <FrameLayout android:layout_height="wrap_content" android:id="@+id/chartContainer" android:layout_width="fill_parent" android:background="@drawable/chart_background" android:layout_weight="1.0">
             <TextView android:text="Toggle a key button below to see some charts." android:gravity="center" android:layout_width="fill_parent" android:textColor="@color/chart_text" android:layout_height="fill_parent" android:id="@+id/textView1"></TextView>
@@ -25,7 +34,7 @@
     </LinearLayout>
 
     <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout2" android:layout_width="fill_parent">
-        <ListView android:layout_height="wrap_content" android:id="@+id/listView1" android:layout_width="fill_parent"></ListView>
+        <ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/listViewSessionKeys"></ListView>
     </LinearLayout>
 		
 	<!-- The month selector -->

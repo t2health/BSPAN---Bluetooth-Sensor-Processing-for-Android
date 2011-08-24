@@ -63,10 +63,13 @@ public class BioSession {
 	public String category = "";
 
 	@DatabaseField
-	private int sessionLengthSecs = 0;
+	public int secondsCompleted = 0;
 	
 	@DatabaseField
-	private int precentComplete = 0;
+	public int precentComplete = 0;
+	
+	@DatabaseField
+	public String logFileName = "";
 	
 
 	@DatabaseField(dataType=DataType.SERIALIZABLE)

@@ -99,11 +99,16 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	List<BioUser> currentUsers;	
 	
 	File mLogFile;
+
 	/**
 	 * Number of seconds remaining in the session
 	 *   This is set initially from SharedPref.PREF_SESSION_LENGTH
 	 */
 	private int mSecondsRemaining = 0;
+	private int mSecondsTotal = 0;
+	
+
+	
 	
 	/**
 	 * Application version info determined by the package manager
@@ -214,7 +219,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	boolean mAllowComments;
 	boolean mShowAGain;
 	String[] mBioHarnessParameters;	
-
+	String mLogFileName = "";
 	
 	
     /** Called when the activity is first created. */
@@ -281,7 +286,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
         
         mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
-		
+        mSecondsTotal = mSecondsRemaining; 
 
 		mAlphaGain = SharedPref.getFloat(this, 
 				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
@@ -501,7 +506,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		long mins = secs / 60;
 		secs = secs % 60;
 		
-		return "Time remaining: " + hours + ":" + mins + ":" + secs;
+		return hours + ":" + mins + ":" + secs;
 	}
 	
 	
@@ -928,7 +933,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			}
 			
 			if (mSecondsRemaining-- > 0) {
-				mCountdownTextView.setText(secsToHMS(mSecondsRemaining));	
+				mCountdownTextView.setText("Time remaining: " + secsToHMS(mSecondsRemaining));	
 			}
 			else {
 		    	handlePause("Session Complete"); // Allow opportinuty for a note
@@ -1125,16 +1130,15 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				        	mCurrentBioSession.minFilteredValue[i] = keyItems.get(i).getMinFilteredValue();
 				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
 				        }
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						// Udpate the database with the current session
+				        
+				        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
+				        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
+				        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
+				        mCurrentBioSession.secondsCompleted = secondsCompleted;
+				        mCurrentBioSession.logFileName = mLogFileName; 
+				        
+
+				        // Udpate the database with the current session
 						try {
 							mBioSessionDao.create(mCurrentBioSession);
 						} catch (SQLException e1) {
@@ -1148,6 +1152,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 					try {
 					    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
 					    filename.createNewFile(); 
+					    mLogFileName = filename.getAbsolutePath();
 					    String cmd = "logcat -d -f "+filename.getAbsolutePath();
 					    Runtime.getRuntime().exec(cmd);
 					} catch (IOException e) {
