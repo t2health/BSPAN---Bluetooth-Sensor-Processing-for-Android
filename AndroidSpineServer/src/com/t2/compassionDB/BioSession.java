@@ -40,20 +40,21 @@ public class BioSession {
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
 	public int[] avgFilteredValue = new int[Constants.MAX_KEY_ITEMS];
 	
-//	@DatabaseField
-//	public double minFilteredValue = 0.00;
+	@DatabaseField(dataType=DataType.SERIALIZABLE)
+	public String[] keyItemNames = new String[Constants.MAX_KEY_ITEMS];
 	
 //	@DatabaseField
-//	public double maxFilteredValue = 0.00;
-//	
-//	@DatabaseField
-//	public double averageFilteredValue = 0.00;
-	
-	@DatabaseField
-	public String mindsetBandOfInterest = "";
+//	public String mindsetBandOfInterest = "";
 
 	@DatabaseField
-	public String bioHarnessParameterOfInterest = "";
+	public int mindsetBandOfInterestIndex = 0;
+
+//	@DatabaseField
+//	public String bioHarnessParameterOfInterest = "";
+
+	@DatabaseField
+	public int bioHarnessParameterOfInterestIndex = 0;
+
 	
 	
 	@DatabaseField

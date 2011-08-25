@@ -169,11 +169,12 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 			if(convertView == null) {
 				convertView = layoutInflater.inflate(layoutId, null);
 			}
+			final int buttonposition = position;			
 
 			final SessionsKeyItem item = this.getItem(position);
 			TextView tv1 = (TextView)convertView.findViewById(R.id.text1);
 			TextView tv2 = (TextView)convertView.findViewById(R.id.text2);
-			Button button = (Button) findViewById(R.id.buttonViewDetails);
+			Button button = (Button) convertView.findViewById(R.id.buttonViewDetails);
 			View keyBox = convertView.findViewById(R.id.keyBox);
 			
 			boolean tv1Null = (tv1 == null);
@@ -188,6 +189,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 				button.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
+						mSelectedId = buttonposition;
 		            	showSessionDetails();
 					}
 				});				
@@ -319,8 +321,20 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 		String sessionDetails = "";
 		sessionDetails += "Completion: " + session.precentComplete + "%\n";
 		sessionDetails += "Length: " + secsToHMS(session.secondsCompleted) + "\n";
-		sessionDetails += "Mindset Band of Interest: " + session.mindsetBandOfInterest + "\n";
-		sessionDetails += "BioHarness Parameter of Interest: " + session.bioHarnessParameterOfInterest + "\n";
+
+		sessionDetails += "Band:   " + session.keyItemNames[session.mindsetBandOfInterestIndex] + "\n";
+		sessionDetails += "   Min: " + session.minFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+		sessionDetails += "   Max: " + session.maxFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+		sessionDetails += "   Avg: " + session.avgFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+
+		
+		sessionDetails += "Band: " + session.keyItemNames[session.bioHarnessParameterOfInterestIndex] + "\n";;
+		sessionDetails += "   Min: " + session.minFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+		sessionDetails += "   Max: " + session.maxFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+		sessionDetails += "  Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+
+		
+		
 		sessionDetails += "Comments: " + session.comments + "\n";
 		
 		alert2.setMessage(sessionDetails);

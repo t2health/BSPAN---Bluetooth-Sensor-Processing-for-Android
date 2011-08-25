@@ -1125,10 +1125,12 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 					if (mCurrentBioSession != null) {
 						mCurrentBioSession.comments += input.getText();
 
-				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		// 2 extra, for attention and meditation
+				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
 				        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
-				        	mCurrentBioSession.minFilteredValue[i] = keyItems.get(i).getMinFilteredValue();
+				        	mCurrentBioSession.minFilteredValue[i] = 
+				        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
 				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
+				        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
 				        }
 				        
 				        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
@@ -1137,8 +1139,11 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				        mCurrentBioSession.secondsCompleted = secondsCompleted;
 				        mCurrentBioSession.logFileName = mLogFileName; 
 				        
-				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
-				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+//				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
+//				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+				        
+				        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
+				        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
 				        
 
 				        // Udpate the database with the current session

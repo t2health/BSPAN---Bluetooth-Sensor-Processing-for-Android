@@ -23,7 +23,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	 * Suggested Copy/Paste code. Everything from here to the done block.
 	 ************************************************/
 
-	private static final String DATABASE_NAME = "helloAndroid40.db";	
+	private static final String DATABASE_NAME = "helloAndroid41.db";	
 	private static final int DATABASE_VERSION = 6;
 //	private static final int DATABASE_VERSION = 7;
 
