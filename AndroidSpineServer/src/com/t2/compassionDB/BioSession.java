@@ -50,10 +50,10 @@ public class BioSession {
 //	public double averageFilteredValue = 0.00;
 	
 	@DatabaseField
-	public int mindsetBandOfInterest = 0;
+	public String mindsetBandOfInterest = "";
 
 	@DatabaseField
-	public int bioHarnessParameterOfInterest = 0;
+	public String bioHarnessParameterOfInterest = "";
 	
 	
 	@DatabaseField

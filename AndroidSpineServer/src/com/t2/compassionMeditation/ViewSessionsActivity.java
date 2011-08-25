@@ -335,6 +335,9 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 		String sessionDetails = "";
 		sessionDetails += "Completion: " + session.precentComplete + "%\n";
 		sessionDetails += "Length: " + secsToHMS(session.secondsCompleted) + "\n";
+		sessionDetails += "Mindset Band of Interest: " + session.mindsetBandOfInterest + "\n";
+		sessionDetails += "BioHarness Parameter of Interest: " + session.bioHarnessParameterOfInterest + "\n";
+		sessionDetails += "Comments: " + session.comments + "\n";
 		
 		alert2.setMessage(sessionDetails);
 		alert2.show();

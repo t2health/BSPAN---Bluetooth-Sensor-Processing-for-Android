@@ -1137,6 +1137,9 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				        mCurrentBioSession.secondsCompleted = secondsCompleted;
 				        mCurrentBioSession.logFileName = mLogFileName; 
 				        
+				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
+				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+				        
 
 				        // Udpate the database with the current session
 						try {
