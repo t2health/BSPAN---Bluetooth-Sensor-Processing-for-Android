@@ -13,14 +13,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-
 import android.widget.ArrayAdapter;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
-//Need the following import to get access to the app resources, since this
-//class is in a sub-package.
+
+//Need the following import to get access to the app resources, since thisclass is in a sub-package.
 import com.t2.R;
+
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
@@ -28,17 +28,33 @@ import com.t2.compassionDB.DatabaseHelper;
 public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
-	
-	private ListView mListView;
-	private List<BioUser> mCurrentUsers;	
-	
 	static private SelectUserActivity instance;
+	
+	/**
+	 * Currently selected user name (as selected at the start of the session)
+	 */
+	private String mCurrentBioUserName;
 
-	Dao<BioUser, Integer> mBioUserDao;
-	Dao<BioSession, Integer> mBioSessionDao;
+	private Dao<BioSession, Integer> mBioSessionDao;
+	private Dao<BioUser, Integer> mBioUserDao;
 
-	String mSelectedUserName;
-	int mSelectedId;
+	/**
+	 * UI ListView for users list
+	 */
+	private ListView mListView;
+
+	/**
+	 * Ordered list of available BioUser 
+	 * 
+	 * note that we keep this list only so we can reference the currently selected session for deletion
+	 */
+	private List<BioUser> mCurrentUsers;	
+
+	/**
+	 * Index of currently selected user
+	 * @see mCurrentUsers
+	 */	
+	private int mSelectedId;
 	
 	public void onButtonClick(View v)
 	{
@@ -58,11 +74,14 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 					String newUserName = input.getText().toString();
 					
 					boolean found = false;
-					// Make sure that the user isn't already there
-					for (BioUser user: mCurrentUsers) {
-						if (user.name.equalsIgnoreCase(newUserName))
-							found = true;
+					if (mCurrentUsers != null) {
+						// Make sure that the user isn't already there
+						for (BioUser user: mCurrentUsers) {
+							if (user.name.equalsIgnoreCase(newUserName))
+								found = true;
+						}
 					}
+					
 					if (found) {
 						AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
 
@@ -93,7 +112,6 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		instance = this;
 		
@@ -115,16 +133,12 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		
 		mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 			public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-				mSelectedUserName = (String) mListView.getAdapter().getItem(i);
+				mCurrentBioUserName = (String) mListView.getAdapter().getItem(i);
 				mSelectedId = i;
 				
 				
 				AlertDialog.Builder alert = new AlertDialog.Builder(instance);
 				alert.setTitle("Choose Activity");
-//		    	alert.setPositiveButton("Edit User", new DialogInterface.OnClickListener() {
-//		            public void onClick(DialogInterface dialog, int whichButton) {
-//		            }
-//		        });				
 				
 		    	alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 		            public void onClick(DialogInterface dialog, int whichButton) {
@@ -166,15 +180,21 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		updateListView();		
 	}
 
+	/**
+	 * Populates the UI list view with current available users
+	 */
 	void updateListView() {
+		
 		ArrayList<String>  strUsers = new ArrayList<String>();
 	
+		// Retrieve the BuiUser object associated with object mSelectedUserName
 		try {
 
 			mBioUserDao = getHelper().getBioUserDao();
 			mBioSessionDao = getHelper().getBioSessionDao();
 			mCurrentUsers = mBioUserDao.queryForAll();				
 			
+			// Save the BioUsers so we have a list of objects we can manipulate later
 			for (BioUser user: mCurrentUsers) {
 				strUsers.add(user.name);
 			}
@@ -194,7 +214,6 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 	
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 	}
 }

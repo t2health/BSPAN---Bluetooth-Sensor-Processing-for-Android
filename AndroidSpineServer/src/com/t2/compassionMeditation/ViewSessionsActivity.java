@@ -1,8 +1,6 @@
 package com.t2.compassionMeditation;
 
-import java.io.File;
 import java.sql.SQLException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,139 +8,110 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.ForeignCollection;
-import com.j256.ormlite.stmt.QueryBuilder;
-import com.t2.R;
-import com.t2.biomap.SharedPref;
-import com.t2.compassionDB.BioSession;
-import com.t2.compassionDB.BioUser;
-import com.t2.compassionDB.DatabaseHelper;
-import com.t2.filechooser.FileChooser;
-import com.t2.filechooser.Option;
-
-
-
-
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+
+import com.t2.R;
+
+import com.t2.biomap.SharedPref;
+import com.t2.compassionDB.BioSession;
+import com.t2.compassionDB.BioUser;
+import com.t2.compassionDB.DatabaseHelper;
 
 public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> implements OnItemLongClickListener{
-	private static final String TAG = "ViewSessionsActivity";
+	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
 	private static ViewSessionsActivity instance;
 
-	String mSelectedUserName;
-	Dao<BioUser, Integer> mBioUserDao;
-	Dao<BioSession, Integer> mBioSessionDao;
-	BioUser mCurrentBioUser = null;
-	BioSession mCurrentBioSession = null;
-	List<BioUser> currentUsers;	
+	/**
+	 * Currently selected user name (as selected at the start of the session)
+	 */
+	private String mCurrentBioUserName;
 	
+	/**
+	 * BioUser associated with currently selected user name (as selected at the start of the session)
+	 */
+	private BioUser mCurrentBioUser = null;
+
+	private Dao<BioUser, Integer> mBioUserDao;
+	private Dao<BioSession, Integer> mBioSessionDao;
+	
+	/**
+	 * UI ListView for sessions list
+	 */
 	private ListView sessionKeysList;
 
-	private ArrayList<SessionsKeyItem> sessionKeyItems;
+	/**
+	 * Ordered list of session keys associated with the currently selected user
+	 * 
+	 */
+	private ArrayList<SessionsKeyItem> sessionKeyItems = new ArrayList<SessionsKeyItem>();
+	
+	/**
+	 * Ordered list of BioSessions associated with the currently selected user
+	 * 
+	 * note that we keep this list only so we can reference the currently selected session for deletion
+	 */
 	private ArrayList<BioSession> sessionItems = new ArrayList<BioSession>();;
+
+	/**
+	 * Index of currently selected session
+	 * @see sessionItems
+	 */
+	private int mSelectedId;		
 	
+	/**
+	 * Adapter used to provide list of views for the sessionKeyItems list
+	 * @see sessionKeyItems
+	 */
 	private SessionsKeyItemAdapter sessionKeysAdapter;
-	int mSelectedId;		
-	
-	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);		
-        setContentView(R.layout.view_sessions_layout); 
         instance = this;
-
         
-        mSelectedUserName = SharedPref.getString(this, "SelectedUser", 	"");
+		requestWindowFeature(Window.FEATURE_NO_TITLE);		
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+        
+        setContentView(R.layout.view_sessions_layout); 
+        
+        mCurrentBioUserName = SharedPref.getString(this, "SelectedUser", 	"");
+		sessionKeysList = (ListView) this.findViewById(R.id.listViewSessionKeys);
+		sessionKeysList.setOnItemLongClickListener(this);
         
         updateListView();        
-
-
-
-        
 	}
-	
-	protected ArrayList<SessionsKeyItem> getSessionKeyItems() {
-		ArrayList<SessionsKeyItem> items = new ArrayList<SessionsKeyItem>();
-		sessionItems.clear();
-		
-		if (mCurrentBioUser == null) return items;
-		
-		for (BioSession session: mCurrentBioUser.getSessions()) {
-			
-			sessionItems.add(session);
-			SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm:ss", Locale.US);
-			String title = sdf.format(new Date(session.time));			
-			
-			int color;
-			if (session.precentComplete >= 100) {
-				color = Color.GREEN;
-			}
-			else {
-				color = Color.YELLOW;
-			}
-				
-			
-			SessionsKeyItem item = new SessionsKeyItem(1,title, "", color);
-			items.add(item);
-		}
-				
-		
-
-		
-		return items;
-	}
-	
-	
 	
 	@Override
 	protected void onDestroy() {
-		
 		super.onDestroy();
-		
-		
 	}
+	
 	@Override
 	protected void onStart() {
 		super.onStart();
 	}
-
-//	@Override
-//	public boolean onTouch(View v, MotionEvent event) {
-//		finish();
-//		return false;
-//	}
-//	
 
 	static class SessionsKeyItem {
 		public long id;
@@ -165,7 +134,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 			this.color = color;
 		}
 		
-		
 		public HashMap<String,Object> toHashMap() {
 			HashMap<String,Object> data = new HashMap<String,Object>();
 			data.put("id", id);
@@ -176,7 +144,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 			return data;
 		}
 	}	
-	
 	
 	class SessionsKeyItemAdapter extends ArrayAdapter<SessionsKeyItem> {
 		public static final int VIEW_TYPE_ONE_LINE = 1;
@@ -225,8 +192,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 					}
 				});				
 			}
-
-
 			
 			if(keyBox != null) {
 				keyBox.setBackgroundColor(item.color);
@@ -235,8 +200,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 			return convertView;
 		}
 	}
-
-
 
 	@Override
 	public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2,
@@ -267,14 +230,9 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 				alert2.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 	            	try {
-	            		
-//	            		ForeignCollection sessions = mCurrentBioUser.getSessions();
-//	            		sessions.toArray();
-//	            		sessions.remove(object)
 	            		sessionKeyItems.get(mSelectedId);
 	            		mBioSessionDao.delete(sessionItems.get(mSelectedId));	
 	            		updateListView();	            		
-	            		
 						
 					} catch (SQLException e) {
 						Log.e(TAG, "Error deleting user" + e.toString());
@@ -295,13 +253,19 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 		return false;
 	}
 
-	void updateListView() {
+	/**
+	 * Populates sessionItems and sessionKeyItems with session from the currently selected user
+	 * then uses the adapter to populate the list view with that data
+	 */
+	private void updateListView() {
+
+		// Retrieve the BuiUser object associated with object mSelectedUserName
 		try {
 			mBioUserDao = getHelper().getBioUserDao();
 			mBioSessionDao = getHelper().getBioSessionDao();
 			
 			QueryBuilder<BioUser, Integer> builder = mBioUserDao.queryBuilder();
-			builder.where().eq(BioUser.NAME_FIELD_NAME, mSelectedUserName);
+			builder.where().eq(BioUser.NAME_FIELD_NAME, mCurrentBioUserName);
 			builder.limit(1);
 			List<BioUser> list = mBioUserDao.query(builder.prepare());	
 			
@@ -309,25 +273,45 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 				mCurrentBioUser = list.get(0);
 			}
 			else {
-				Log.e(TAG, "General Database error" + mSelectedUserName);
+				Log.e(TAG, "General Database error" + mCurrentBioUserName);
 			}
 			
 		} catch (SQLException e) {
-			Log.e(TAG, "Can't find user: " + mSelectedUserName , e);
+			Log.e(TAG, "Can't find user: " + mCurrentBioUserName , e);
 
 		}        
         	
-		sessionKeyItems = getSessionKeyItems();		
+		// Fill the collections sessionItems, and sessionKeyItems with session data from the current user
+		sessionItems.clear();
+		sessionKeyItems.clear();
+		
+		if (mCurrentBioUser != null) {
+		
+			for (BioSession session: mCurrentBioUser.getSessions()) {
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm:ss", Locale.US);
+				String title = sdf.format(new Date(session.time));			
+				
+				int color;
+				if (session.precentComplete >= 100) {
+					color = Color.GREEN;
+				}
+				else {
+					color = Color.YELLOW;
+				}
+				
+				SessionsKeyItem item = new SessionsKeyItem(1,title, "", color);
+				sessionKeyItems.add(item);
+				sessionItems.add(session);
+				
+			}
+		}				
+	
 		sessionKeysAdapter = new SessionsKeyItemAdapter(this, 1, sessionKeyItems);		
-		
-		sessionKeysList = (ListView) this.findViewById(R.id.listViewSessionKeys);
-		
 		sessionKeysList.setAdapter(sessionKeysAdapter);		
-		
-		sessionKeysList.setOnItemLongClickListener(this);
 	}
 	
-	void showSessionDetails() {
+	private void showSessionDetails() {
 		AlertDialog.Builder alert2 = new AlertDialog.Builder(instance);
 		
 		BioSession session = sessionItems.get(mSelectedId);
