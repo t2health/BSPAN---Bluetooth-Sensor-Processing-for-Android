@@ -3,10 +3,20 @@ package com.t2.compassionMeditation;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.LineChart;
+import org.achartengine.chart.PointStyle;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.model.XYSeries;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -14,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +33,10 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -37,12 +50,27 @@ import com.t2.biomap.SharedPref;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
+import com.t2.compassionUtils.MathExtra;
 
-public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> implements OnItemLongClickListener{
+
+
+
+public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
+				implements OnItemLongClickListener, OnClickListener {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
 	private static ViewSessionsActivity instance;
+	private DisplayMetrics displayMetrics = new DisplayMetrics();
+	
+	private GraphicalView mDeviceChartView;
+	
+	
 
+	private static final int DIRECTION_PREVIOUS = -1;
+	private static final int DIRECTION_NONE = 0;
+	private static final int DIRECTION_NEXT = 1;
+	
+	
 	/**
 	 * Currently selected user name (as selected at the start of the session)
 	 */
@@ -80,6 +108,18 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 	 */
 	private int mSelectedId;		
 	
+	protected Calendar startCal;
+	protected Calendar endCal;
+	protected int calendarField;
+	private TextView monthNameTextView;
+	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * Adapter used to provide list of views for the sessionKeyItems list
 	 * @see sessionKeyItems
@@ -95,12 +135,31 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
         setContentView(R.layout.view_sessions_layout); 
+		monthNameTextView = (TextView) this.findViewById(R.id.monthName);
+        
         
         mCurrentBioUserName = SharedPref.getString(this, "SelectedUser", 	"");
 		sessionKeysList = (ListView) this.findViewById(R.id.listViewSessionKeys);
 		sessionKeysList.setOnItemLongClickListener(this);
+
+		long startTime = Calendar.getInstance().getTimeInMillis();
+		
+		// Set the time ranges.
+		startCal = Calendar.getInstance();
+		startCal.setTimeInMillis(MathExtra.roundTime(startTime, calendarField));
+		startCal.set(calendarField, startCal.getMinimum(calendarField));
+		
+		endCal = Calendar.getInstance();
+		endCal.setTimeInMillis(startCal.getTimeInMillis());
+		endCal.add(Calendar.MONTH, 1);
+		
+		monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+		
+        updateListView();
+		this.findViewById(R.id.monthMinusButton).setOnClickListener(this);
+		this.findViewById(R.id.monthPlusButton).setOnClickListener(this);
         
-        updateListView();        
+		generateChart(DIRECTION_NEXT);        
 	}
 	
 	@Override
@@ -331,7 +390,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 		sessionDetails += "Band: " + session.keyItemNames[session.bioHarnessParameterOfInterestIndex] + "\n";;
 		sessionDetails += "   Min: " + session.minFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
 		sessionDetails += "   Max: " + session.maxFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-		sessionDetails += "  Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+		sessionDetails += "   Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
 
 		
 		
@@ -351,4 +410,154 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> im
 		
 		return hours + ":" + mins + ":" + secs;
 	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()) {
+		case R.id.monthMinusButton:
+			monthMinusButtonPressed();
+			break;
+			
+		case R.id.monthPlusButton:
+			monthPlusButtonPressed();
+			break;
+		}
+	}
+
+	protected void monthMinusButtonPressed() {
+		startCal.add(Calendar.MONTH, -1);
+		endCal.add(Calendar.MONTH, -1);
+		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+		generateChart(DIRECTION_PREVIOUS);
+		
+//		notesList.setSelection(notesAdapter.getPositionForTimestamp(endCal.getTimeInMillis()));
+	}
+	
+	protected void monthPlusButtonPressed() {
+		startCal.add(Calendar.MONTH, 1);
+		endCal.add(Calendar.MONTH, 1);
+		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+		generateChart(DIRECTION_NEXT);
+		
+//		notesList.setSelection(notesAdapter.getPositionForTimestamp(endCal.getTimeInMillis()));
+	}
+
+	private void generateChart(int direction) {
+		XYMultipleSeriesDataset dataSet = new XYMultipleSeriesDataset();
+		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
+		LineChart chart = new LineChart(dataSet, renderer);
+		
+		XYSeries series = new XYSeries("test");
+		Calendar cal = Calendar.getInstance();
+		
+        LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
+    	if (mDeviceChartView != null) {
+    		layout.removeView(mDeviceChartView);
+    	}
+       	if (true) {
+//          mDeviceChartView = ChartFactory.getLineChartView(this, dataSet, renderer);
+//          mDeviceChartView.setBackgroundColor(Color.WHITE);
+//          mDeviceChartView.setBackgroundColor(Color.BLACK);
+//          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+         	OffsetGraphicalChartView chartView = new OffsetGraphicalChartView(this, chart);
+          layout.addView(chartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        }    
+    			
+       	
+       	
+		
+		// Put some test points in
+		for (int i = 0; i < 10; i++ ) {
+			DataPoint dp = new DataPoint(System.currentTimeMillis() + i * 1000,0);
+			cal.setTimeInMillis(dp.time);
+			series.add(cal.get(calendarField), i*3);
+			
+		}
+		
+		
+		XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+		seriesRenderer.setColor(Color.RED);
+		seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+		seriesRenderer.setFillPoints(true);
+		seriesRenderer.setLineWidth(2 * displayMetrics.density);
+		
+		renderer.addSeriesRenderer(seriesRenderer);
+		dataSet.addSeries(series);		
+		
+		// only contine making the chart if there is data in the series.
+		if(dataSet.getSeriesCount() > 0) {
+			
+			// Make the renderer for the weekend blocks
+			Calendar weekendCal = Calendar.getInstance();
+			weekendCal.setTimeInMillis(System.currentTimeMillis());
+			
+			Calendar weekCal = Calendar.getInstance();
+			weekCal.setTimeInMillis(startCal.getTimeInMillis());
+			int dow = weekCal.get(Calendar.DAY_OF_WEEK);
+			weekCal.add(Calendar.DAY_OF_MONTH, 7 - dow + 2);
+			
+			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.DAY_OF_MONTH);
+			int firstMondayOfMonth = weekCal.get(Calendar.DAY_OF_MONTH);
+			
+			renderer.setShowGrid(false);
+			renderer.setAxesColor(Color.WHITE);
+			renderer.setLabelsColor(Color.WHITE);
+			renderer.setAntialiasing(true);
+			renderer.setShowLegend(false);
+			renderer.setYLabels(0);
+			renderer.setXLabels(15);
+			renderer.setYAxisMax(100.00);
+			renderer.setYAxisMin(0.00);
+			renderer.setXAxisMin(1.00);
+			renderer.setXAxisMax(lastDayOfMonth);
+			
+			renderer.setZoomEnabled(false, false);
+			renderer.setPanEnabled(false, false);
+			renderer.setLegendHeight(10);
+			
+
+			
+			
+			
+		}		
+		
+		
+		
+	} // End generateChart
+	
+	
+	private ArrayList<Long> getDataPoints(long startTime, long endTime, int calendarGroupByField) {
+		Calendar startCal = Calendar.getInstance();
+		Calendar endCal = Calendar.getInstance();
+		startCal.setTimeInMillis(startTime);
+		endCal.setTimeInMillis(endTime);
+		
+		startCal.setTimeInMillis(MathExtra.roundTime(startCal.getTimeInMillis(), calendarGroupByField));
+		endCal.setTimeInMillis(MathExtra.roundTime(endCal.getTimeInMillis(), calendarGroupByField));
+		
+		ArrayList<Long> dataPoints = new ArrayList<Long>();
+		Calendar runningCal = Calendar.getInstance();
+		runningCal.setTimeInMillis(startCal.getTimeInMillis());
+		while(true) {
+			if(runningCal.getTimeInMillis() >= endTime) {
+				break;
+			}
+			
+			switch(calendarGroupByField) {
+			case Calendar.MONTH:
+				dataPoints.add(runningCal.getTimeInMillis());
+				runningCal.add(Calendar.MONTH, 1);
+				break;
+			case Calendar.DAY_OF_MONTH:
+				dataPoints.add(runningCal.getTimeInMillis());
+				runningCal.add(Calendar.DAY_OF_MONTH, 1);
+				break;
+			}
+		}
+		
+		return dataPoints;
+	}	// End getDataPoints
+	
+	
+	
 }
