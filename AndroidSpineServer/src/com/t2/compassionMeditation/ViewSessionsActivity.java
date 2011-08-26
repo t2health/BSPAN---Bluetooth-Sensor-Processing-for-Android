@@ -120,7 +120,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	protected Calendar endCal;
 	protected int calendarField;				// index of calandar parameter (Defaults to day of month)
 	private TextView monthNameTextView;
-	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
+//	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
+	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("hh-dd-MMMM-yyyy");
 	
 	
 	
@@ -155,7 +156,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			startTime = Calendar.getInstance().getTimeInMillis();
 		}
 		Intent intent = this.getIntent();
-		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
+//		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
+		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.HOUR_OF_DAY);
 		
 		// Set the time ranges.
 		// By default this is today:midnight - one month from today: midnight
@@ -165,7 +167,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		endCal = Calendar.getInstance();
 		endCal.setTimeInMillis(startCal.getTimeInMillis());
-		endCal.add(Calendar.MONTH, 1);
+//		endCal.add(Calendar.MONTH, 1);
+		endCal.add(Calendar.DATE, 1);
 		
 		monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
 		
@@ -439,8 +442,10 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	}
 
 	protected void monthMinusButtonPressed() {
-		startCal.add(Calendar.MONTH, -1);
-		endCal.add(Calendar.MONTH, -1);
+//		startCal.add(Calendar.MONTH, -1);
+//		endCal.add(Calendar.MONTH, -1);
+		startCal.add(Calendar.DATE, -1);
+		endCal.add(Calendar.DATE, -1);
 		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
 		generateChart(DIRECTION_PREVIOUS);
 		
@@ -448,8 +453,10 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	}
 	
 	protected void monthPlusButtonPressed() {
-		startCal.add(Calendar.MONTH, 1);
-		endCal.add(Calendar.MONTH, 1);
+//		startCal.add(Calendar.MONTH, 1);
+//		endCal.add(Calendar.MONTH, 1);
+		startCal.add(Calendar.DATE, 1);
+		endCal.add(Calendar.DATE, 1);
 		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
 		generateChart(DIRECTION_NEXT);
 		
@@ -490,11 +497,13 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 				
 				int i;
 				i = cal.get(calendarField);
-				i = cal.get(Calendar.DAY_OF_WEEK);
-				i = cal.get(Calendar.HOUR_OF_DAY);
-				i = cal.get(Calendar.MINUTE);
-				i++;
-				series.add(cal.get(calendarField), chartValue );
+				int day = cal.get(Calendar.DAY_OF_MONTH);
+				int dayofWeek = cal.get(Calendar.DAY_OF_WEEK);
+				int hour = cal.get(Calendar.HOUR_OF_DAY);
+				int minute = cal.get(Calendar.MINUTE);
+				float value = (float) hour + (float) minute/60;
+				series.add(value, chartValue );
+//				series.add(cal.get(calendarField), chartValue );
 				
 			}
 		}
@@ -531,7 +540,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 //			int dow = weekCal.get(Calendar.DAY_OF_WEEK);
 //			weekCal.add(Calendar.DAY_OF_MONTH, 7 - dow + 2);
 			
-			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.DAY_OF_MONTH);
+			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.HOUR_OF_DAY);
+//			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.DAY_OF_MONTH);
 //			int firstMondayOfMonth = weekCal.get(Calendar.DAY_OF_MONTH);
 			
 			renderer.setShowGrid(false);
