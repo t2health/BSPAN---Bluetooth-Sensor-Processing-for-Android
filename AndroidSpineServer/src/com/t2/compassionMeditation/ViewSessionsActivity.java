@@ -30,6 +30,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -41,6 +42,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -59,11 +61,12 @@ import com.t2.compassionUtils.MathExtra;
 
 
 public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
-				implements OnItemLongClickListener, OnClickListener {
+				implements OnItemLongClickListener, OnClickListener{
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
 	public static final String EXTRA_TIME_START = "timeStart";
 	public static final String EXTRA_CALENDAR_FIELD = "calendarField";
+	public static final String EXTRA_CALENDAR_FIELD_INCREMENT = "calendarFieldIncrement";
 	public static final String EXTRA_REVERSE_DATA = "reverseData";
 	
 	
@@ -119,14 +122,11 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	protected Calendar startCal;
 	protected Calendar endCal;
 	protected int calendarField;				// index of calandar parameter (Defaults to day of month)
+	protected int calendarFieldIncrement;				
+	
+	
 	private TextView monthNameTextView;
-//	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
-	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("hh-dd-MMMM-yyyy");
-	
-	
-	
-	
-	
+	SimpleDateFormat monthNameFormatter;
 	
 	
 	/**
@@ -144,37 +144,25 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
         
         setContentView(R.layout.view_sessions_layout); 
-		monthNameTextView = (TextView) this.findViewById(R.id.monthName);
+        monthNameTextView = (TextView) this.findViewById(R.id.monthName);
+
         
         
         mCurrentBioUserName = SharedPref.getString(this, "SelectedUser", 	"");
 		sessionKeysList = (ListView) this.findViewById(R.id.listViewSessionKeys);
 		sessionKeysList.setOnItemLongClickListener(this);
 
-		long startTime = this.getIntent().getLongExtra(EXTRA_TIME_START, 0);
-		if(startTime == 0) {
-			startTime = Calendar.getInstance().getTimeInMillis();
-		}
 		Intent intent = this.getIntent();
-//		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
-		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.HOUR_OF_DAY);
+//		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.HOUR_OF_DAY);
+		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
 		
-		// Set the time ranges.
-		// By default this is today:midnight - one month from today: midnight
-		startCal = Calendar.getInstance();
-		startCal.setTimeInMillis(MathExtra.roundTime(startTime, calendarField));
-		startCal.set(calendarField, startCal.getMinimum(calendarField));
-		
-		endCal = Calendar.getInstance();
-		endCal.setTimeInMillis(startCal.getTimeInMillis());
-//		endCal.add(Calendar.MONTH, 1);
-		endCal.add(Calendar.DATE, 1);
-		
-		monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
-		
+		setCalendarResolution();
+    	setupCalendars();            	
         updateListView();
-		this.findViewById(R.id.monthMinusButton).setOnClickListener(this);
+
+        this.findViewById(R.id.monthMinusButton).setOnClickListener(this);
 		this.findViewById(R.id.monthPlusButton).setOnClickListener(this);
+        this.monthNameTextView.setOnClickListener(this);
         
 		generateChart(DIRECTION_NEXT);        
 	}
@@ -310,7 +298,9 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	            	try {
 	            		sessionKeyItems.get(mSelectedId);
 	            		mBioSessionDao.delete(sessionItems.get(mSelectedId));	
-	            		updateListView();	            		
+	                	setupCalendars();            	
+	            		updateListView();
+	            		generateChart(DIRECTION_NEXT); 
 						
 					} catch (SQLException e) {
 						Log.e(TAG, "Error deleting user" + e.toString());
@@ -362,26 +352,31 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		// Fill the collections sessionItems, and sessionKeyItems with session data from the current user
 		sessionItems.clear();
 		sessionKeyItems.clear();
+		long startTime = startCal.getTimeInMillis();
+		long endTime = endCal.getTimeInMillis();	
+		
 		
 		if (mCurrentBioUser != null) {
 		
 			for (BioSession session: mCurrentBioUser.getSessions()) {
 				
-				SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm:ss", Locale.US);
-				String title = sdf.format(new Date(session.time));			
-				
-				int color;
-				if (session.precentComplete >= 100) {
-					color = Color.GREEN;
+				if (session.time >= startTime && session.time <= endTime ) {
+					SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm:ss", Locale.US);
+					String title = sdf.format(new Date(session.time));			
+					
+					int color;
+					if (session.precentComplete >= 100) {
+						color = Color.GREEN;
+					}
+					else {
+						color = Color.YELLOW;
+					}
+					
+					SessionsKeyItem item = new SessionsKeyItem(1,title, "", color);
+					sessionKeyItems.add(item);
+					sessionItems.add(session);
+					
 				}
-				else {
-					color = Color.YELLOW;
-				}
-				
-				SessionsKeyItem item = new SessionsKeyItem(1,title, "", color);
-				sessionKeyItems.add(item);
-				sessionItems.add(session);
-				
 			}
 		}				
 	
@@ -438,38 +433,54 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		case R.id.monthPlusButton:
 			monthPlusButtonPressed();
 			break;
+
+		case R.id.monthName:
+			calendarResolutionButtonPressed();
+			break;
 		}
+		
+		
+		
 	}
 
-	protected void monthMinusButtonPressed() {
-//		startCal.add(Calendar.MONTH, -1);
-//		endCal.add(Calendar.MONTH, -1);
-		startCal.add(Calendar.DATE, -1);
-		endCal.add(Calendar.DATE, -1);
-		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
-		generateChart(DIRECTION_PREVIOUS);
+	double getXValueBasedOnResolution(long sessionTime) {
+		int i;
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(sessionTime);
 		
-//		notesList.setSelection(notesAdapter.getPositionForTimestamp(endCal.getTimeInMillis()));
+		i = cal.get(calendarField);
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		int dayofWeek = cal.get(Calendar.DAY_OF_WEEK);
+		int hour = cal.get(Calendar.HOUR_OF_DAY);
+		int minute = cal.get(Calendar.MINUTE);
+		
+		float value = 0;;
+
+		switch (calendarField) {
+		case Calendar.DAY_OF_MONTH:
+			value = day + (float) hour/24 + (float) minute/60;
+			break;
+
+		case Calendar.HOUR_OF_DAY:
+			value = (float) hour + (float) minute/60;
+			break;
+
+		default:
+			break;
+		}
+
+		
+		return (double) value;
+		
 	}
 	
-	protected void monthPlusButtonPressed() {
-//		startCal.add(Calendar.MONTH, 1);
-//		endCal.add(Calendar.MONTH, 1);
-		startCal.add(Calendar.DATE, 1);
-		endCal.add(Calendar.DATE, 1);
-		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
-		generateChart(DIRECTION_NEXT);
-		
-//		notesList.setSelection(notesAdapter.getPositionForTimestamp(endCal.getTimeInMillis()));
-	}
-
+	
 	private void generateChart(int direction) {
 		XYMultipleSeriesDataset dataSet = new XYMultipleSeriesDataset();
 		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
 		LineChart chart = new LineChart(dataSet, renderer);
 		
 		XYSeries series = new XYSeries("test");
-		Calendar cal = Calendar.getInstance();
 		
         LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
     	if (mDeviceChartView != null) {
@@ -486,23 +497,17 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		long endTime = endCal.getTimeInMillis();	
 		
 		double maxChartValue = 0;
-		// Get the data points
-	//	dataPoints = loadData(keyItems.get(i), startTime, endTime, calendarField);       	
 
+
+		// Get the data points
 		for (BioSession session : sessionItems) {
 			if (session.time >= startTime && session.time <= endTime ) {
-				cal.setTimeInMillis(session.time);
-				double chartValue = session.avgFilteredValue[0];
-				if (chartValue > maxChartValue) maxChartValue = chartValue;
+				double chartYValue = session.avgFilteredValue[0];
+				if (chartYValue > maxChartValue) maxChartValue = chartYValue;
 				
-				int i;
-				i = cal.get(calendarField);
-				int day = cal.get(Calendar.DAY_OF_MONTH);
-				int dayofWeek = cal.get(Calendar.DAY_OF_WEEK);
-				int hour = cal.get(Calendar.HOUR_OF_DAY);
-				int minute = cal.get(Calendar.MINUTE);
-				float value = (float) hour + (float) minute/60;
-				series.add(value, chartValue );
+				double chartXValue = getXValueBasedOnResolution(session.time);
+				
+				series.add(chartXValue, chartYValue );
 //				series.add(cal.get(calendarField), chartValue );
 				
 			}
@@ -535,14 +540,9 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			Calendar weekendCal = Calendar.getInstance();
 			weekendCal.setTimeInMillis(System.currentTimeMillis());
 			
-//			Calendar weekCal = Calendar.getInstance();
-//			weekCal.setTimeInMillis(startCal.getTimeInMillis());
-//			int dow = weekCal.get(Calendar.DAY_OF_WEEK);
-//			weekCal.add(Calendar.DAY_OF_MONTH, 7 - dow + 2);
 			
-			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.HOUR_OF_DAY);
+			int lastDayOfMonth = weekendCal.getActualMaximum(calendarField);
 //			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.DAY_OF_MONTH);
-//			int firstMondayOfMonth = weekCal.get(Calendar.DAY_OF_MONTH);
 			
 			renderer.setShowGrid(false);
 			renderer.setAxesColor(Color.WHITE);
@@ -565,40 +565,88 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		
 	} // End generateChart
+
+	protected void monthMinusButtonPressed() {
+		startCal.add(calendarFieldIncrement, -1);
+		endCal.add(calendarFieldIncrement, -1);
+		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+        updateListView();
+		generateChart(DIRECTION_PREVIOUS);
+	}
 	
+	protected void monthPlusButtonPressed() {
+		startCal.add(calendarFieldIncrement, 1);
+		endCal.add(calendarFieldIncrement, 1);
+		this.monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+        updateListView();
+		generateChart(DIRECTION_NEXT);
+	}
+
+	void setupCalendars() {
+    	long startTime = Calendar.getInstance().getTimeInMillis();
+		
+		startCal = Calendar.getInstance();
+		startCal.setTimeInMillis(MathExtra.roundTime(startTime, calendarField));
+		startCal.set(calendarField, startCal.getMinimum(calendarField));
+		
+		endCal = Calendar.getInstance();
+		endCal.setTimeInMillis(startCal.getTimeInMillis());
+		endCal.add(calendarFieldIncrement, 1);
+    	
+		monthNameTextView.setText(monthNameFormatter.format(startCal.getTime()));
+		
+	}
 	
-	private ArrayList<Long> getDataPoints(long startTime, long endTime, int calendarGroupByField) {
-		Calendar startCal = Calendar.getInstance();
-		Calendar endCal = Calendar.getInstance();
-		startCal.setTimeInMillis(startTime);
-		endCal.setTimeInMillis(endTime);
+	void calendarResolutionButtonPressed() {
+	    String[] items = {"Day of Month", "Hour of Day" };
+		AlertDialog.Builder alert = new AlertDialog.Builder(instance);
+		alert.setTitle("Set Calandar Resolution");
+		alert.setItems(items, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+            	switch (which) {
+            	case 0:
+            		calendarField = Calendar.DAY_OF_MONTH;
+            		break;
+            	case 1:
+            		calendarField = Calendar.HOUR_OF_DAY;
+            		break;
+            	}
+        		
+            	setCalendarResolution();
+        		// We must reset the start and end calendars
+            	setupCalendars();           
+                updateListView();
+            	
+        		generateChart(DIRECTION_NEXT);        
+            }		
+        });				
 		
-		startCal.setTimeInMillis(MathExtra.roundTime(startCal.getTimeInMillis(), calendarGroupByField));
-		endCal.setTimeInMillis(MathExtra.roundTime(endCal.getTimeInMillis(), calendarGroupByField));
-		
-		ArrayList<Long> dataPoints = new ArrayList<Long>();
-		Calendar runningCal = Calendar.getInstance();
-		runningCal.setTimeInMillis(startCal.getTimeInMillis());
-		while(true) {
-			if(runningCal.getTimeInMillis() >= endTime) {
-				break;
-			}
+		alert.show();		
+	}
+	
+	void setCalendarResolution() {
+
+		switch (calendarField) {
+		case Calendar.DAY_OF_MONTH:
+			calendarFieldIncrement = Calendar.MONTH; 
+			monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
 			
-			switch(calendarGroupByField) {
-			case Calendar.MONTH:
-				dataPoints.add(runningCal.getTimeInMillis());
-				runningCal.add(Calendar.MONTH, 1);
-				break;
-			case Calendar.DAY_OF_MONTH:
-				dataPoints.add(runningCal.getTimeInMillis());
-				runningCal.add(Calendar.DAY_OF_MONTH, 1);
-				break;
-			}
+			break;
+	
+		case Calendar.HOUR_OF_DAY:
+			monthNameFormatter = new SimpleDateFormat("dd-MMMM-yyyy");
+			calendarFieldIncrement = Calendar.DATE; 
+			break;
+	
+		default:
+			break;
 		}
 		
-		return dataPoints;
-	}	// End getDataPoints
+		
+	}
 	
+
 	
 //	public Cursor getResults(long startTime, long endTime) {
 //		return this.getDBAdapter().getDatabase().query(
