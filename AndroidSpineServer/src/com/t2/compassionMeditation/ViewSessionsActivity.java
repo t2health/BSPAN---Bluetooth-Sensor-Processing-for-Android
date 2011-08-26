@@ -21,7 +21,9 @@ import org.achartengine.renderer.XYSeriesRenderer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -55,14 +57,20 @@ import com.t2.compassionUtils.MathExtra;
 
 
 
+
 public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
 				implements OnItemLongClickListener, OnClickListener {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";
+	public static final String EXTRA_TIME_START = "timeStart";
+	public static final String EXTRA_CALENDAR_FIELD = "calendarField";
+	public static final String EXTRA_REVERSE_DATA = "reverseData";
+	
+	
 	private static ViewSessionsActivity instance;
 	private DisplayMetrics displayMetrics = new DisplayMetrics();
 	
-	private GraphicalView mDeviceChartView;
+	private View mDeviceChartView;
 	
 	
 
@@ -110,7 +118,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	
 	protected Calendar startCal;
 	protected Calendar endCal;
-	protected int calendarField;
+	protected int calendarField;				// index of calandar parameter (Defaults to day of month)
 	private TextView monthNameTextView;
 	SimpleDateFormat monthNameFormatter = new SimpleDateFormat("MMMM, yyyy");
 	
@@ -142,9 +150,15 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		sessionKeysList = (ListView) this.findViewById(R.id.listViewSessionKeys);
 		sessionKeysList.setOnItemLongClickListener(this);
 
-		long startTime = Calendar.getInstance().getTimeInMillis();
+		long startTime = this.getIntent().getLongExtra(EXTRA_TIME_START, 0);
+		if(startTime == 0) {
+			startTime = Calendar.getInstance().getTimeInMillis();
+		}
+		Intent intent = this.getIntent();
+		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
 		
 		// Set the time ranges.
+		// By default this is today:midnight - one month from today: midnight
 		startCal = Calendar.getInstance();
 		startCal.setTimeInMillis(MathExtra.roundTime(startTime, calendarField));
 		startCal.set(calendarField, startCal.getMinimum(calendarField));
@@ -454,25 +468,46 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
     	if (mDeviceChartView != null) {
     		layout.removeView(mDeviceChartView);
     	}
-       	if (true) {
-//          mDeviceChartView = ChartFactory.getLineChartView(this, dataSet, renderer);
-//          mDeviceChartView.setBackgroundColor(Color.WHITE);
-//          mDeviceChartView.setBackgroundColor(Color.BLACK);
-//          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-         	OffsetGraphicalChartView chartView = new OffsetGraphicalChartView(this, chart);
-          layout.addView(chartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        }    
-    			
-       	
-       	
+
+//    	mDeviceChartView = new OffsetGraphicalChartView(this, chart);
+     	
+     	mDeviceChartView = ChartFactory.getLineChartView(this, dataSet, renderer);
+     	layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+         	
+		ArrayList<DataPoint> dataPoints = null;
+		long startTime = startCal.getTimeInMillis();
+		long endTime = endCal.getTimeInMillis();	
 		
-		// Put some test points in
-		for (int i = 0; i < 10; i++ ) {
-			DataPoint dp = new DataPoint(System.currentTimeMillis() + i * 1000,0);
-			cal.setTimeInMillis(dp.time);
-			series.add(cal.get(calendarField), i*3);
-			
+		double maxChartValue = 0;
+		// Get the data points
+	//	dataPoints = loadData(keyItems.get(i), startTime, endTime, calendarField);       	
+
+		for (BioSession session : sessionItems) {
+			if (session.time >= startTime && session.time <= endTime ) {
+				cal.setTimeInMillis(session.time);
+				double chartValue = session.avgFilteredValue[0];
+				if (chartValue > maxChartValue) maxChartValue = chartValue;
+				
+				int i;
+				i = cal.get(calendarField);
+				i = cal.get(Calendar.DAY_OF_WEEK);
+				i = cal.get(Calendar.HOUR_OF_DAY);
+				i = cal.get(Calendar.MINUTE);
+				i++;
+				series.add(cal.get(calendarField), chartValue );
+				
+			}
 		}
+		
+		
+		
+//		// Put some test points in
+//		for (int i = 0; i < 10; i++ ) {
+//			DataPoint dp = new DataPoint(System.currentTimeMillis() + i * 1000,0);
+//			cal.setTimeInMillis(dp.time);
+//			series.add(cal.get(calendarField), i*3);
+//			
+//		}
 		
 		
 		XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
@@ -491,13 +526,13 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			Calendar weekendCal = Calendar.getInstance();
 			weekendCal.setTimeInMillis(System.currentTimeMillis());
 			
-			Calendar weekCal = Calendar.getInstance();
-			weekCal.setTimeInMillis(startCal.getTimeInMillis());
-			int dow = weekCal.get(Calendar.DAY_OF_WEEK);
-			weekCal.add(Calendar.DAY_OF_MONTH, 7 - dow + 2);
+//			Calendar weekCal = Calendar.getInstance();
+//			weekCal.setTimeInMillis(startCal.getTimeInMillis());
+//			int dow = weekCal.get(Calendar.DAY_OF_WEEK);
+//			weekCal.add(Calendar.DAY_OF_MONTH, 7 - dow + 2);
 			
 			int lastDayOfMonth = weekendCal.getActualMaximum(Calendar.DAY_OF_MONTH);
-			int firstMondayOfMonth = weekCal.get(Calendar.DAY_OF_MONTH);
+//			int firstMondayOfMonth = weekCal.get(Calendar.DAY_OF_MONTH);
 			
 			renderer.setShowGrid(false);
 			renderer.setAxesColor(Color.WHITE);
@@ -506,19 +541,15 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			renderer.setShowLegend(false);
 			renderer.setYLabels(0);
 			renderer.setXLabels(15);
-			renderer.setYAxisMax(100.00);
+			renderer.setYAxisMax(maxChartValue);
+			
 			renderer.setYAxisMin(0.00);
 			renderer.setXAxisMin(1.00);
 			renderer.setXAxisMax(lastDayOfMonth);
 			
-			renderer.setZoomEnabled(false, false);
-			renderer.setPanEnabled(false, false);
+			renderer.setZoomEnabled(true, false);
+			renderer.setPanEnabled(true, false);
 			renderer.setLegendHeight(10);
-			
-
-			
-			
-			
 		}		
 		
 		
@@ -558,6 +589,27 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		return dataPoints;
 	}	// End getDataPoints
 	
+	
+//	public Cursor getResults(long startTime, long endTime) {
+//		return this.getDBAdapter().getDatabase().query(
+//				quote(Result.TABLE_NAME),
+//				new String[]{
+//						quote(Result.FIELD_TIMESTAMP),
+//						quote(Result.FIELD_VALUE),
+//				},
+//				quote(Result.FIELD_GROUP_ID)+"=? AND "+ quote(Result.FIELD_TIMESTAMP)+" >= ? AND "+ quote(Result.FIELD_TIMESTAMP)+" < ?",
+//				new String[]{
+//						this._id+"",
+//						startTime+"",
+//						endTime+""
+//				},
+//				null,
+//				null,
+//				null,
+//				null
+//		);
+//	}	
+//	
 	
 	
 }
