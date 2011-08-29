@@ -453,6 +453,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		
 		sessionDetails += "Comments: " + session.comments + "\n";
+		sessionDetails += "Category: " + session.category+ "\n";
 		
 		alert2.setMessage(sessionDetails);
 		alert2.show();

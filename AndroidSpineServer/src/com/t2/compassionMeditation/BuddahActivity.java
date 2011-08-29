@@ -86,7 +86,7 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
-	private static final String mActivityVersion = "2.2";
+	private static final String mActivityVersion = "2.3";
 
 	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
@@ -1084,110 +1084,117 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	 *   Note that in any case the text entered by the user is saved to the log file
 	 */
 	public void handlePause(String message) {
-		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
-
-		alert1.setTitle(message);
-		alert1.setMessage("Notes:");
-		mPaused = true;
-
-		// Set an EditText view to get user input 
-		final EditText input = new EditText(this);
-		alert1.setView(input);
-
 		
-		// User pressed the quit key, exit the activity
-		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
-		public void onClick(DialogInterface dialog, int whichButton) {
-			mLogFile.delete();
-			finish();
-		  
-		  }
-		});
-
-		alert1.setOnCancelListener(new DialogInterface.OnCancelListener() {
-			@Override
-			public void onCancel(DialogInterface arg0) {
-				mPaused = false;
-	      		mIntroFade = 255;
-				
-			}
-		}
-		);
-
-		alert1.setNeutralButton("Save", new DialogInterface.OnClickListener() {
-			  public void onClick(DialogInterface dialog, int whichButton) {
-					addNoteToLog(input.getText().toString());
-					Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-					
-					// -----------------------------
-					// Save stats for session
-					// -----------------------------
-					if (mCurrentBioSession != null) {
-						mCurrentBioSession.comments += input.getText();
-
-				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
-				        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
-				        	mCurrentBioSession.minFilteredValue[i] = 
-				        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
-				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
-				        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
-				        }
-				        
-				        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
-				        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
-				        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
-				        mCurrentBioSession.secondsCompleted = secondsCompleted;
-				        mCurrentBioSession.logFileName = mLogFileName; 
-				        
-//				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
-//				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
-				        
-				        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
-				        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
-				        
-
-				        // Udpate the database with the current session
-						try {
-							mBioSessionDao.create(mCurrentBioSession);
-						} catch (SQLException e1) {
-							Log.e(TAG, "Error saving current session to database", e1);
-						}			
-						
-					}
-					
-					
-					// Save catlog file for possible debugging
-					try {
-					    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
-					    filename.createNewFile(); 
-					    mLogFileName = filename.getAbsolutePath();
-					    String cmd = "logcat -d -f "+filename.getAbsolutePath();
-					    Runtime.getRuntime().exec(cmd);
-					} catch (IOException e) {
-					    // TODO Auto-generated catch block
-					    e.printStackTrace();
-					}			
-					
-					if (!mSessionName.equalsIgnoreCase("")) {
-						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-					}
-					
-					finish();
-			  }
-			});		
+		mPaused = true;		
+		Intent intent1 = new Intent(instance, EndSessionActivity.class);
+		instance.startActivityForResult(intent1, com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY);		
 		
-		alert1.setNegativeButton("Re-Start", new DialogInterface.OnClickListener() {
-		  public void onClick(DialogInterface dialog, int whichButton) {
-				mPaused = false;
-				addNoteToLog(input.getText().toString());
-				mCurrentBioSession.comments += input.getText();
-
-	      		mIntroFade = 255;
-
-		  }
-		});
-
-		alert1.show();
+//		
+//		
+//		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
+//
+//		alert1.setTitle(message);
+//		alert1.setMessage("Notes:");
+//		mPaused = true;
+//
+//		// Set an EditText view to get user input 
+//		final EditText input = new EditText(this);
+//		alert1.setView(input);
+//
+//		
+//		// User pressed the quit key, exit the activity
+//		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+//		public void onClick(DialogInterface dialog, int whichButton) {
+//			mLogFile.delete();
+//			finish();
+//		  
+//		  }
+//		});
+//
+//		alert1.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//			@Override
+//			public void onCancel(DialogInterface arg0) {
+//				mPaused = false;
+//	      		mIntroFade = 255;
+//				
+//			}
+//		}
+//		);
+//
+//		alert1.setNeutralButton("Save", new DialogInterface.OnClickListener() {
+//			  public void onClick(DialogInterface dialog, int whichButton) {
+//					addNoteToLog(input.getText().toString());
+//					Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+//					
+//					// -----------------------------
+//					// Save stats for session
+//					// -----------------------------
+//					if (mCurrentBioSession != null) {
+//						mCurrentBioSession.comments += input.getText();
+//
+//				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
+//				        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
+//				        	mCurrentBioSession.minFilteredValue[i] = 
+//				        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
+//				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
+//				        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
+//				        }
+//				        
+//				        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
+//				        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
+//				        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
+//				        mCurrentBioSession.secondsCompleted = secondsCompleted;
+//				        mCurrentBioSession.logFileName = mLogFileName; 
+//				        
+////				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
+////				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+//				        
+//				        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
+//				        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
+//				        
+//
+//				        // Udpate the database with the current session
+//						try {
+//							mBioSessionDao.create(mCurrentBioSession);
+//						} catch (SQLException e1) {
+//							Log.e(TAG, "Error saving current session to database", e1);
+//						}			
+//						
+//					}
+//					
+//					
+//					// Save catlog file for possible debugging
+//					try {
+//					    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+//					    filename.createNewFile(); 
+//					    mLogFileName = filename.getAbsolutePath();
+//					    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+//					    Runtime.getRuntime().exec(cmd);
+//					} catch (IOException e) {
+//					    // TODO Auto-generated catch block
+//					    e.printStackTrace();
+//					}			
+//					
+//					if (!mSessionName.equalsIgnoreCase("")) {
+//						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+//					}
+//					
+//					finish();
+//			  }
+//			});		
+//		
+//		alert1.setNegativeButton("Re-Start", new DialogInterface.OnClickListener() {
+//		  public void onClick(DialogInterface dialog, int whichButton) {
+//				mPaused = false;
+//				addNoteToLog(input.getText().toString());
+//				mCurrentBioSession.comments += input.getText();
+//
+//	      		mIntroFade = 255;
+//
+//		  }
+//		});
+//
+//		alert1.show();
 	}
 
 	/**
@@ -1275,6 +1282,129 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		}
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		switch(requestCode) {
+			case com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY:
+				 if (data != null) {
+						String notes = data.getStringExtra(
+								com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_NOTES);
 
+						String categoryName = data.getStringExtra(
+								com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_CATEGORY);
+						
+						if (categoryName == null) categoryName = "";
+						if (notes == null) notes = "";
+
+					int action = data.getIntExtra(com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_RESULT,
+							com.t2.compassionMeditation.Constants.END_SESSION_RESTART);
+					
+					
+					switch (action) {
+					default:
+					case com.t2.compassionMeditation.Constants.END_SESSION_RESTART:
+						break;
+					case com.t2.compassionMeditation.Constants.END_SESSION_SAVE:
+						
+						
+						addNoteToLog(notes);
+						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+						
+						// -----------------------------
+						// Save stats for session
+						// -----------------------------
+						if (mCurrentBioSession != null) {
+							mCurrentBioSession.comments += notes;
+							mCurrentBioSession.category = categoryName;
+	
+					        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
+					        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
+					        	mCurrentBioSession.minFilteredValue[i] = 
+					        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
+					        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
+					        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
+					        }
+					        
+					        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
+					        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
+					        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
+					        mCurrentBioSession.secondsCompleted = secondsCompleted;
+					        mCurrentBioSession.logFileName = mLogFileName; 
+					        
+//					        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
+//					        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+					        
+					        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
+					        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
+					        
+	
+					        // Udpate the database with the current session
+							try {
+								mBioSessionDao.create(mCurrentBioSession);
+							} catch (SQLException e1) {
+								Log.e(TAG, "Error saving current session to database", e1);
+							}			
+							
+						}
+						
+						
+						// Save catlog file for possible debugging
+						try {
+						    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+						    filename.createNewFile(); 
+						    mLogFileName = filename.getAbsolutePath();
+						    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+						    Runtime.getRuntime().exec(cmd);
+						} catch (IOException e) {
+						    // TODO Auto-generated catch block
+						    e.printStackTrace();
+						}			
+						
+						if (!mSessionName.equalsIgnoreCase("")) {
+							Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+						}
+						
+						finish();
+
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						break;
+					case com.t2.compassionMeditation.Constants.END_SESSION_QUIT:
+						mLogFile.delete();
+						finish();					
+						break;
+					}					 
+				 }
+				 else {
+						mPaused = false;
+			      		mIntroFade = 255;					 
+				 }
+
+				break;
+		}
+	}
+	
+	
+	
+	
 	
 }

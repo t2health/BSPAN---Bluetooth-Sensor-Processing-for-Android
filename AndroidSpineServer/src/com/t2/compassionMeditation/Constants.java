@@ -70,4 +70,12 @@ public class Constants {
 	public static final int USER_MODE_ACTIVITY = 0x305;	
 	public static final String USER_MODE_ACTIVITY_RESULT = "UserModeResult";	
 
+	public static final int END_SESSION_ACTIVITY = 0x306;	
+	public static final String END_SESSION_ACTIVITY_RESULT = "EndSessionResult";	
+	public static final String END_SESSION_ACTIVITY_CATEGORY = "EndSessionCategory";	
+	public static final String END_SESSION_ACTIVITY_NOTES = "EndSessionNotes";	
+	public static final int END_SESSION_QUIT = 0; 
+	public static final int END_SESSION_SAVE = 1; 
+	public static final int END_SESSION_RESTART = 2; 
+	
 }
