@@ -11,17 +11,22 @@ import java.util.Locale;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.BarChart;
 import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
+import org.achartengine.chart.RangeBarChart;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+import spine.datamodel.MindsetData;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -36,11 +41,13 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 
@@ -54,6 +61,7 @@ import com.t2.biomap.SharedPref;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
+import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 
 
@@ -111,7 +119,9 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	 * 
 	 * note that we keep this list only so we can reference the currently selected session for deletion
 	 */
-	private ArrayList<BioSession> sessionItems = new ArrayList<BioSession>();;
+	private ArrayList<BioSession> sessionItems = new ArrayList<BioSession>();
+	
+	
 
 	/**
 	 * Index of currently selected session
@@ -128,6 +138,27 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private TextView monthNameTextView;
 	SimpleDateFormat monthNameFormatter;
 	
+	Spinner mBandOfInterestSpinner;
+	
+	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
+	protected SharedPreferences sharedPref;	
+	protected int mBandOfInterest = Constants.PREF_BAND_OF_INTEREST_DEFAULT;
+	
+	public class MyOnItemSelectedListener implements OnItemSelectedListener {
+
+	    public void onItemSelected(AdapterView<?> parent,
+	        View view, int pos, long id) {
+			SharedPref.putInt(instance, Constants.PREF_BAND_OF_INTEREST_REVIEW , pos);	   
+			mBandOfInterest = pos;
+    		generateChart(DIRECTION_NEXT); 
+			
+			
+	    }
+
+	    public void onNothingSelected(AdapterView parent) {
+	      // Do nothing.
+	    }
+	}	
 	
 	/**
 	 * Adapter used to provide list of views for the sessionKeyItems list
@@ -164,8 +195,23 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		this.findViewById(R.id.monthPlusButton).setOnClickListener(this);
         this.monthNameTextView.setOnClickListener(this);
         
+        // Get the list of band names from the first session (All of the session key names will be the same)
+		if (sessionItems.size() >= 1) {
+			BioSession session = sessionItems.get(0);
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, session.keyItemNames);
+			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			mBandOfInterestSpinner = (Spinner) findViewById(R.id.spinnerBandOfInterest);		
+			mBandOfInterestSpinner.setAdapter(adapter)	;	
+
+			mBandOfInterestSpinner.setOnItemSelectedListener(new MyOnItemSelectedListener());    
+			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST_REVIEW , 	
+					mBandOfInterest));
+		}
+		
+        
 		generateChart(DIRECTION_NEXT);        
 	}
+	
 	
 	@Override
 	protected void onDestroy() {
@@ -478,17 +524,23 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	private void generateChart(int direction) {
 		XYMultipleSeriesDataset dataSet = new XYMultipleSeriesDataset();
 		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
-		LineChart chart = new LineChart(dataSet, renderer);
 		
-		XYSeries series = new XYSeries("test");
+//		XYSeries minSeries = new XYSeries("minSeries");
+		XYSeries avgSeries = new XYSeries("avgSeries");
+//		XYSeries maxSeries = new XYSeries("maxSeries");
 		
         LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
     	if (mDeviceChartView != null) {
     		layout.removeView(mDeviceChartView);
     	}
 
-//    	mDeviceChartView = new OffsetGraphicalChartView(this, chart);
+//		LineChart chart = new LineChart(dataSet, renderer);
+//		RangeBarChart chart = new RangeBarChart(dataSet, renderer, BarChart.Type.DEFAULT);
+
+    	
+  //  	mDeviceChartView = new OffsetGraphicalChartView(this, chart);
      	
+//     	mDeviceChartView = ChartFactory.getRangeBarChartView(this, dataSet, renderer, BarChart.Type.DEFAULT );
      	mDeviceChartView = ChartFactory.getLineChartView(this, dataSet, renderer);
      	layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
          	
@@ -502,13 +554,18 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		// Get the data points
 		for (BioSession session : sessionItems) {
 			if (session.time >= startTime && session.time <= endTime ) {
-				double chartYValue = session.avgFilteredValue[0];
-				if (chartYValue > maxChartValue) maxChartValue = chartYValue;
+				double chartYMin = session.minFilteredValue[mBandOfInterest];
+				double chartYAvg = session.avgFilteredValue[mBandOfInterest];
+				double chartYMax = session.maxFilteredValue[mBandOfInterest];
+				if (chartYMin > maxChartValue)  maxChartValue = chartYMin;
+				if (chartYAvg > maxChartValue)  maxChartValue = chartYAvg;
+				if (chartYMax > maxChartValue)  maxChartValue = chartYMax;
 				
 				double chartXValue = getXValueBasedOnResolution(session.time);
 				
-				series.add(chartXValue, chartYValue );
-//				series.add(cal.get(calendarField), chartValue );
+//				minSeries.add(chartXValue, chartYMin );
+				avgSeries.add(chartXValue, chartYAvg );
+//				maxSeries.add(chartXValue, chartYMax );
 				
 			}
 		}
@@ -524,14 +581,31 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 //		}
 		
 		
-		XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
-		seriesRenderer.setColor(Color.RED);
-		seriesRenderer.setPointStyle(PointStyle.CIRCLE);
-		seriesRenderer.setFillPoints(true);
-		seriesRenderer.setLineWidth(2 * displayMetrics.density);
+//		XYSeriesRenderer minSeriesRenderer = new XYSeriesRenderer();
+//		minSeriesRenderer.setColor(Color.YELLOW);
+//		minSeriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//		minSeriesRenderer.setFillPoints(false);
+//		minSeriesRenderer.setLineWidth(0 * displayMetrics.density);
+//		renderer.addSeriesRenderer(minSeriesRenderer);
+//		dataSet.addSeries(minSeries);		
+//		
+		XYSeriesRenderer avgSeriesRenderer = new XYSeriesRenderer();
+		avgSeriesRenderer.setColor(Color.RED);
+		avgSeriesRenderer.setPointStyle(PointStyle.CIRCLE);
+		avgSeriesRenderer.setFillPoints(true);
+		avgSeriesRenderer.setLineWidth(2 * displayMetrics.density);
+		renderer.addSeriesRenderer(avgSeriesRenderer);
+		dataSet.addSeries(avgSeries);		
+
+//		XYSeriesRenderer maxSeriesRenderer = new XYSeriesRenderer();
+//		maxSeriesRenderer.setColor(Color.YELLOW);
+//		maxSeriesRenderer.setPointStyle(PointStyle.CIRCLE);
+//		maxSeriesRenderer.setFillPoints(false);
+//		maxSeriesRenderer.setLineWidth(0 * displayMetrics.density);
+//		renderer.addSeriesRenderer(maxSeriesRenderer);
+//		dataSet.addSeries(maxSeries);		
 		
-		renderer.addSeriesRenderer(seriesRenderer);
-		dataSet.addSeries(series);		
+		
 		
 		// only contine making the chart if there is data in the series.
 		if(dataSet.getSeriesCount() > 0) {

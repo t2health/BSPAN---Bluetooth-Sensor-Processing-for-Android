@@ -27,19 +27,21 @@ public class Constants {
 	public static final String PREF_SHOW_A_GAIN = "ShowAGain";
 	public static final boolean PREF_SHOW_A_GAIN_DEFAULT = true;
 
-	public static final String PREF_BAND_OF_INTEREST = "BandOfInterest";
-	public static final int PREF_BAND_OF_INTEREST_DEFAULT = MindsetData.THETA_ID;
-
 	public static final int PREF_BIOHARNESS_PHEARTRATE = 0;
 	public static final int PREF_BIOHARNESS_PRESPRATE = 1;
 	public static final int PREF_BIOHARNESS_PSKINTEMP = 2;
 	public static final int PREF_BIOHARNESS_PNONE = 3;
 	// Note - until this gets fixed, the above names MUST match the strings in R.array.bioharness_parameters_array
 
-	
 	public static final String PREF_BIOHARNESS_PARAMETER_OF_INTEREST = "ParameterOfInterest";
 	public static final int PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT = PREF_BIOHARNESS_PNONE;
 	
+	public static final String PREF_BAND_OF_INTEREST = "BandOfInterest";
+	public static final int PREF_BAND_OF_INTEREST_DEFAULT = MindsetData.THETA_ID;
+
+	public static final String PREF_BAND_OF_INTEREST_REVIEW = "BandOfInterestReview";
+	public static final int PREF_BAND_OF_INTEREST_DEFAULT_REVIEW = MindsetData.THETA_ID;
+
 
 	public static final String PREF_USER_MODE = "UserMode";
 	public static final int PREF_USER_MODE_DEFAULT = 0;

@@ -54,7 +54,7 @@ public class MainChooserActivity extends Activity {
             R.drawable.newsession_tab,
             R.drawable.view_tab,
             R.drawable.review_tab,
-            R.drawable.directory_tab,
+            R.drawable.files_tab,
     };
 	
 	/**
