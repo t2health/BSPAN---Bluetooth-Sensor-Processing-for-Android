@@ -183,8 +183,8 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
         // Set up member variables to UI Elements
         mPauseButton = (Button) findViewById(R.id.buttonPause);
         mAddMeasureButton = (Button) findViewById(R.id.buttonAddMeasure);
-        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
-        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
+//        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
+//        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mMeasuresDisplayText = (TextView) findViewById(R.id.measuresDisplayText);
         
@@ -640,48 +640,48 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 					mPauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 				}
 		        break;
-		        
-		    case R.id.buttonLogging:
-		        if (mLoggingEnabled == true) {
-		        	mLoggingEnabled = false;
-		        	mToggleLogButton.setText("Log:\nOFF");
-		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.GONE);
-
-		        	try {
-		            	if (mLogWriter != null)
-		            		mLogWriter.close();
-		    		} catch (IOException e) {
-		    			Log.e(TAG, "Exeption closing file " + e.toString());
-		    			e.printStackTrace();
-		    		}        	
-		        }
-		        else {
-		    		// Open a file for saving data
-		    		try {
-		    		    File root = Environment.getExternalStorageDirectory();
-		    		    if (root.canWrite()){
-		    		        File gpxfile = new File(root, "BioData.txt");
-		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-		    		        mLogWriter = new BufferedWriter(gpxwriter);
-		    		        // Put a visual marker in
-		    		        mLogWriter.write("----------------------------------------------\n");
-
-		    		    }
-		    		} catch (IOException e) {
-		    		    Log.e(TAG, "Could not write file " + e.getMessage());
-		    		}		
-		        	mLoggingEnabled = true;
-		        	mToggleLogButton.setText("Log:\nON");
-		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
-		        }
-		    	break;
-
-		    case R.id.LogMarkerButton:
-				Intent i1 = new Intent(this, LogNoteActivity.class);
-				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
-		    	break;
+//		        
+//		    case R.id.buttonLogging:
+//		        if (mLoggingEnabled == true) {
+//		        	mLoggingEnabled = false;
+//		        	mToggleLogButton.setText("Log:\nOFF");
+//		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+//		        	mLlogMarkerButton.setVisibility(View.GONE);
+//
+//		        	try {
+//		            	if (mLogWriter != null)
+//		            		mLogWriter.close();
+//		    		} catch (IOException e) {
+//		    			Log.e(TAG, "Exeption closing file " + e.toString());
+//		    			e.printStackTrace();
+//		    		}        	
+//		        }
+//		        else {
+//		    		// Open a file for saving data
+//		    		try {
+//		    		    File root = Environment.getExternalStorageDirectory();
+//		    		    if (root.canWrite()){
+//		    		        File gpxfile = new File(root, "BioData.txt");
+//		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
+//		    		        mLogWriter = new BufferedWriter(gpxwriter);
+//		    		        // Put a visual marker in
+//		    		        mLogWriter.write("----------------------------------------------\n");
+//
+//		    		    }
+//		    		} catch (IOException e) {
+//		    		    Log.e(TAG, "Could not write file " + e.getMessage());
+//		    		}		
+//		        	mLoggingEnabled = true;
+//		        	mToggleLogButton.setText("Log:\nON");
+//		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+//		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
+//		        }
+//		    	break;
+//
+//		    case R.id.LogMarkerButton:
+//				Intent i1 = new Intent(this, LogNoteActivity.class);
+//				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
+//		    	break;
 		    } // End switch		
 	}
 	

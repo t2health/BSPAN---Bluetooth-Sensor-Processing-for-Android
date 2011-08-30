@@ -164,8 +164,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         // Set up member variables to UI Elements
         mPauseButton = (Button) findViewById(R.id.buttonPause);
         mAddMeasureButton = (Button) findViewById(R.id.buttonAddMeasure);
-        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
-        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
+//        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
+//        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mTextViewComment = (TextView) findViewById(R.id.textViewComment);
         

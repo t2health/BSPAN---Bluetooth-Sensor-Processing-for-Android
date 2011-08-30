@@ -308,8 +308,8 @@ public class BuddahActivity extends BaseActivity
         AssetManager assetManager = resources.getAssets();
         
         // Set up member variables to UI Elements
-        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
-        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
+//        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
+//        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mTextBioHarnessView = (TextView) findViewById(R.id.textViewBioHarness);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
@@ -796,30 +796,30 @@ public class BuddahActivity extends BaseActivity
 		    	handlePause(mSessionName + " Paused");
 		    	break;
 		        
-		    case R.id.buttonLogging:
-		        if (mLoggingEnabled == true)
-		        {
-		        	mLoggingEnabled = false;
-		        	mToggleLogButton.setText("Log:\nOFF");
-		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.INVISIBLE);
-
-		        	try {
-		            	if (mLogWriter != null)
-		            		mLogWriter.close();
-		    		} catch (IOException e) {
-		    			Log.e(TAG, "Exeption closing file " + e.toString());
-		    			e.printStackTrace();
-		    		}        	
-		        }
-		        else
-		        {
-		        	mLoggingEnabled = true;
-		        	mToggleLogButton.setText("Log:\nON");
-		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
-		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
-		        }
-		    	break;
+//		    case R.id.buttonLogging:
+//		        if (mLoggingEnabled == true)
+//		        {
+//		        	mLoggingEnabled = false;
+//		        	mToggleLogButton.setText("Log:\nOFF");
+//		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
+//		        	mLlogMarkerButton.setVisibility(View.INVISIBLE);
+//
+//		        	try {
+//		            	if (mLogWriter != null)
+//		            		mLogWriter.close();
+//		    		} catch (IOException e) {
+//		    			Log.e(TAG, "Exeption closing file " + e.toString());
+//		    			e.printStackTrace();
+//		    		}        	
+//		        }
+//		        else
+//		        {
+//		        	mLoggingEnabled = true;
+//		        	mToggleLogButton.setText("Log:\nON");
+//		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
+//		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
+//		        }
+//		    	break;
 
 		    } // End switch		
 	}

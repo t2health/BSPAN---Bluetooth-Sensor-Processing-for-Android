@@ -18,13 +18,13 @@
   	</TableRow>
   	<TableRow android:id="@+id/tableRow1" android:layout_width="wrap_content" android:layout_height="wrap_content">
   		<TextView android:text="Mindset Band \nof Interest:" android:id="@+id/textView4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:inputType="textMultiLine"></TextView>
-  		<Spinner android:id="@+id/spinnerBandOfInterest" android:layout_width="wrap_content" android:layout_height="wrap_content"></Spinner>
+  		<Spinner android:id="@+id/spinnerBandOfInterest" android:layout_width="wrap_content" android:layout_height="42dip"></Spinner>
   	
   	
   	</TableRow>
   	<TableRow android:id="@+id/tableRow1" android:layout_width="wrap_content" android:layout_height="wrap_content">
   		<TextView android:text="BioHarness Parameters\n of Interest:" android:id="@+id/textView4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:inputType="textMultiLine"></TextView>
-  		<Spinner android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/spinnerBioHarnessParameters"></Spinner>
+  		<Spinner android:layout_height="42dip" android:layout_width="wrap_content" android:id="@+id/spinnerBioHarnessParameters"></Spinner>
   	
   	
   	</TableRow>
