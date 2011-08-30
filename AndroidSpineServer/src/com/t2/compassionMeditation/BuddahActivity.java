@@ -15,6 +15,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import org.t2health.lib.activity.BaseActivity;
+import org.t2health.lib.analytics.Analytics;
+
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
@@ -31,6 +34,7 @@ import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.MovingAverage;
 import com.t2.compassionUtils.RateOfChange;
+
 
 import com.t2.Constants;
 
@@ -82,7 +86,8 @@ import android.widget.Toast;
 import com.t2.R;
 
 
-public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
+//public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
+public class BuddahActivity extends BaseActivity
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
@@ -1015,8 +1020,10 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		
 		
 		if (!mSessionName.equalsIgnoreCase("")) {
+			Analytics.onStartSession(this);						
 			openLogFile();
 		}
+		
 	}
 
 	
@@ -1289,122 +1296,117 @@ public class BuddahActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		switch(requestCode) {
 			case com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY:
 				 if (data != null) {
-						String notes = data.getStringExtra(
-								com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_NOTES);
-
-						String categoryName = data.getStringExtra(
-								com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_CATEGORY);
-						
-						if (categoryName == null) categoryName = "";
-						if (notes == null) notes = "";
-
-					int action = data.getIntExtra(com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_RESULT,
+					int action = data.getIntExtra(
+							com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_RESULT,
 							com.t2.compassionMeditation.Constants.END_SESSION_RESTART);
 					
 					
 					switch (action) {
+					
 					default:
 					case com.t2.compassionMeditation.Constants.END_SESSION_RESTART:
 						break;
-					case com.t2.compassionMeditation.Constants.END_SESSION_SAVE:
-						
-						
-						addNoteToLog(notes);
-						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-						
-						// -----------------------------
-						// Save stats for session
-						// -----------------------------
-						if (mCurrentBioSession != null) {
-							mCurrentBioSession.comments += notes;
-							mCurrentBioSession.category = categoryName;
-	
-					        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
-					        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
-					        	mCurrentBioSession.minFilteredValue[i] = 
-					        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
-					        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
-					        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
-					        }
-					        
-					        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
-					        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
-					        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
-					        mCurrentBioSession.secondsCompleted = secondsCompleted;
-					        mCurrentBioSession.logFileName = mLogFileName; 
-					        
-//					        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
-//					        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
-					        
-					        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
-					        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
-					        
-	
-					        // Udpate the database with the current session
-							try {
-								mBioSessionDao.create(mCurrentBioSession);
-							} catch (SQLException e1) {
-								Log.e(TAG, "Error saving current session to database", e1);
-							}			
-							
-						}
-						
-						
-						// Save catlog file for possible debugging
-						try {
-						    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
-						    filename.createNewFile(); 
-						    mLogFileName = filename.getAbsolutePath();
-						    String cmd = "logcat -d -f "+filename.getAbsolutePath();
-						    Runtime.getRuntime().exec(cmd);
-						} catch (IOException e) {
-						    // TODO Auto-generated catch block
-						    e.printStackTrace();
-						}			
-						
-						if (!mSessionName.equalsIgnoreCase("")) {
-							Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-						}
-						
-						finish();
 
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
-						
+					case com.t2.compassionMeditation.Constants.END_SESSION_SAVE:
+						EndAndSaveSession(data);
 						break;
+
 					case com.t2.compassionMeditation.Constants.END_SESSION_QUIT:
 						mLogFile.delete();
+						Analytics.onEndSession(this);						
 						finish();					
 						break;
 					}					 
 				 }
 				 else {
-						mPaused = false;
-			      		mIntroFade = 255;					 
+						mLogFile.delete();
+						Analytics.onEndSession(this);						
+						finish();					
 				 }
 
 				break;
 		}
 	}
 	
+	void EndAndSaveSession(Intent data) {
+
+		String notes = "";
+		String categoryName = "";
+		 if (data != null) {
+				notes = data.getStringExtra(
+						com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_NOTES);
+
+				categoryName = data.getStringExtra(
+						com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_CATEGORY);
+				
+				if (categoryName == null) categoryName = "";
+				if (notes == null) notes = "";
+		 }
+		
+		
+		addNoteToLog(notes);
+		Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		
+		// -----------------------------
+		// Save stats for session
+		// -----------------------------
+		if (mCurrentBioSession != null) {
+			mCurrentBioSession.comments += notes;
+			mCurrentBioSession.category = categoryName;
+
+	        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
+	        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
+	        	mCurrentBioSession.minFilteredValue[i] = 
+	        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
+	        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
+	        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
+	        }
+	        
+	        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
+	        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
+	        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
+	        mCurrentBioSession.secondsCompleted = secondsCompleted;
+	        mCurrentBioSession.logFileName = mLogFileName; 
+	        
+//	        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
+//	        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
+	        
+	        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
+	        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
+	        
+
+	        // Udpate the database with the current session
+			try {
+				mBioSessionDao.create(mCurrentBioSession);
+			} catch (SQLException e1) {
+				Log.e(TAG, "Error saving current session to database", e1);
+			}			
+			
+		}
+		
+		
+		// Save catlog file for possible debugging
+		try {
+		    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+		    filename.createNewFile(); 
+		    mLogFileName = filename.getAbsolutePath();
+		    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+		    Runtime.getRuntime().exec(cmd);
+		} catch (IOException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}			
+		
+		if (!mSessionName.equalsIgnoreCase("")) {
+			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		}
+		
+		finish();
+		
+		
+	}
+		
 	
-	
-	
+
 	
 }

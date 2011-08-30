@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="lib/achartengine-0.6.0.jar"/>
 	<classpathentry kind="lib" path="lib/ormlite-android-4.20.jar"/>
 	<classpathentry kind="lib" path="lib/ormlite-core-4.20.jar"/>
+	<classpathentry kind="lib" path="lib/FlurryAgent.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

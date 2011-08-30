@@ -3,6 +3,7 @@ package com.t2.compassionMeditation;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,10 +66,6 @@ import com.t2.compassionDB.DatabaseHelper;
 import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 
-
-
-
-
 public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
 				implements OnItemLongClickListener, OnClickListener{
 	private static final String TAG = "BFDemo";
@@ -76,6 +74,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	public static final String EXTRA_CALENDAR_FIELD = "calendarField";
 	public static final String EXTRA_CALENDAR_FIELD_INCREMENT = "calendarFieldIncrement";
 	public static final String EXTRA_REVERSE_DATA = "reverseData";
+	private static final String KEY_NAME = "categories_";	
+
 	
 	
 	private static ViewSessionsActivity instance;
@@ -139,6 +139,20 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	SimpleDateFormat monthNameFormatter;
 	
 	Spinner mBandOfInterestSpinner;
+	Spinner mCategorySpinner;
+	private ArrayList<String> mCurrentCategories;	
+	/**
+	 * Currently selected category
+	 */
+	private String mSelectedCategoryName = "";
+
+	/**
+	 * Index of currently selected category
+	 */	
+	private int mSelectedCategory;
+
+	
+	
 	
 	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
 	protected SharedPreferences sharedPref;	
@@ -160,6 +174,24 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	    }
 	}	
 	
+	public class MyCategorySelectedListener implements OnItemSelectedListener {
+
+	    public void onItemSelected(AdapterView<?> parent,
+	        View view, int pos, long id) {
+	    	
+	    	mSelectedCategoryName = mCurrentCategories.get(pos);
+	    	
+	        updateListView();	    	
+    		generateChart(DIRECTION_NEXT); 
+			
+			
+	    }
+
+	    public void onNothingSelected(AdapterView parent) {
+	      // Do nothing.
+	    }
+	}	
+	
 	/**
 	 * Adapter used to provide list of views for the sessionKeyItems list
 	 * @see sessionKeyItems
@@ -170,6 +202,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         instance = this;
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         
 		requestWindowFeature(Window.FEATURE_NO_TITLE);		
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
@@ -186,6 +219,24 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		Intent intent = this.getIntent();
 //		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.HOUR_OF_DAY);
 		calendarField = intent.getIntExtra(EXTRA_CALENDAR_FIELD, Calendar.DAY_OF_MONTH);
+
+		// Set up current categories and specifically the selected category
+		// BEFORE updateListView and generateChart so the specified category(s) can 
+		// be filtered
+		mCurrentCategories = getCategories("categories");
+		mCurrentCategories.add("All");
+		
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, mCurrentCategories);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		mCategorySpinner = (Spinner) findViewById(R.id.spinnerCategorySpinner);		
+		mCategorySpinner.setAdapter(adapter)	;	
+
+		mCategorySpinner.setOnItemSelectedListener(new MyCategorySelectedListener());    
+		mSelectedCategory = mCurrentCategories.size() - 1; // all
+		mCategorySpinner.setSelection(mSelectedCategory);
+		mSelectedCategoryName = mCurrentCategories.get(mSelectedCategory);
+		
+		
 		
 		setCalendarResolution();
     	setupCalendars();            	
@@ -198,17 +249,18 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
         // Get the list of band names from the first session (All of the session key names will be the same)
 		if (sessionItems.size() >= 1) {
 			BioSession session = sessionItems.get(0);
-			ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, session.keyItemNames);
-			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			ArrayAdapter<String> adapter1 = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item, session.keyItemNames);
+			adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			mBandOfInterestSpinner = (Spinner) findViewById(R.id.spinnerBandOfInterest);		
-			mBandOfInterestSpinner.setAdapter(adapter)	;	
+			mBandOfInterestSpinner.setAdapter(adapter1)	;	
 
 			mBandOfInterestSpinner.setOnItemSelectedListener(new MyOnItemSelectedListener());    
 			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST_REVIEW , 	
 					mBandOfInterest));
 		}
 		
-        
+
+		
 		generateChart(DIRECTION_NEXT);        
 	}
 	
@@ -407,8 +459,21 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			for (BioSession session: mCurrentBioUser.getSessions()) {
 				
 				if (session.time >= startTime && session.time <= endTime ) {
+					
+					if (!mSelectedCategoryName.equalsIgnoreCase("all")) {
+						// See if this item should be filtered out
+						if (!session.category.equalsIgnoreCase(mSelectedCategoryName)) continue;
+						
+					}
+
 					SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yy HH:mm:ss", Locale.US);
 					String title = sdf.format(new Date(session.time));			
+					try {
+						String categoryInitial = "(" + session.category.charAt(0) + ")";
+						title += categoryInitial;
+					} catch (IndexOutOfBoundsException e) {
+					}
+					
 					
 					int color;
 					if (session.precentComplete >= 100) {
@@ -418,7 +483,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 						color = Color.YELLOW;
 					}
 					
-					SessionsKeyItem item = new SessionsKeyItem(1,title, "", color);
+					SessionsKeyItem item = new SessionsKeyItem(1,title , "", color);
 					sessionKeyItems.add(item);
 					sessionItems.add(session);
 					
@@ -439,16 +504,21 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		sessionDetails += "Completion: " + session.precentComplete + "%\n";
 		sessionDetails += "Length: " + secsToHMS(session.secondsCompleted) + "\n";
 
-		sessionDetails += "Band:   " + session.keyItemNames[session.mindsetBandOfInterestIndex] + "\n";
-		sessionDetails += "   Min: " + session.minFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
-		sessionDetails += "   Max: " + session.maxFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
-		sessionDetails += "   Avg: " + session.avgFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+		sessionDetails += "Band:   " + session.keyItemNames[mBandOfInterest] + "\n";
+		sessionDetails += "   Min: " + session.minFilteredValue[mBandOfInterest] + "\n";
+		sessionDetails += "   Max: " + session.maxFilteredValue[mBandOfInterest] + "\n";
+		sessionDetails += "   Avg: " + session.avgFilteredValue[mBandOfInterest] + "\n";
+
+//		sessionDetails += "Band:   " + session.keyItemNames[session.mindsetBandOfInterestIndex] + "\n";
+//		sessionDetails += "   Min: " + session.minFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+//		sessionDetails += "   Max: " + session.maxFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
+//		sessionDetails += "   Avg: " + session.avgFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
 
 		
-		sessionDetails += "Band: " + session.keyItemNames[session.bioHarnessParameterOfInterestIndex] + "\n";;
-		sessionDetails += "   Min: " + session.minFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-		sessionDetails += "   Max: " + session.maxFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-		sessionDetails += "   Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+//		sessionDetails += "Band: " + session.keyItemNames[session.bioHarnessParameterOfInterestIndex] + "\n";;
+//		sessionDetails += "   Min: " + session.minFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+//		sessionDetails += "   Max: " + session.maxFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
+//		sessionDetails += "   Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
 
 		
 		
@@ -635,6 +705,8 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			renderer.setZoomEnabled(true, false);
 			renderer.setPanEnabled(true, false);
 			renderer.setLegendHeight(10);
+			
+			renderer.setMargins(new int[] {0,5,10, 0});			
 		}		
 		
 		
@@ -744,5 +816,17 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 //	}	
 //	
 	
+
+	private ArrayList<String> getCategories(String keySuffix) {
+		String[] idsStrArr = SharedPref.getValues(
+				sharedPref, 
+				KEY_NAME+keySuffix, 
+				",",
+				new String[0]
+		);
+		
+		return new ArrayList<String>(Arrays.asList(idsStrArr));
+		
+	}		
 	
 }

@@ -242,6 +242,9 @@ public class EndSessionActivity extends Activity{
 			mCurrentCategories.add("Breathing");
 			mCurrentCategories.add("Entertainment");
 			mCurrentCategories.add("Working");
+			
+			setCategories("categories", mCurrentCategories);
+			
 		}
 		
 		
@@ -277,11 +280,13 @@ public class EndSessionActivity extends Activity{
 	}	
 
 	private void setCategories(String keySuffix, ArrayList<String> categories) {
+		Object[] alt = categories.toArray();	
+		String[] ss = ArraysExtra.toStringArray(alt);		
 		SharedPref.setValues(
 				sharedPref, 
 				KEY_NAME+keySuffix, 
 				",", 
-				(String[]) categories.toArray());
+				ss);
 //				ArraysExtra.toStringArray((Object[]categories));
 	}		
 	
