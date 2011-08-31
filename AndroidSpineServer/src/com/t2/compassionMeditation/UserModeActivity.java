@@ -13,7 +13,6 @@ import android.widget.CheckBox;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
 import com.t2.R;
-import com.t2.biomap.SharedPref;
 
 public class UserModeActivity extends Activity {
 	private static final String TAG = "BFDemo";

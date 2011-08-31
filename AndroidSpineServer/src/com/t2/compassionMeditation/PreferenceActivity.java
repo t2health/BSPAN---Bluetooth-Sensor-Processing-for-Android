@@ -3,7 +3,6 @@ package com.t2.compassionMeditation;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
 import com.t2.R;
-import com.t2.biomap.SharedPref;
 
 
 

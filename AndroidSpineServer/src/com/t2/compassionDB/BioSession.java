@@ -2,7 +2,6 @@ package com.t2.compassionDB;
 
 import java.util.ArrayList;
 
-import spine.datamodel.MindsetData;
 
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;

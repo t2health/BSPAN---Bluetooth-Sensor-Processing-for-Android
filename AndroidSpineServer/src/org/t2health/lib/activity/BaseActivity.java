@@ -7,11 +7,9 @@ import org.t2health.lib.analytics.Analytics;
 //import org.t2health.lib.db.DatabaseOpenHelper;
 //import org.t2health.lib.db.ManifestSqliteOpenHelperFactory;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 //import com.nullwire.trace.ExceptionHandler;
 import com.t2.compassionDB.DatabaseHelper;

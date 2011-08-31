@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -23,8 +22,6 @@ import org.achartengine.renderer.XYSeriesRenderer;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.LogNoteActivity;
-import com.t2.biomap.SharedPref;
 import com.t2.compassionUtils.RateOfChange;
 
 import com.t2.Constants;
@@ -42,7 +39,6 @@ import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -62,13 +58,11 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -640,48 +634,7 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 					mPauseButton.getBackground().setColorFilter(0xFFFF0000, PorterDuff.Mode.MULTIPLY);
 				}
 		        break;
-//		        
-//		    case R.id.buttonLogging:
-//		        if (mLoggingEnabled == true) {
-//		        	mLoggingEnabled = false;
-//		        	mToggleLogButton.setText("Log:\nOFF");
-//		        	mToggleLogButton.getBackground().setColorFilter(Color.LTGRAY, PorterDuff.Mode.MULTIPLY);
-//		        	mLlogMarkerButton.setVisibility(View.GONE);
-//
-//		        	try {
-//		            	if (mLogWriter != null)
-//		            		mLogWriter.close();
-//		    		} catch (IOException e) {
-//		    			Log.e(TAG, "Exeption closing file " + e.toString());
-//		    			e.printStackTrace();
-//		    		}        	
-//		        }
-//		        else {
-//		    		// Open a file for saving data
-//		    		try {
-//		    		    File root = Environment.getExternalStorageDirectory();
-//		    		    if (root.canWrite()){
-//		    		        File gpxfile = new File(root, "BioData.txt");
-//		    		        FileWriter gpxwriter = new FileWriter(gpxfile, true); // open for append
-//		    		        mLogWriter = new BufferedWriter(gpxwriter);
-//		    		        // Put a visual marker in
-//		    		        mLogWriter.write("----------------------------------------------\n");
-//
-//		    		    }
-//		    		} catch (IOException e) {
-//		    		    Log.e(TAG, "Could not write file " + e.getMessage());
-//		    		}		
-//		        	mLoggingEnabled = true;
-//		        	mToggleLogButton.setText("Log:\nON");
-//		        	mToggleLogButton.getBackground().setColorFilter(0xFF00FF00, PorterDuff.Mode.MULTIPLY);
-//		        	mLlogMarkerButton.setVisibility(View.VISIBLE);
-//		        }
-//		    	break;
-//
-//		    case R.id.LogMarkerButton:
-//				Intent i1 = new Intent(this, LogNoteActivity.class);
-//				this.startActivityForResult(i1, ANDROID_SPINE_SERVER_ACTIVITY);
-//		    	break;
+
 		    } // End switch		
 	}
 	

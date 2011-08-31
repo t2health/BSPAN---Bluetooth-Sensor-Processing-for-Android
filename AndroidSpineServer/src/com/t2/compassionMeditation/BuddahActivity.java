@@ -19,17 +19,14 @@ import org.t2health.lib.activity.BaseActivity;
 import org.t2health.lib.analytics.Analytics;
 
 
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
-import com.t2.biomap.SharedPref;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
-import com.t2.compassionDB.DatabaseHelper;
 import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.MovingAverage;
@@ -61,8 +58,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -74,7 +69,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;

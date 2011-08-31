@@ -1,9 +1,7 @@
 package com.t2.compassionMeditation;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,33 +11,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.ToggleButton;
-
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
-import com.j256.ormlite.dao.Dao;
 
 //Need the following import to get access to the app resources, since thisclass is in a sub-package.
 import com.t2.R;
 
-import com.t2.biomap.SharedPref;
-import com.t2.compassionDB.BioSession;
-import com.t2.compassionDB.BioUser;
-import com.t2.compassionDB.DatabaseHelper;
-import com.t2.compassionMeditation.MainChooserActivity.ImageAdapter;
 
 public class EndSessionActivity extends Activity{
 	private static final String TAG = "BFDemo";

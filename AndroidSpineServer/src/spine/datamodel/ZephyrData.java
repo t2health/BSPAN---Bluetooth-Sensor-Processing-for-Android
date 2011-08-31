@@ -35,7 +35,6 @@ Boston, MA  02111-1307, USA.
 
 package spine.datamodel;
 
-import com.t2.Constants;
 
 public class ZephyrData extends Data {
 

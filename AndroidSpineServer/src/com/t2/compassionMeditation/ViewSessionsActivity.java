@@ -11,17 +11,12 @@ import java.util.List;
 import java.util.Locale;
 
 import org.achartengine.ChartFactory;
-import org.achartengine.GraphicalView;
-import org.achartengine.chart.BarChart;
-import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
-import org.achartengine.chart.RangeBarChart;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
-import spine.datamodel.MindsetData;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -29,7 +24,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -37,7 +31,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -59,7 +52,6 @@ import com.j256.ormlite.stmt.QueryBuilder;
 
 import com.t2.R;
 
-import com.t2.biomap.SharedPref;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;

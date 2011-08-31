@@ -24,7 +24,6 @@ import android.widget.Toast;
 //class is in a sub-package.
 import com.t2.R;
 
-import com.t2.biomap.SharedPref;
 import com.t2.filechooser.FileChooser;
 
 

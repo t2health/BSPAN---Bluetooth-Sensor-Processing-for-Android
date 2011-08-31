@@ -1,7 +1,6 @@
 package com.t2.compassionMeditation;
 
 import com.t2.R;
-import com.t2.biomap.SharedPref;
 
 import android.app.Activity;
 import android.content.Intent;
