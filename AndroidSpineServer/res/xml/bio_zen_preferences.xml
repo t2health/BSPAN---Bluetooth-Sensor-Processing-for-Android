@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2008 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!-- This is a primitive example showing the different types of preferences available. -->
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Meditation Session Preferences">
+        <EditTextPreference android:key="sessionlength_preference" android:summary="Sets length of meditation session" android:title="Session Length"></EditTextPreference>
+        <EditTextPreference android:key="alpha_gain_preference" android:summary="Sets how strongly the band of interest will affect the image intensity" android:title="Alpha Gain"></EditTextPreference>
+            
+    </PreferenceCategory>
+                
+    <PreferenceCategory android:title="Parameter Preferences">
+                
+        <ListPreference
+                android:dialogTitle="Mindset Band Of Interest" android:key="mindset_band_of_interest_list_preference" android:summary="Selects the mindset band to use" android:title="Mindset Band of Interest" android:entries="@array/bands_of_interest_array" android:entryValues="@array/bands_of_interest_array"/>
+
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="User Mode">
+
+        <ListPreference
+                android:dialogTitle="User Mode" android:key="user_mode_preference" android:summary="Selects between user mode and single user mode" android:title="User Mode" android:entries="@array/user_mode_array" android:entryValues="@array/user_mode_array_values" android:defaultValue="1"/>
+    
+        <CheckBoxPreference
+                android:title="Show Instructions on Start" android:summary="Selects wheather or not to show instructions when app starts" android:defaultValue="false" android:key="show_instructions_preference"/>
+            
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="Advanced Preferences">
+    
+        <CheckBoxPreference
+                android:title="Alpha Gain Visible" android:summary="Selects wheather or not the alpha gain slider will be visible in the meditation activity" android:defaultValue="true" android:key="alpha_gain_visible_preference"/>
+
+        <CheckBoxPreference
+                android:title="Save Raw Wave to File" android:key="save_raw_wave_to_file_preference" android:summary="Selects whether or not to save raw mindset waveform data to file" android:defaultValue="false"/>
+            
+    </PreferenceCategory>
+    
+    
+    
+    
+</PreferenceScreen>

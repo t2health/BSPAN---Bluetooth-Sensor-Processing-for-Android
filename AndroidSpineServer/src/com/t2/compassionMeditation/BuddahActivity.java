@@ -58,6 +58,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.ToneGenerator;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -198,6 +201,10 @@ public class BuddahActivity extends BaseActivity
 	int mLotusRawValue = 0;;     
 	double mLotusScaledValue = 0;;     
 	int mLotusFilteredValue = 0;;     
+	
+	
+    private MediaPlayer mMediaPlayer;
+    private ToneGenerator mToneGenerator; 
 	
 	
 	/**
@@ -454,7 +461,15 @@ public class BuddahActivity extends BaseActivity
 	@Override
 	protected void onDestroy() {
     	super.onDestroy();
-		Log.i(TAG, TAG +  " onDestroy");
+	
+    	if (mMediaPlayer != null) {
+    		mMediaPlayer.stop();
+    		mMediaPlayer.release();
+    		mMediaPlayer = null;
+    	}
+    	
+
+    	Log.i(TAG, TAG +  " onDestroy");
     	
     	mLoggingEnabled = false;
     	try {
@@ -489,6 +504,25 @@ public class BuddahActivity extends BaseActivity
 
 		}, 0, 10);		
 		
+
+		if (mMediaPlayer != null) {
+	        mMediaPlayer.stop();
+		}
+		
+		mMediaPlayer = MediaPlayer.create(this, R.raw.meditate_grandpa_full);
+		if (mMediaPlayer != null) {
+	        mMediaPlayer.start();
+	        mMediaPlayer.setLooping(true);
+		}
+		
+//		try {
+//			mToneGenerator = new ToneGenerator(AudioManager.STREAM_ALARM, 20);
+//			mToneGenerator.startTone(ToneGenerator.TONE_CDMA_ABBR_REORDER);
+//		} catch (RuntimeException e) {
+//			Log.e(TAG, "Exception playing tone: " + e.toString() );
+//			
+//			e.printStackTrace();
+//		}
 		
 	}
     
@@ -935,6 +969,16 @@ public class BuddahActivity extends BaseActivity
 				mCountdownTextView.setText("Time remaining: " + secsToHMS(mSecondsRemaining));	
 			}
 			else {
+				if (mMediaPlayer != null) {
+			        mMediaPlayer.stop();
+				}
+				
+				mMediaPlayer = MediaPlayer.create(instance, R.raw.wind_chime_1);
+				if (mMediaPlayer != null) {
+			        mMediaPlayer.start();
+			        mMediaPlayer.setLooping(true);			        
+				}
+
 		    	handlePause("Session Complete"); // Allow opportinuty for a note
 			}
 		}
@@ -1086,7 +1130,12 @@ public class BuddahActivity extends BaseActivity
 	 */
 	public void handlePause(String message) {
 		
-		mPaused = true;		
+		mPaused = true;
+
+//		if (mMediaPlayer != null) {
+//			mMediaPlayer.pause();
+//		}
+
 		Intent intent1 = new Intent(instance, EndSessionActivity.class);
 		instance.startActivityForResult(intent1, com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY);		
 		

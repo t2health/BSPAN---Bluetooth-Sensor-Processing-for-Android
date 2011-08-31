@@ -122,6 +122,14 @@
         	>
         </activity>
         <activity 
+        	android:name=".compassionMeditation.BioZenPreferenceActivity"
+        	android:screenOrientation="portrait"
+        	>
+        </activity>
+
+
+
+        <activity 
         	android:name=".compassionMeditation.InstructionsActivity"
         	android:screenOrientation="portrait"
         	>

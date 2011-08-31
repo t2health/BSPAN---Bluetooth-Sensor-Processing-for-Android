@@ -14,4 +14,14 @@
         <item>(e)Meditation</item>
     </string-array>
 
+    <string-array name="user_mode_array">
+        <item>Single User Mode</item>
+        <item>Provider Mode</item>
+    </string-array>
+
+    <string-array name="user_mode_array_values">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>

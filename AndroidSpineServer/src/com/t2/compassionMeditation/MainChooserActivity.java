@@ -9,6 +9,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,9 +76,16 @@ public class MainChooserActivity extends Activity {
         instance = this;
         setContentView(R.layout.main_chooser_activity_layout);
         
+        PreferenceManager.setDefaultValues(this, R.xml.bio_zen_preferences, false);        
+        
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);    
         setTitle("BioZen");
         
+                
+        
+//        String ss = SharedPref.getString(this, 
+//        		"user_mode_preference", 
+//        		"4");           
         mUserMode = SharedPref.getInt(this, 
         		Constants.PREF_USER_MODE, 
         		Constants.PREF_USER_MODE_DEFAULT);           
@@ -213,6 +221,7 @@ public class MainChooserActivity extends Activity {
 			return true;
 			
 		case R.id.preferences:
+//			Intent intent = new Intent(this, BioZenPreferenceActivity.class);
 			Intent intent = new Intent(this, PreferenceActivity.class);
 			this.startActivity(intent);	
 			return true;
