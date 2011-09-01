@@ -53,6 +53,34 @@ public class ZephyrData extends Data {
 		this.skinTemp = skinTemp;
 	}
 	
+	public String getParameterName(int index) {
+		switch (index) {
+		case MindsetData.NUM_BANDS + 2:
+			return "HeartRate";
+			
+		case MindsetData.NUM_BANDS + 2 + 1:
+			return "RespRate";
+			
+		case MindsetData.NUM_BANDS + 2 + 2:
+			return "SkinTemp";
+		}
+		return "";
+	}
+	
+	public int getFeatureValue(int index) {
+		switch (index) {
+		case MindsetData.NUM_BANDS + 2:
+			return heartRate;
+			
+		case MindsetData.NUM_BANDS + 2 + 1:
+			return respRate;
+			
+		case MindsetData.NUM_BANDS + 2 + 2:
+			return skinTemp;
+		}
+		return 0;
+	}	
+	
 	public String getLogDataLine() {
 		String line = "";							// Comment
 		line += heartRate + ", " + respRate + ", " + skinTemp + ", ";

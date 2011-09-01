@@ -234,8 +234,26 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     	public ZephyrData zephyrData = new ZephyrData();;
     	
 
+        @Override
+    	public String getSpectralName(int band) {
+        	if (band >= MindsetData.NUM_BANDS + 2) {
+        		return zephyrData.getParameterName(band);
+        	}
+        	else {
+        		return super.getSpectralName(band);
+        	}
+    	}
     	
-    	
+        @Override
+    	public int getFeatureValue(int band) {
+        	if (band >= MindsetData.NUM_BANDS + 2) {
+        		return zephyrData.getFeatureValue(band);
+        	}
+        	else {
+        		return super.getFeatureValue(band);
+        	}
+    	}	    	
+        
     	MindsetPoint() {
     		super(context);
     	}

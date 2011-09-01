@@ -22,6 +22,7 @@ import org.t2health.lib.analytics.Analytics;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
+
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
@@ -228,6 +229,8 @@ public class BuddahActivity extends BaseActivity
 	boolean mShowAGain;
 	String[] mBioHarnessParameters;	
 	String mLogFileName = "";
+	
+	private AudioToneThread audioToneThread;
 	
 	
     /** Called when the activity is first created. */
@@ -893,6 +896,9 @@ public class BuddahActivity extends BaseActivity
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iBuddahAlphaValue);
 				
+				audioToneThread.setFrequency(iBuddahAlphaValue * 6);
+				
+				
 				if (mShowLotus) {
 					mLotusImage.setAlpha(iLotusAlphaValue);
 				}
@@ -923,6 +929,14 @@ public class BuddahActivity extends BaseActivity
 	@Override
 	protected void onPause() {
 		Log.i(TAG, TAG +  " onPause");
+		
+		if(audioToneThread != null) {
+			audioToneThread.cancel();
+			audioToneThread.interrupt();
+			audioToneThread = null;
+		}		
+		
+		
 		mDataUpdateTimer.purge();
     	mDataUpdateTimer.cancel();
     	currentMindsetData.saveScaleData();	
@@ -962,7 +976,10 @@ public class BuddahActivity extends BaseActivity
 		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
 		// to receive sensor node data from the Spine server
 		// (I register myself since I'm a SPINEListener implementation!)
-		mManager.addListener(this);	        
+		mManager.addListener(this);	     
+		
+		audioToneThread = new AudioToneThread();
+		audioToneThread.start();		
 		
 		super.onResume();
 	}
@@ -1199,6 +1216,23 @@ public class BuddahActivity extends BaseActivity
 		addNoteToLog(notes);
 		Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 		
+		
+		// Save catlog file for possible debugging
+		try {
+		    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
+		    filename.createNewFile(); 
+		    mLogFileName = filename.getAbsolutePath();
+		    String cmd = "logcat -d -f "+filename.getAbsolutePath();
+		    Runtime.getRuntime().exec(cmd);
+		} catch (IOException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}			
+		
+		if (!mSessionName.equalsIgnoreCase("")) {
+			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		}		
+		
 		// -----------------------------
 		// Save stats for session
 		// -----------------------------
@@ -1233,22 +1267,7 @@ public class BuddahActivity extends BaseActivity
 			
 		}
 		
-		
-		// Save catlog file for possible debugging
-		try {
-		    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
-		    filename.createNewFile(); 
-		    mLogFileName = filename.getAbsolutePath();
-		    String cmd = "logcat -d -f "+filename.getAbsolutePath();
-		    Runtime.getRuntime().exec(cmd);
-		} catch (IOException e) {
-		    // TODO Auto-generated catch block
-		    e.printStackTrace();
-		}			
-		
-		if (!mSessionName.equalsIgnoreCase("")) {
-			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-		}
+
 		
 		finish();
 		
