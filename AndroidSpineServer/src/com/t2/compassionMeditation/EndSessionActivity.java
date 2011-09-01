@@ -67,27 +67,27 @@ public class EndSessionActivity extends Activity{
 	public void onButtonClick(View v)
 	{
 		Intent resultIntent = new Intent();
-		resultIntent.putExtra(Constants.END_SESSION_ACTIVITY_CATEGORY, mCurrentCategory);		
-		resultIntent.putExtra(Constants.END_SESSION_ACTIVITY_NOTES, mDetailLog.getText().toString());		
+		resultIntent.putExtra(BioZenConstants.END_SESSION_ACTIVITY_CATEGORY, mCurrentCategory);		
+		resultIntent.putExtra(BioZenConstants.END_SESSION_ACTIVITY_NOTES, mDetailLog.getText().toString());		
 
 		final int id = v.getId();
 		    switch (id) {
 		    
 		    case R.id.buttonQuitSession:
-				resultIntent.putExtra(Constants.END_SESSION_ACTIVITY_RESULT, Constants.END_SESSION_QUIT);		
+				resultIntent.putExtra(BioZenConstants.END_SESSION_ACTIVITY_RESULT, BioZenConstants.END_SESSION_QUIT);		
 				setResult(RESULT_OK, resultIntent);
 				finish();		    	
 		    	break;
 
 		    case R.id.buttonSaveSession:
-				resultIntent.putExtra(Constants.END_SESSION_ACTIVITY_RESULT, Constants.END_SESSION_SAVE);	
+				resultIntent.putExtra(BioZenConstants.END_SESSION_ACTIVITY_RESULT, BioZenConstants.END_SESSION_SAVE);	
 				
 				setResult(RESULT_OK, resultIntent);
 				finish();		    	
 		    	break;
 
 		    case R.id.buttonRestartSession:
-				resultIntent.putExtra(Constants.END_SESSION_ACTIVITY_RESULT, Constants.END_SESSION_RESTART);		
+				resultIntent.putExtra(BioZenConstants.END_SESSION_ACTIVITY_RESULT, BioZenConstants.END_SESSION_RESTART);		
 				setResult(RESULT_OK, resultIntent);
 				finish();		    	
 		    	break;

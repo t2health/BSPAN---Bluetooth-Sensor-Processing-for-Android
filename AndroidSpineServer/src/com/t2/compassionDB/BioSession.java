@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import com.t2.compassionMeditation.Constants;
+import com.t2.compassionMeditation.BioZenConstants;
+
 
 @DatabaseTable
 public class BioSession {
@@ -31,16 +32,16 @@ public class BioSession {
 
 	
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
-	public int[] minFilteredValue = new int[Constants.MAX_KEY_ITEMS];
+	public int[] minFilteredValue = new int[BioZenConstants.MAX_KEY_ITEMS];
 	
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
-	public int[] maxFilteredValue = new int[Constants.MAX_KEY_ITEMS];
+	public int[] maxFilteredValue = new int[BioZenConstants.MAX_KEY_ITEMS];
 	
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
-	public int[] avgFilteredValue = new int[Constants.MAX_KEY_ITEMS];
+	public int[] avgFilteredValue = new int[BioZenConstants.MAX_KEY_ITEMS];
 	
 	@DatabaseField(dataType=DataType.SERIALIZABLE)
-	public String[] keyItemNames = new String[Constants.MAX_KEY_ITEMS];
+	public String[] keyItemNames = new String[BioZenConstants.MAX_KEY_ITEMS];
 	
 //	@DatabaseField
 	public String mindsetBandOfInterest = "";

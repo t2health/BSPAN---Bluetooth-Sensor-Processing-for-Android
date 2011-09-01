@@ -117,11 +117,6 @@
         	
         </activity>
         <activity 
-        	android:name=".compassionMeditation.PreferenceActivity"
-        	android:screenOrientation="portrait"
-        	>
-        </activity>
-        <activity 
         	android:name=".compassionMeditation.BioZenPreferenceActivity"
         	android:screenOrientation="portrait"
         	>
@@ -136,7 +131,6 @@
         </activity>
         <activity android:name=".compassionMeditation.SelectUserActivity"></activity>
         <activity android:name=".compassionMeditation.ViewSessionsActivity"></activity>
-        <activity android:name=".compassionMeditation.UserModeActivity"></activity>
         <activity android:name=".compassionMeditation.MainChooserActivity"></activity>
         <activity android:name=".compassionMeditation.EndSessionActivity"></activity>
         

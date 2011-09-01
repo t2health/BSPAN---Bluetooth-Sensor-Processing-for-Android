@@ -22,12 +22,13 @@ import com.t2.R;
 
 
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
 
-public class BioZenPreferenceActivity extends PreferenceActivity {
+public class BioZenPreferenceActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener{
     public static final String KEY_PREFERENCE = "change_user_mode_preference";
 
 
@@ -38,14 +39,21 @@ public class BioZenPreferenceActivity extends PreferenceActivity {
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.bio_zen_preferences);
     }
+
     
-    
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        // Let's do something when my counter preference value changes
-        if (key.equals(KEY_PREFERENCE)) {
-            Toast.makeText(this, "Thanks! You increased my count to "
-                    + sharedPreferences.getInt(key, 0), Toast.LENGTH_SHORT).show();
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Set up a listener whenever a key changes
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }    
 
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences arg0, String key) {
+      if (key.equals("audio_track")) {
+      Toast.makeText(this, "Thanks! You increased my count to ", Toast.LENGTH_SHORT).show();
+  }
+		
+	}
 }

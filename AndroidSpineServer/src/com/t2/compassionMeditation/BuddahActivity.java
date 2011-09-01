@@ -189,8 +189,10 @@ public class BuddahActivity extends BaseActivity
 	
 	
 	private int mMindsetBandOfInterest = MindsetData.THETA_ID; // Default to theta
-	private int mBioHarnessParameterOfInterest = com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT;
+	private int mBioHarnessParameterOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
+	
+	private String mAudioTrack;
 	
 	private static Object mKeysLock = new Object();
     private RateOfChange mRateOfChange;
@@ -203,6 +205,8 @@ public class BuddahActivity extends BaseActivity
 	
     private MediaPlayer mMediaPlayer;
     private ToneGenerator mToneGenerator; 
+    
+    private boolean mShowLotus;
 	
 	
 	/**
@@ -261,27 +265,34 @@ public class BuddahActivity extends BaseActivity
 
     	currentMindsetData = new MindsetData(this);
 		mSaveRawWave = SharedPref.getBoolean(this, 
-				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE, 
-				com.t2.compassionMeditation.Constants.PREF_SAVE_RAW_WAVE_DEFAULT);
+				BioZenConstants.PREF_SAVE_RAW_WAVE, 
+				BioZenConstants.PREF_SAVE_RAW_WAVE_DEFAULT);
 		
 		mShowAGain = SharedPref.getBoolean(this, 
-				com.t2.compassionMeditation.Constants.PREF_SHOW_A_GAIN, 
-				com.t2.compassionMeditation.Constants.PREF_SHOW_A_GAIN_DEFAULT);
+				BioZenConstants.PREF_SHOW_A_GAIN, 
+				BioZenConstants.PREF_SHOW_A_GAIN_DEFAULT);
 
 		mAllowComments = SharedPref.getBoolean(this, 
-				com.t2.compassionMeditation.Constants.PREF_COMMENTS, 
-				com.t2.compassionMeditation.Constants.PREF_COMMENTS_DEFAULT);
+				BioZenConstants.PREF_COMMENTS, 
+				BioZenConstants.PREF_COMMENTS_DEFAULT);
+		
+		mShowLotus = SharedPref.getBoolean(this,"show_lotus", true);
+		
+				
+		mAudioTrack =SharedPref.getString(this, "audio_track" ,"NONE");
 
 		mBioHarnessParameters = getResources().getStringArray(R.array.bioharness_parameters_array);
 		
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       
         
-        mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
+        String s = SharedPref.getString(this, BioZenConstants.PREF_SESSION_LENGTH, 	"10");  
+        mSecondsRemaining = Integer.parseInt(s) * 60;
+//        mSecondsRemaining = SharedPref.getInt(this, com.t2.compassionMeditation.Constants.PREF_SESSION_LENGTH, 	10);  
         mSecondsTotal = mSecondsRemaining; 
 
-		mAlphaGain = SharedPref.getFloat(this, 
-				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
-				com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
+		s = SharedPref.getString(this, 
+				BioZenConstants.PREF_ALPHA_GAIN, "5");
+		mAlphaGain = Float.parseFloat(s);
 
         
         mMovingAverage = new MovingAverage(mMovingAverageSize);
@@ -489,11 +500,19 @@ public class BuddahActivity extends BaseActivity
 		if (mMediaPlayer != null) {
 	        mMediaPlayer.stop();
 		}
+
+		int resource = 0;
+		if (mAudioTrack.equalsIgnoreCase("Meditate Grandpa")) resource = R.raw.meditate_grandpa_full; 
+		if (mAudioTrack.equalsIgnoreCase("Pancake Brain")) resource = R.raw.pancake_brain_full; 
+		if (mAudioTrack.equalsIgnoreCase("Peace Eggplant")) resource = R.raw.peace_eggplant_full; 
 		
-		mMediaPlayer = MediaPlayer.create(this, R.raw.meditate_grandpa_full);
-		if (mMediaPlayer != null) {
-	        mMediaPlayer.start();
-	        mMediaPlayer.setLooping(true);
+		if (resource != 0) {
+			mMediaPlayer = MediaPlayer.create(this, resource);
+			if (mMediaPlayer != null) {
+		        mMediaPlayer.start();
+		        mMediaPlayer.setLooping(true);
+			}
+			
 		}
 		
 //		try {
@@ -874,13 +893,12 @@ public class BuddahActivity extends BaseActivity
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iBuddahAlphaValue);
 				
-				if (mBioHarnessParameterOfInterest == com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PNONE) {
-					mLotusImage.setAlpha(0);
-				}
-				else {
+				if (mShowLotus) {
 					mLotusImage.setAlpha(iLotusAlphaValue);
 				}
-				
+				else {
+					mLotusImage.setAlpha(0);
+				}
 			}
 			
 			if (mSecondsRemaining-- > 0) {
@@ -961,19 +979,15 @@ public class BuddahActivity extends BaseActivity
 		if (mSessionName.equalsIgnoreCase(""))
 			mSessionName = SharedPref.getString(this, "SessionName", 	mSessionName);
 		
-		mMindsetBandOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
-		
-		mBioHarnessParameterOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT);
-		
-		// Bioharness parameters are located over the mindset parameters now
-		if (mBioHarnessParameterOfInterest != com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT)
-			mBioHarnessParameterOfInterest += MindsetData.NUM_BANDS + 2;
+        String s =SharedPref.getString(this, BioZenConstants.PREF_BAND_OF_INTEREST ,"0");
+        mMindsetBandOfInterest = Integer.parseInt(s);
 		
 		
+		s = SharedPref.getString(this, 
+				BioZenConstants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST ,
+				BioZenConstants.PREF_BIOHARNESS_PARAMETER_OF_INTEREST_DEFAULT);
+
+		mBioHarnessParameterOfInterest = Integer.parseInt(s); 
 		
 		if (!mSessionName.equalsIgnoreCase("")) {
 			Analytics.onStartSession(this);						
@@ -1020,10 +1034,8 @@ public class BuddahActivity extends BaseActivity
 
 	@Override
 	public void onStopTrackingTouch(SeekBar arg0) {
-		
-		SharedPref.putFloat(this,
-			com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
-			(float) mAlphaGain);
+		SharedPref.putString(this,
+				BioZenConstants.PREF_ALPHA_GAIN, new Float(mAlphaGain).toString() );
 	}
 	
 
@@ -1042,7 +1054,7 @@ public class BuddahActivity extends BaseActivity
 //		}
 
 		Intent intent1 = new Intent(instance, EndSessionActivity.class);
-		instance.startActivityForResult(intent1, com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY);		
+		instance.startActivityForResult(intent1, BioZenConstants.END_SESSION_ACTIVITY);		
 	}
 
 	/**
@@ -1134,24 +1146,24 @@ public class BuddahActivity extends BaseActivity
 		super.onActivityResult(requestCode, resultCode, data);
 		
 		switch(requestCode) {
-			case com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY:
+			case BioZenConstants.END_SESSION_ACTIVITY:
 				 if (data != null) {
 					int action = data.getIntExtra(
-							com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_RESULT,
-							com.t2.compassionMeditation.Constants.END_SESSION_RESTART);
+							BioZenConstants.END_SESSION_ACTIVITY_RESULT,
+							BioZenConstants.END_SESSION_RESTART);
 					
 					
 					switch (action) {
 					
 					default:
-					case com.t2.compassionMeditation.Constants.END_SESSION_RESTART:
+					case BioZenConstants.END_SESSION_RESTART:
 						break;
 
-					case com.t2.compassionMeditation.Constants.END_SESSION_SAVE:
+					case BioZenConstants.END_SESSION_SAVE:
 						EndAndSaveSession(data);
 						break;
 
-					case com.t2.compassionMeditation.Constants.END_SESSION_QUIT:
+					case BioZenConstants.END_SESSION_QUIT:
 						mLogFile.delete();
 						Analytics.onEndSession(this);						
 						finish();					
@@ -1174,10 +1186,10 @@ public class BuddahActivity extends BaseActivity
 		String categoryName = "";
 		 if (data != null) {
 				notes = data.getStringExtra(
-						com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_NOTES);
+						BioZenConstants.END_SESSION_ACTIVITY_NOTES);
 
 				categoryName = data.getStringExtra(
-						com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY_CATEGORY);
+						BioZenConstants.END_SESSION_ACTIVITY_CATEGORY);
 				
 				if (categoryName == null) categoryName = "";
 				if (notes == null) notes = "";
@@ -1194,7 +1206,7 @@ public class BuddahActivity extends BaseActivity
 			mCurrentBioSession.comments += notes;
 			mCurrentBioSession.category = categoryName;
 
-	        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
+	        for (int i = 0; i < BioZenConstants.MAX_KEY_ITEMS; i++) {		
 	        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
 	        	mCurrentBioSession.minFilteredValue[i] = 
 	        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;

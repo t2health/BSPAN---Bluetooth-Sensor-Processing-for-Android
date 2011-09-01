@@ -59,7 +59,7 @@ public class MainChooserActivity extends Activity {
 	
 	/**
 	 * User mode - Determines whether or not to show a dialog showing potential users
-	 * @see Constants.java
+	 * @see BioZenConstants.java
 	 *  PREF_USER_MODE_DEFAULT, PREF_USER_MODE_SINGLE_USER, PREF_USER_MODE_PROVIDER
 	 */
 	int mUserMode;
@@ -81,14 +81,8 @@ public class MainChooserActivity extends Activity {
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);    
         setTitle("BioZen");
         
-                
-        
-//        String ss = SharedPref.getString(this, 
-//        		"user_mode_preference", 
-//        		"4");           
-        mUserMode = SharedPref.getInt(this, 
-        		Constants.PREF_USER_MODE, 
-        		Constants.PREF_USER_MODE_DEFAULT);           
+        String s = SharedPref.getString(this,BioZenConstants.PREF_USER_MODE,BioZenConstants.PREF_USER_MODE_DEFAULT);
+        mUserMode = Integer.parseInt(s);
         
 		try {
 			PackageManager packageManager = this.getPackageManager();
@@ -104,9 +98,9 @@ public class MainChooserActivity extends Activity {
         gridView.setNumColumns(2);
         gridView.setAdapter(new ImageAdapter(this));
         
-		if (mUserMode == Constants.PREF_USER_MODE_PROVIDER) {
+		if (mUserMode == BioZenConstants.PREF_USER_MODE_PROVIDER) {
 			Intent intent2 = new Intent(this, SelectUserActivity.class);
-			this.startActivityForResult(intent2, Constants.SELECT_USER_ACTIVITY);		
+			this.startActivityForResult(intent2, BioZenConstants.SELECT_USER_ACTIVITY);		
 			
 		} else {
 	    	SharedPref.putString(this, "SelectedUser", 	"");
@@ -124,12 +118,12 @@ public class MainChooserActivity extends Activity {
 
             	case ID_NEW_SESSION:
         			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
-        					Constants.PREF_INSTRUCTIONS_ON_START, 
-        					Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
+        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
 
         			if (instructionsOnStart) {
         				Intent intent1 = new Intent(instance, InstructionsActivity.class);
-        				instance.startActivityForResult(intent1, Constants.INSTRUCTIONS_USER_ACTIVITY);		
+        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
         			} else {
         				intent = new Intent(instance, BuddahActivity.class);
         				instance.startActivity(intent);		
@@ -143,12 +137,12 @@ public class MainChooserActivity extends Activity {
             		
             	case ID_DIRECTORY:
         			intent = new Intent(instance, FileChooser.class);
-        			instance.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);            		
+        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
             		break;
 
             	case ID_REVIEW:
         			intent = new Intent(instance, ViewSessionsActivity.class);
-        			instance.startActivityForResult(intent, Constants.FILECHOOSER_USER_ACTIVITY);            		
+        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
             		break;
             	}
            }
@@ -160,16 +154,16 @@ public class MainChooserActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 		
 		switch(requestCode) {
-			case Constants.FILECHOOSER_USER_ACTIVITY:
+			case BioZenConstants.FILECHOOSER_USER_ACTIVITY:
 				if (data == null)
 					return;
-				String sessionName = data.getStringExtra(Constants.FILECHOOSER_USER_ACTIVITY_RESULT);
+				String sessionName = data.getStringExtra(BioZenConstants.FILECHOOSER_USER_ACTIVITY_RESULT);
 		    	Toast.makeText(this, "File Clicked: " + sessionName, Toast.LENGTH_SHORT).show();
 		    	
 				Intent intent = new Intent(this, ViewHistoryActivity.class);
 				Bundle bundle = new Bundle();
 	
-				bundle.putString(Constants.EXTRA_SESSION_NAME,sessionName);
+				bundle.putString(BioZenConstants.EXTRA_SESSION_NAME,sessionName);
 	
 				//Add this bundle to the intent
 				intent.putExtras(bundle);				
@@ -178,7 +172,7 @@ public class MainChooserActivity extends Activity {
 
 				break;
 				
-		    case (Constants.SELECT_USER_ACTIVITY) :  
+		    case (BioZenConstants.SELECT_USER_ACTIVITY) :  
 			      if (resultCode == RESULT_OK) {
 			  		if (data == null)
 						return;
@@ -186,7 +180,7 @@ public class MainChooserActivity extends Activity {
 			    	// We can't write the note yet because we may not have been re-initialized
 			    	// since the not dialog put us into pause.
 			    	// We'll save the note and write it at restore
-			    	String userName = data.getStringExtra(Constants.SELECT_USER_ACTIVITY_RESULT);
+			    	String userName = data.getStringExtra(BioZenConstants.SELECT_USER_ACTIVITY_RESULT);
 
 			    	if (userName == null) {
 			    		userName = "";
@@ -197,12 +191,12 @@ public class MainChooserActivity extends Activity {
 			      } 
 			      break; 	
 			      
-		    case (Constants.INSTRUCTIONS_USER_ACTIVITY):
+		    case (BioZenConstants.INSTRUCTIONS_USER_ACTIVITY):
 				intent = new Intent(this, BuddahActivity.class);
 				this.startActivity(intent);		
 		    	break;
 		    	
-		    case (Constants.USER_MODE_ACTIVITY):
+		    case (BioZenConstants.USER_MODE_ACTIVITY):
 		    	break;
 		}
 	}
@@ -221,8 +215,8 @@ public class MainChooserActivity extends Activity {
 			return true;
 			
 		case R.id.preferences:
-//			Intent intent = new Intent(this, BioZenPreferenceActivity.class);
-			Intent intent = new Intent(this, PreferenceActivity.class);
+			Intent intent = new Intent(this, BioZenPreferenceActivity.class);
+//			Intent intent = new Intent(this, PreferenceActivity.class);
 			this.startActivity(intent);	
 			return true;
 						

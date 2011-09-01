@@ -19,35 +19,41 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="Meditation Session Preferences">
-        <EditTextPreference android:key="sessionlength_preference" android:summary="Sets length of meditation session" android:title="Session Length"></EditTextPreference>
-        <EditTextPreference android:key="alpha_gain_preference" android:summary="Sets how strongly the band of interest will affect the image intensity" android:title="Alpha Gain"></EditTextPreference>
+        <EditTextPreference android:key="session_length" android:summary="Sets length of meditation session" android:title="Session Length"></EditTextPreference>
+        <EditTextPreference android:key="alpha_gain" android:summary="Sets how strongly the band of interest will affect the image intensity" android:title="Alpha Gain"></EditTextPreference>
+        <CheckBoxPreference android:defaultValue="true" android:title="Show Lotus" android:key="show_lotus" android:summary="Selects whether or not to show the lotus flower"></CheckBoxPreference>
+        <ListPreference
+                android:dialogTitle="Audio Track" android:key="audio_track" android:summary="Selects the music to play during the session" android:title="Audio Track" android:entries="@array/audio_selection_array" android:entryValues="@array/audio_selection_array"/>
             
     </PreferenceCategory>
                 
     <PreferenceCategory android:title="Parameter Preferences">
                 
         <ListPreference
-                android:dialogTitle="Mindset Band Of Interest" android:key="mindset_band_of_interest_list_preference" android:summary="Selects the mindset band to use" android:title="Mindset Band of Interest" android:entries="@array/bands_of_interest_array" android:entryValues="@array/bands_of_interest_array"/>
+                android:dialogTitle="Mindset Band Of Interest" android:key="band_of_interest" android:summary="Selects the mindset band to use" android:title="Mindset Band of Interest" android:entries="@array/bands_of_interest_array" android:entryValues="@array/bands_of_interest_arrayvalues"/>
+
+        <ListPreference
+                android:dialogTitle="BioharnessBand Of Interest" android:key="parameter_of_interest" android:summary="Selects the bioharness parameter to use" android:title="Bioharness Band of Interest" android:entries="@array/bands_of_interest_array" android:entryValues="@array/bands_of_interest_arrayvalues"/>
 
     </PreferenceCategory>
     
     <PreferenceCategory android:title="User Mode">
 
         <ListPreference
-                android:dialogTitle="User Mode" android:key="user_mode_preference" android:summary="Selects between user mode and single user mode" android:title="User Mode" android:entries="@array/user_mode_array" android:entryValues="@array/user_mode_array_values" android:defaultValue="1"/>
+                android:dialogTitle="User Mode" android:key="user_mode" android:title="User Mode" android:entries="@array/user_mode_array" android:entryValues="@array/user_mode_array_values" android:defaultValue="1" android:summary="Selects between provider mode and single user mode"/>
     
         <CheckBoxPreference
-                android:title="Show Instructions on Start" android:summary="Selects wheather or not to show instructions when app starts" android:defaultValue="false" android:key="show_instructions_preference"/>
+                android:title="Show Instructions on Start" android:summary="Selects wheather or not to show instructions when app starts" android:defaultValue="false" android:key="instructions_on_start"/>
             
     </PreferenceCategory>
     
     <PreferenceCategory android:title="Advanced Preferences">
     
         <CheckBoxPreference
-                android:title="Alpha Gain Visible" android:summary="Selects wheather or not the alpha gain slider will be visible in the meditation activity" android:defaultValue="true" android:key="alpha_gain_visible_preference"/>
+                android:title="Alpha Gain Visible" android:summary="Selects wheather or not the alpha gain slider will be visible in the meditation activity" android:defaultValue="true" android:key="show_a_gain"/>
 
         <CheckBoxPreference
-                android:title="Save Raw Wave to File" android:key="save_raw_wave_to_file_preference" android:summary="Selects whether or not to save raw mindset waveform data to file" android:defaultValue="false"/>
+                android:title="Save Raw Wave to File" android:key="save_raw_wave" android:summary="Selects whether or not to save raw mindset waveform data to file" android:defaultValue="false"/>
             
     </PreferenceCategory>
     

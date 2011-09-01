@@ -147,9 +147,8 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);      
         
-        bandOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
+        String s =SharedPref.getString(this, BioZenConstants.PREF_BAND_OF_INTEREST ,"0");
+        bandOfInterest = Integer.parseInt(s);
         
         
         Resources resources = this.getResources();
@@ -208,7 +207,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         try {
 			// Get target name if one was supplied
 			Bundle bundle = getIntent().getExtras();
-			mSessionName = bundle.getString(com.t2.compassionMeditation.Constants.EXTRA_SESSION_NAME);
+			mSessionName = bundle.getString(BioZenConstants.EXTRA_SESSION_NAME);
 
 			mSessionData = new Vector();
 			loadSessionData();

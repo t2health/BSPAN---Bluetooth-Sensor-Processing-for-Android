@@ -24,4 +24,11 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="audio_selection_array">
+        <item>None</item>
+        <item>Meditate Grandpa</item>
+        <item>Pancake Brain</item>
+        <item>Peace Eggplant</item>
+    </string-array>
+
 </resources>

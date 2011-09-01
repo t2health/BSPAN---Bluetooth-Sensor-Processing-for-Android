@@ -147,13 +147,13 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	
 	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	protected SharedPreferences sharedPref;	
-	protected int mBandOfInterest = Constants.PREF_BAND_OF_INTEREST_DEFAULT;
+	protected int mBandOfInterest = 0;
 	
 	public class MyOnItemSelectedListener implements OnItemSelectedListener {
 
 	    public void onItemSelected(AdapterView<?> parent,
 	        View view, int pos, long id) {
-			SharedPref.putInt(instance, Constants.PREF_BAND_OF_INTEREST_REVIEW , pos);	   
+			SharedPref.putInt(instance, BioZenConstants.PREF_BAND_OF_INTEREST_REVIEW , pos);	   
 			mBandOfInterest = pos;
     		generateChart(DIRECTION_NEXT); 
 			
@@ -246,7 +246,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			mBandOfInterestSpinner.setAdapter(adapter1)	;	
 
 			mBandOfInterestSpinner.setOnItemSelectedListener(new MyOnItemSelectedListener());    
-			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, Constants.PREF_BAND_OF_INTEREST_REVIEW , 	
+			mBandOfInterestSpinner.setSelection(SharedPref.getInt(this, BioZenConstants.PREF_BAND_OF_INTEREST_REVIEW , 	
 					mBandOfInterest));
 		}
 		
@@ -593,7 +593,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
      	mDeviceChartView = ChartFactory.getLineChartView(this, dataSet, renderer);
      	layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
          	
-		ArrayList<DataPoint> dataPoints = null;
 		long startTime = startCal.getTimeInMillis();
 		long endTime = endCal.getTimeInMillis();	
 		
@@ -619,15 +618,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 			}
 		}
 		
-		
-		
-//		// Put some test points in
-//		for (int i = 0; i < 10; i++ ) {
-//			DataPoint dp = new DataPoint(System.currentTimeMillis() + i * 1000,0);
-//			cal.setTimeInMillis(dp.time);
-//			series.add(cal.get(calendarField), i*3);
-//			
-//		}
 		
 		
 //		XYSeriesRenderer minSeriesRenderer = new XYSeriesRenderer();

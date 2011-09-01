@@ -18,7 +18,8 @@ import android.widget.Toast;
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
 import com.t2.R;
-import com.t2.compassionMeditation.Constants;
+import com.t2.compassionMeditation.BioZenConstants;
+
 
 
 public class FileChooser extends ListActivity {
@@ -119,7 +120,7 @@ public class FileChooser extends ListActivity {
     {
 		Intent resultIntent;
 		resultIntent = new Intent();
-		resultIntent.putExtra(Constants.FILECHOOSER_USER_ACTIVITY_RESULT, o.getName());		
+		resultIntent.putExtra(BioZenConstants.FILECHOOSER_USER_ACTIVITY_RESULT, o.getName());		
 		setResult(RESULT_OK, resultIntent);
 		finish();
     }

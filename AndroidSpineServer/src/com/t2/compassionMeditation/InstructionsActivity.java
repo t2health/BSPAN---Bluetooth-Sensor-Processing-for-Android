@@ -23,7 +23,7 @@ public class InstructionsActivity extends Activity implements View.OnTouchListen
         setContentView(R.layout.instructions_activity_layout);        
 		mShowInstructionsCheckbox = (CheckBox) findViewById(R.id.checkBox1);
 		
-		boolean instructionsOnStart = SharedPref.getBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, Constants.PREF_INSTRUCTIONS_ON_START_DEFAULT);
+		boolean instructionsOnStart = SharedPref.getBoolean(this, BioZenConstants.PREF_INSTRUCTIONS_ON_START, BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);
 		mShowInstructionsCheckbox.setChecked(instructionsOnStart);
 
 		final RelativeLayout parent = (RelativeLayout) findViewById(R.id.instructionsLayout	);
@@ -33,11 +33,11 @@ public class InstructionsActivity extends Activity implements View.OnTouchListen
 	@Override
 	protected void onDestroy() {
 		boolean isChecked = mShowInstructionsCheckbox.isChecked();
-		SharedPref.putBoolean(this, Constants.PREF_INSTRUCTIONS_ON_START, isChecked );
+		SharedPref.putBoolean(this, BioZenConstants.PREF_INSTRUCTIONS_ON_START, isChecked );
 		
 		Intent resultIntent;
 		resultIntent = new Intent();
-		resultIntent.putExtra(Constants.INSTRUCTIONS_USER_ACTIVITY_RESULT, "");
+		resultIntent.putExtra(BioZenConstants.INSTRUCTIONS_USER_ACTIVITY_RESULT, "");
 		setResult(RESULT_OK, resultIntent);
 		super.onDestroy();
 		

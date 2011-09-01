@@ -124,7 +124,7 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 				String seletedItem = (String) mListView.getAdapter().getItem(i);
 				Intent resultIntent;
 				resultIntent = new Intent();
-				resultIntent.putExtra(Constants.SELECT_USER_ACTIVITY_RESULT, seletedItem);
+				resultIntent.putExtra(BioZenConstants.SELECT_USER_ACTIVITY_RESULT, seletedItem);
 				setResult(RESULT_OK, resultIntent);
 				finish();				
 				
