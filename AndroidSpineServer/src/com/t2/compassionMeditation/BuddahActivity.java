@@ -27,7 +27,6 @@ import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
-import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.MovingAverage;
 import com.t2.compassionUtils.RateOfChange;
@@ -153,7 +152,6 @@ public class BuddahActivity extends BaseActivity
 	private Button mToggleLogButton;
     private Button mLlogMarkerButton;
     private Button mPauseButton;
-//    private Button mBackButton;
     private TextView mTextInfoView;
     private TextView mTextBioHarnessView;
     private TextView mCountdownTextView;
@@ -181,7 +179,7 @@ public class BuddahActivity extends BaseActivity
     
 	protected SharedPreferences sharedPref;
 	
-	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
+	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	private int heartRatePos;
 	private int respRatePos;
 	private int skinTempPos;
@@ -244,19 +242,6 @@ public class BuddahActivity extends BaseActivity
 			e.printStackTrace();
 		}			
         
-//		try {
-//			Account[] accounts = AccountManager.get(this).getAccounts();
-//			for (Account account : accounts) {
-//			  // TODO: Check possibleEmail against an email regex or treat
-//			  // account.name as an email address only for certain account.type values.
-//			  String possibleEmail = account.name;
-//
-//			}
-//		} catch (Exception e1) {
-//			Log.e(TAG, "Error Looking for accounts" + e1.toString());
-//			e1.printStackTrace();
-//		}		
-//        
 		
 		Log.i(TAG, TAG +  " onCreate");
 		instance = this;
@@ -309,13 +294,10 @@ public class BuddahActivity extends BaseActivity
         AssetManager assetManager = resources.getAssets();
         
         // Set up member variables to UI Elements
-//        mToggleLogButton = (Button) findViewById(R.id.buttonLogging);
-//        mLlogMarkerButton = (Button) findViewById(R.id.LogMarkerButton);
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mTextBioHarnessView = (TextView) findViewById(R.id.textViewBioHarness);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
-//        mBackButton = (Button) findViewById(R.id.buttonBack);
         mSignalImage = (ImageView) findViewById(R.id.imageView1);    
                 
 
@@ -330,7 +312,6 @@ public class BuddahActivity extends BaseActivity
 		mTextInfoView.setVisibility(View.INVISIBLE);
 		mTextBioHarnessView.setVisibility(View.INVISIBLE);		
 		mPauseButton.setVisibility(View.INVISIBLE);
-//		mBackButton.setVisibility(View.INVISIBLE);
 		mSeekBar.setVisibility(View.INVISIBLE);
 		
         ImageView image = (ImageView) findViewById(R.id.imageView1);
@@ -383,19 +364,19 @@ public class BuddahActivity extends BaseActivity
 		
         int i;
         for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
-        	GraphKeyItem key = new GraphKeyItem(i, MindsetData.spectralNames[i], "");
+        	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
         heartRatePos = i;
-    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
+    	KeyItem key = new KeyItem(i++, "HeartRate", "");
         keyItems.add(key);
         
         respRatePos = i;
-        key = new GraphKeyItem(i++, "RespRate", "");
+        key = new KeyItem(i++, "RespRate", "");
         keyItems.add(key);
         
         skinTempPos = i;
-    	key = new GraphKeyItem(i, "SkinTemp", "");
+    	key = new KeyItem(i, "SkinTemp", "");
         keyItems.add(key);
         		
 		
@@ -660,32 +641,6 @@ public class BuddahActivity extends BaseActivity
 				Log.i("SensorData","heartRate= " + heartRate + ", respRate= " + respRate + ", skinTemp= " + skinTempF);
 				
 				numSecsWithoutData = 0;		
-//	        	synchronized(mKeysLock) {
-//	        		switch (mBioHarnessParameterOfInterest) {
-//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
-//	    				// Skin temp scaling -  absolute range  0  - 110, practical range 70 - 110, alpha range		0 - 255
-//	        			mLotusRawValue = (int) skinTempF;
-//	    				mLotusScaledValue = MathExtra.scaleData((float)skinTempF, 110F, 70F, 255);
-//	        			break;
-//	        			
-//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
-//	    				// Heart rate scaling - absolute range  0  - 250, practical range 20 - 250, alpha range		0 - 255
-//	        			mLotusRawValue = heartRate;
-//	    				mLotusScaledValue = MathExtra.scaleData((float)heartRate, 250F, 20F, 255);
-//	        			break;
-//	        			
-//	        		case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
-//	    				// Resp Rate - absolute range  0  - 120, practical range 5 - 120, alpha range		0 - 255
-//	        			mLotusRawValue = (int) respRate;
-//	    				mLotusScaledValue = MathExtra.scaleData((float)respRate, 120F, 5F, 255);
-//	        			break;
-//
-//	        		default:
-//	        			mLotusRawValue = 0;
-//	        			mLotusScaledValue = 0;
-//	        			
-//	        		}
-//	        	}
 
 				break;
 			} // End case SPINEFunctionConstants.ZEPHYR:			
@@ -887,10 +842,6 @@ public class BuddahActivity extends BaseActivity
 			
 			numSecsWithoutData++;
 
-			
-			// Update buddah image based on band of interest
-//			int rawBuddahValue = currentMindsetData.getFeatureValue(mMindsetBandOfInterest);
-//			String mindsetBandName = currentMindsetData.getSpectralName(mMindsetBandOfInterest); 
 
 			int iBuddahAlphaValue;
 			KeyItem keyItem = keyItems.get(mMindsetBandOfInterest);
@@ -899,46 +850,14 @@ public class BuddahActivity extends BaseActivity
 			String mindsetBandName = keyItem.title1;
 			int filteredBuddahValue = keyItem.getFilteredScaledValue();
 			iBuddahAlphaValue = filteredBuddahValue;
-	//		mMovingAverage.pushValue(rawBuddahValue);	
-//			int filteredBuddahValue = (int) (mMovingAverage.getValue());
-//			iBuddahAlphaValue = (int)MathExtra.scaleData((float)filteredBuddahValue, 100F, 20F, 255, (float)mAlphaGain);	
-			
-			
-			
-//			// HACK - Since most interesting stuff is above 20 jsut subtract 20 
-//			double buddahAlphaValue = (double) filteredBuddahValue - 20;
-//			if (buddahAlphaValue < 0) buddahAlphaValue = 0;
-////			buddahAlphaValue *= (255F / (85F - 40F));
-//			buddahAlphaValue *= mAlphaGain;
-//			if (buddahAlphaValue > 255) buddahAlphaValue = 255;
-//			iBuddahAlphaValue = (int) buddahAlphaValue;
 			
 			mTextInfoView.setText(mindsetBandName + ": " + rawBuddahValue + ", " + filteredBuddahValue +  ", " + iBuddahAlphaValue);		
 				
-			// Set values for the lotus from BioHarness data
-//    		switch (mBioHarnessParameterOfInterest) {
-//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PSKINTEMP:
-//    				mRateOfChange.pushValue((float) keyItems.get(skinTempPos).scaledValue);	
-//    				mLotusRawValue = keyItems.get(skinTempPos).rawValue;
-//    				break;
-//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PHEARTRATE:
-//    				mRateOfChange.pushValue((float) keyItems.get(heartRatePos).scaledValue);	
-//    				mLotusRawValue = keyItems.get(heartRatePos).rawValue;
-//    				break;
-//			
-//    			case com.t2.compassionMeditation.Constants.PREF_BIOHARNESS_PRESPRATE:
-//			mRateOfChange.pushValue((float) keyItems.get(respRatePos).scaledValue);	
-//    				mLotusRawValue = keyItems.get(respRatePos).rawValue;
-//    				break;
-//    				
-//    		}
+
 			
 			keyItem = keyItems.get(mBioHarnessParameterOfInterest);			
     		mLotusRawValue = keyItem.rawValue;    		
-//			mRateOfChange.pushValue((float) keyItems.get(mBioHarnessParameterOfInterest).getScaledValue());	
-////			
-//			int filteredLotusValue = (int) (mRateOfChange.getValue() * 10);
-//			if (filteredLotusValue > 255) filteredLotusValue = 255;
+
 			
     		// We want to update the rate of change once every second
     		keyItem.updateRateOfChange();
@@ -950,7 +869,6 @@ public class BuddahActivity extends BaseActivity
 			
 			
 			String bioHarnessBandName = keyItems.get(mBioHarnessParameterOfInterest).title1; 
-//			String bioHarnessBandName = mBioHarnessParameters[mBioHarnessParameterOfInterest]; 
 			mTextBioHarnessView.setText(bioHarnessBandName + ": " + mLotusRawValue + ", " + (int) filteredLotusValue );		
 			
 			if (mIntroFade <= 0) {
@@ -1075,7 +993,6 @@ public class BuddahActivity extends BaseActivity
 			mTextInfoView.setVisibility(View.INVISIBLE);
 			mTextBioHarnessView.setVisibility(View.INVISIBLE);
 			mPauseButton.setVisibility(View.INVISIBLE);
-//			mBackButton.setVisibility(View.INVISIBLE);
 			mSeekBar.setVisibility(View.INVISIBLE);
 			
 		}
@@ -1085,8 +1002,6 @@ public class BuddahActivity extends BaseActivity
 			mTextInfoView.setVisibility(View.VISIBLE);
 			mTextBioHarnessView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
-//			mBackButton.setVisibility(View.VISIBLE);
-//			mSeekBar.setVisibility(View.VISIBLE);
 			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.INVISIBLE);
 
 		}
@@ -1095,11 +1010,6 @@ public class BuddahActivity extends BaseActivity
 
 	@Override
 	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
-		// *** For test/debug only
-//		double  alpha = arg1 * 2.5;
-//		mBuddahImage.setAlpha((int) alpha);
-//		mTextInfoView.setText(Integer.toString((int)alpha));
-//		double  alpha = arg1 * 2.5;
 		mAlphaGain = arg1/10;
 	}
 
@@ -1111,14 +1021,9 @@ public class BuddahActivity extends BaseActivity
 	@Override
 	public void onStopTrackingTouch(SeekBar arg0) {
 		
-//		mAlphaGain = SharedPref.getFloat(this, 
-//		com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
-//		com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN_DEFAULT);
 		SharedPref.putFloat(this,
 			com.t2.compassionMeditation.Constants.PREF_ALPHA_GAIN, 	
 			(float) mAlphaGain);
-		
-		
 	}
 	
 
@@ -1138,113 +1043,6 @@ public class BuddahActivity extends BaseActivity
 
 		Intent intent1 = new Intent(instance, EndSessionActivity.class);
 		instance.startActivityForResult(intent1, com.t2.compassionMeditation.Constants.END_SESSION_ACTIVITY);		
-		
-//		
-//		
-//		AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
-//
-//		alert1.setTitle(message);
-//		alert1.setMessage("Notes:");
-//		mPaused = true;
-//
-//		// Set an EditText view to get user input 
-//		final EditText input = new EditText(this);
-//		alert1.setView(input);
-//
-//		
-//		// User pressed the quit key, exit the activity
-//		alert1.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
-//		public void onClick(DialogInterface dialog, int whichButton) {
-//			mLogFile.delete();
-//			finish();
-//		  
-//		  }
-//		});
-//
-//		alert1.setOnCancelListener(new DialogInterface.OnCancelListener() {
-//			@Override
-//			public void onCancel(DialogInterface arg0) {
-//				mPaused = false;
-//	      		mIntroFade = 255;
-//				
-//			}
-//		}
-//		);
-//
-//		alert1.setNeutralButton("Save", new DialogInterface.OnClickListener() {
-//			  public void onClick(DialogInterface dialog, int whichButton) {
-//					addNoteToLog(input.getText().toString());
-//					Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-//					
-//					// -----------------------------
-//					// Save stats for session
-//					// -----------------------------
-//					if (mCurrentBioSession != null) {
-//						mCurrentBioSession.comments += input.getText();
-//
-//				        for (int i = 0; i < com.t2.compassionMeditation.Constants.MAX_KEY_ITEMS; i++) {		
-//				        	mCurrentBioSession.maxFilteredValue[i] = keyItems.get(i).getMaxFilteredValue();
-//				        	mCurrentBioSession.minFilteredValue[i] = 
-//				        		keyItems.get(i).getMinFilteredValue() != 9999 ? keyItems.get(i).getMinFilteredValue() : 0;
-//				        	mCurrentBioSession.avgFilteredValue[i] = keyItems.get(i).getAvgFilteredValue();
-//				        	mCurrentBioSession.keyItemNames[i] = keyItems.get(i).title1;
-//				        }
-//				        
-//				        int secondsCompleted =  mSecondsTotal -  mSecondsRemaining;
-//				        float precentComplete = (float) secondsCompleted / (float) mSecondsTotal;
-//				        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
-//				        mCurrentBioSession.secondsCompleted = secondsCompleted;
-//				        mCurrentBioSession.logFileName = mLogFileName; 
-//				        
-////				        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
-////				        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
-//				        
-//				        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
-//				        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;
-//				        
-//
-//				        // Udpate the database with the current session
-//						try {
-//							mBioSessionDao.create(mCurrentBioSession);
-//						} catch (SQLException e1) {
-//							Log.e(TAG, "Error saving current session to database", e1);
-//						}			
-//						
-//					}
-//					
-//					
-//					// Save catlog file for possible debugging
-//					try {
-//					    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
-//					    filename.createNewFile(); 
-//					    mLogFileName = filename.getAbsolutePath();
-//					    String cmd = "logcat -d -f "+filename.getAbsolutePath();
-//					    Runtime.getRuntime().exec(cmd);
-//					} catch (IOException e) {
-//					    // TODO Auto-generated catch block
-//					    e.printStackTrace();
-//					}			
-//					
-//					if (!mSessionName.equalsIgnoreCase("")) {
-//						Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
-//					}
-//					
-//					finish();
-//			  }
-//			});		
-//		
-//		alert1.setNegativeButton("Re-Start", new DialogInterface.OnClickListener() {
-//		  public void onClick(DialogInterface dialog, int whichButton) {
-//				mPaused = false;
-//				addNoteToLog(input.getText().toString());
-//				mCurrentBioSession.comments += input.getText();
-//
-//	      		mIntroFade = 255;
-//
-//		  }
-//		});
-//
-//		alert1.show();
 	}
 
 	/**
@@ -1281,7 +1079,6 @@ public class BuddahActivity extends BaseActivity
 		mLoggingEnabled = true;	
 		
 		if (mLoggingEnabled) {
-//			if (mLoggingEnabled && this.mSelectedUserName != null) {
 
 			Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
 
@@ -1410,9 +1207,6 @@ public class BuddahActivity extends BaseActivity
 	        mCurrentBioSession.precentComplete = (int) (precentComplete * 100);
 	        mCurrentBioSession.secondsCompleted = secondsCompleted;
 	        mCurrentBioSession.logFileName = mLogFileName; 
-	        
-//	        mCurrentBioSession.mindsetBandOfInterest = keyItems.get(mMindsetBandOfInterest).title1;
-//	        mCurrentBioSession.bioHarnessParameterOfInterest = keyItems.get(mBioHarnessParameterOfInterest).title1;
 	        
 	        mCurrentBioSession.mindsetBandOfInterestIndex = mMindsetBandOfInterest;
 	        mCurrentBioSession.bioHarnessParameterOfInterestIndex = mBioHarnessParameterOfInterest;

@@ -143,7 +143,6 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
 	private MindsetData currentMindsetData;
 	
-	private int mBandOfInterest = MindsetData.THETA_ID; // Default to theta
 	private int numSecsWithoutData = 0;
 	
 	private static Object mKeysLock = new Object();
@@ -659,14 +658,6 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 			}
 
 			String bandValuesString = "";
-//			String bandName = currentMindsetData.getSpectralName(mBandOfInterest); 
-//			
-//	        mTextInfoView.setText(
-//	        		bandName + ": " + currentMindsetData.getFeatureValue(mBandOfInterest)  
-//	        		);
-//	
-	        
-	        
 	        
 			// Output a point for each visible key item
 			int keyCount = keyItems.size();
@@ -693,35 +684,6 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
 	        }   				
 	        
 	        mTextInfoView.setText(bandValuesString);
-	        
-	        
-
-
-			
-			
-//	        // Update the mediation bar
-//	        int side = currentMindsetData.powerTest(bandOfInterest);
-//	        final double BAR_ABS_MAXVAL = 100;
-//	        final double BAR_ABS_CENTERVAL = 50;
-//	        final double BAR_ABS_MINVAL = 0;
-//	        final int SIDE_RIGHT = 1;
-//	        final int SIDE_LEFT = -1;
-//	        
-//	        double scaledCenterValue = 100;
-//
-//	        double gain = scaledCenterValue / BAR_ABS_CENTERVAL;
-//	        
-//	        double valueToPlot = currentMindsetData.getFeatureValue(bandOfInterest) * gain;
-//	        if (valueToPlot > BAR_ABS_CENTERVAL) {
-//	        	valueToPlot = BAR_ABS_CENTERVAL;
-//	        }
-//	        
-//	        
-//	        if (side == SIDE_RIGHT) {
-//	        	valueToPlot = BAR_ABS_MAXVAL - valueToPlot;
-//	        }
-//	        mMeditationBar.setProgress((int) valueToPlot);
-	        
 		}
 	};
 
@@ -788,11 +750,6 @@ public class GraphsActivity extends Activity implements OnBioFeedbackMessageReci
     		    Log.e(TAG, "Could not write file " + e.getMessage());
     		}
 		}
-		
-		mBandOfInterest = SharedPref.getInt(this, 
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST ,
-				com.t2.compassionMeditation.Constants.PREF_BAND_OF_INTEREST_DEFAULT);
-		
 		
 	}
 

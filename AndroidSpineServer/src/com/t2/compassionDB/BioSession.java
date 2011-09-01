@@ -43,13 +43,13 @@ public class BioSession {
 	public String[] keyItemNames = new String[Constants.MAX_KEY_ITEMS];
 	
 //	@DatabaseField
-//	public String mindsetBandOfInterest = "";
+	public String mindsetBandOfInterest = "";
 
 	@DatabaseField
 	public int mindsetBandOfInterestIndex = 0;
 
 //	@DatabaseField
-//	public String bioHarnessParameterOfInterest = "";
+	public String bioHarnessParameterOfInterest = "";
 
 	@DatabaseField
 	public int bioHarnessParameterOfInterestIndex = 0;

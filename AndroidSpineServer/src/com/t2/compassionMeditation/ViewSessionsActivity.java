@@ -55,7 +55,6 @@ import com.t2.R;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
-import com.t2.compassionMeditation.GraphsActivity.GraphKeyItem;
 import com.t2.compassionUtils.MathExtra;
 
 public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
@@ -146,7 +145,7 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 	
 	
 	
-	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
+	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	protected SharedPreferences sharedPref;	
 	protected int mBandOfInterest = Constants.PREF_BAND_OF_INTEREST_DEFAULT;
 	
@@ -500,19 +499,6 @@ public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper>
 		sessionDetails += "   Min: " + session.minFilteredValue[mBandOfInterest] + "\n";
 		sessionDetails += "   Max: " + session.maxFilteredValue[mBandOfInterest] + "\n";
 		sessionDetails += "   Avg: " + session.avgFilteredValue[mBandOfInterest] + "\n";
-
-//		sessionDetails += "Band:   " + session.keyItemNames[session.mindsetBandOfInterestIndex] + "\n";
-//		sessionDetails += "   Min: " + session.minFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
-//		sessionDetails += "   Max: " + session.maxFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
-//		sessionDetails += "   Avg: " + session.avgFilteredValue[session.mindsetBandOfInterestIndex] + "\n";
-
-		
-//		sessionDetails += "Band: " + session.keyItemNames[session.bioHarnessParameterOfInterestIndex] + "\n";;
-//		sessionDetails += "   Min: " + session.minFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-//		sessionDetails += "   Max: " + session.maxFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-//		sessionDetails += "   Avg: " + session.avgFilteredValue[session.bioHarnessParameterOfInterestIndex] + "\n";
-
-		
 		
 		sessionDetails += "Comments: " + session.comments + "\n";
 		sessionDetails += "Category: " + session.category+ "\n";

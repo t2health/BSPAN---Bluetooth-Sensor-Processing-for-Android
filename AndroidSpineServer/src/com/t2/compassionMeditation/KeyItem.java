@@ -2,6 +2,8 @@ package com.t2.compassionMeditation;
 
 import java.util.HashMap;
 
+import org.achartengine.model.XYSeries;
+
 import com.t2.compassionUtils.MovingAverage;
 import com.t2.compassionUtils.RateOfChange;
 
@@ -15,6 +17,8 @@ public class KeyItem {
 	public boolean reverseData = false; 
     private MovingAverage mMovingAverage = new MovingAverage(10);
     private RateOfChange mRateOfChange = new RateOfChange(6);
+	public XYSeries xySeries;	    
+    
 
 	
 
@@ -107,6 +111,8 @@ public class KeyItem {
 		this.title1 = title1;
 		this.title2 = title2;
 		this.visible = true;
+		xySeries = new XYSeries(title1);		
+		
 	}
 	
 	

@@ -116,7 +116,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
     
 	protected SharedPreferences sharedPref;
 	private static final String KEY_NAME = "results_visible_ids_";	
-	private ArrayList<GraphKeyItem> keyItems = new ArrayList<GraphKeyItem>();
+	private ArrayList<KeyItem> keyItems = new ArrayList<KeyItem>();
 	private MindsetData currentMindsetData;
 	
 	private int bandOfInterest = MindsetData.THETA_ID; // Default to theta
@@ -175,19 +175,19 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
      
         int i;
         for (i = 0; i < MindsetData.NUM_BANDS + 2; i++) {		// 2 extra, for attention and meditation
-        	GraphKeyItem key = new GraphKeyItem(i, MindsetData.spectralNames[i], "");
+        	KeyItem key = new KeyItem(i, MindsetData.spectralNames[i], "");
             keyItems.add(key);
         }
         heartRatePos = i;
-    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
+    	KeyItem key = new KeyItem(i++, "HeartRate", "");
         keyItems.add(key);
         
         respRatePos = i;
-        key = new GraphKeyItem(i++, "RespRate", "");
+        key = new KeyItem(i++, "RespRate", "");
         keyItems.add(key);
         
         skinTempPos = i;
-    	key = new GraphKeyItem(i, "SkinTemp", "");
+    	key = new KeyItem(i, "SkinTemp", "");
         keyItems.add(key);
                 
 
@@ -268,16 +268,16 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 				
 				int keyCount = keyItems.size();
 				for(int i = 0; i < keyItems.size(); ++i) {
-					GraphKeyItem item = keyItems.get(i);
+					KeyItem item = keyItems.get(i);
 					
 					if(!item.visible) {
 						continue;
 					}
 						int v = currentMindsetData.getFeatureValue((int) item.id);
 //						item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-						item.series.add(mSpineChartX, item.rawValue);						
-						if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-							item.series.remove(0);
+						item.xySeries.add(mSpineChartX, item.rawValue);						
+						if (item.xySeries.getItemCount() > SPINE_CHART_SIZE) {
+							item.xySeries.remove(0);
 						}
 						
 						mSpineChartX++;
@@ -438,14 +438,14 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
         
 		int lineNum = 0;
 		for(int i = 0; i < keyItems.size(); ++i) {
-			GraphKeyItem item = keyItems.get(i);
+			KeyItem item = keyItems.get(i);
 			
 			item.visible = visibleIds.contains(item.id);
 			if(!item.visible) {
 				continue;
 			}
 			
-			deviceDataset.addSeries(item.series);
+			deviceDataset.addSeries(item.xySeries);
 			item.color = getKeyColor(i, keyCount);
 			
 			// Add name of the measure to the displayed text field
@@ -645,7 +645,7 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		    	
 				String[] measureNames = new String[keyItems.size()];
 				int i = 0;
-				for (GraphKeyItem item: keyItems) {
+				for (KeyItem item: keyItems) {
 					measureNames[i++] = item.title1;
 				}
 								
@@ -702,44 +702,6 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 	 */
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
-
-//			numSecsWithoutData++;
-//			if (numSecsWithoutData > 2) {
-//				return;
-//			}
-//
-//			
-//			if (mPaused == true || currentMindsetData == null) {
-//				return;
-//			}
-//			
-//
-//	        int keyCount = keyItems.size();
-//			for(int i = 0; i < keyItems.size(); ++i) {
-//				KeyItem item = keyItems.get(i);
-//				
-//				if(!item.visible) {
-//					continue;
-//				}
-//				
-//				item.series.add(mSpineChartX, currentMindsetData.getFeatureValue((int) item.id));
-//				if (item.series.getItemCount() > SPINE_CHART_SIZE) {
-//					item.series.remove(0);
-//				}
-//				
-//			} 			
-//			
-//	        mTextInfoView.setText(
-//	        		"Theta: " + currentMindsetData.getFeatureValue(bandOfInterest) + "\n" +  
-//	        		"Time Remaining: "
-//	        		);
-//			
-//
-//			mSpineChartX++;
-//			
-//			if (mDeviceChartView != null) {
-//	            mDeviceChartView.repaint();
-//	        }   				
 		}
 	};
 
@@ -871,14 +833,6 @@ public class ViewHistoryActivity extends Activity implements OnSeekBarChangeList
 		
 	}
 	
-	private static class GraphKeyItem extends KeyItem{
-		public XYSeries series;		
-		
-		public GraphKeyItem(long id, String title1, String title2) {
-			super(id, title1, title2);
-			series = new XYSeries(title1);		
-		}
-		
-	}
+
 	
 }
