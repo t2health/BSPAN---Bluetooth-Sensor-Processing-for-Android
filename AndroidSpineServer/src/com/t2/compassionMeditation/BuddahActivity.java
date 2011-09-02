@@ -15,9 +15,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import org.t2health.lib.activity.BaseActivity;
-import org.t2health.lib.analytics.Analytics;
 
+
+import bz.org.t2health.lib.activity.BaseActivity;
+import bz.org.t2health.lib.analytics.Analytics;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;

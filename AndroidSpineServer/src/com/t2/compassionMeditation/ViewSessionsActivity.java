@@ -16,7 +16,6 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
-import org.t2health.lib.activity.BaseActivity;
 
 
 import android.app.AlertDialog;
@@ -45,6 +44,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import bz.org.t2health.lib.activity.BaseActivity;
 
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
@@ -764,28 +764,7 @@ public class ViewSessionsActivity extends BaseActivity
 	}
 	
 
-	
-//	public Cursor getResults(long startTime, long endTime) {
-//		return this.getDBAdapter().getDatabase().query(
-//				quote(Result.TABLE_NAME),
-//				new String[]{
-//						quote(Result.FIELD_TIMESTAMP),
-//						quote(Result.FIELD_VALUE),
-//				},
-//				quote(Result.FIELD_GROUP_ID)+"=? AND "+ quote(Result.FIELD_TIMESTAMP)+" >= ? AND "+ quote(Result.FIELD_TIMESTAMP)+" < ?",
-//				new String[]{
-//						this._id+"",
-//						startTime+"",
-//						endTime+""
-//				},
-//				null,
-//				null,
-//				null,
-//				null
-//		);
-//	}	
-//	
-	
+
 
 	private ArrayList<String> getCategories(String keySuffix) {
 		String[] idsStrArr = SharedPref.getValues(
