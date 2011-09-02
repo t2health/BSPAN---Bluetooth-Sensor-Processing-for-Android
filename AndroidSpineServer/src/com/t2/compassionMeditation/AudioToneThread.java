@@ -18,9 +18,12 @@ class AudioToneThread extends Thread {
 		return frequency;
 	}
 
-	public void setFrequency(float frequency) {
-		this.frequency = frequency;
-	    this.increment = (float)(2*Math.PI) * frequency / 44100; // angular increment for each sample
+	public void setFrequency(float aFrequency) {
+		
+		if (frequency != aFrequency) {
+			frequency = aFrequency;
+			increment = (float)(2*Math.PI) * frequency / 44100; // angular increment for each sample
+		}
 	}
 
 	@Override

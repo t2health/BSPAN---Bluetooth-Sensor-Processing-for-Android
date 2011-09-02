@@ -16,6 +16,7 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+import org.t2health.lib.activity.BaseActivity;
 
 
 import android.app.AlertDialog;
@@ -57,7 +58,7 @@ import com.t2.compassionDB.BioUser;
 import com.t2.compassionDB.DatabaseHelper;
 import com.t2.compassionUtils.MathExtra;
 
-public class ViewSessionsActivity extends OrmLiteBaseActivity<DatabaseHelper> 
+public class ViewSessionsActivity extends BaseActivity
 				implements OnItemLongClickListener, OnClickListener{
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";

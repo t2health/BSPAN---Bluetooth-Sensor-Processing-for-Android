@@ -17,6 +17,7 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+import org.t2health.lib.activity.BaseActivity;
 
 
 
@@ -64,7 +65,7 @@ import android.widget.TextView;
 import com.t2.R;
 
 
-public class ViewHistoryActivity extends Activity implements OnSeekBarChangeListener
+public class ViewHistoryActivity extends BaseActivity implements OnSeekBarChangeListener
 {
 	private static final String TAG = "BFDemo";
 	private static final String mActivityVersion = "1.0";

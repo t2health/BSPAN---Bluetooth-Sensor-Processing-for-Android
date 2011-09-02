@@ -17,6 +17,7 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
+import org.t2health.lib.activity.BaseActivity;
 
 
 import com.t2.SpineReceiver;
@@ -75,7 +76,7 @@ import android.widget.Toast;
 import com.t2.R;
 
 
-public class GraphsActivity extends Activity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
+public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessageRecievedListener, SPINEListener {
 	private static final String TAG = "CompassionActivity";
 	private static final String mActivityVersion = "2.1";
 

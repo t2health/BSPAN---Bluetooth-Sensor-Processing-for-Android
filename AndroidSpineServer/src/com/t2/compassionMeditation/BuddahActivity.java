@@ -71,6 +71,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -208,7 +209,8 @@ public class BuddahActivity extends BaseActivity
     private ToneGenerator mToneGenerator; 
     
     private boolean mShowLotus;
-	
+    LinearInterpolator interpolator = new LinearInterpolator();
+    
 	
 	/**
 	 * Temp variable used in SelectUser() to indicate which user was selected
@@ -230,7 +232,7 @@ public class BuddahActivity extends BaseActivity
 	String[] mBioHarnessParameters;	
 	String mLogFileName = "";
 	
-	private AudioToneThread audioToneThread;
+//	private AudioToneThread audioToneThread;
 	
 	
     /** Called when the activity is first created. */
@@ -643,7 +645,7 @@ public class BuddahActivity extends BaseActivity
 				
 				currentZephyrData.heartRate = heartRate;
 				currentZephyrData.respRate = (int) respRate;
-				currentZephyrData.skinTemp = skinTemp;
+				currentZephyrData.skinTemp = (int) skinTempF;
 				
 	        	synchronized(mKeysLock) {				
     				float scaled  = MathExtra.scaleData((float)skinTempF, 110F, 70F, 255);
@@ -722,23 +724,23 @@ public class BuddahActivity extends BaseActivity
 							        }
 					        	}									
 	
-								if (mLoggingEnabled == true) {
-									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-									
-									String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
-									currentDateTimeString = sdf.format(new Date());
-									
-									String logData = currentDateTimeString + ", " + currentZephyrData.getLogDataLine();
-									logData += currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
-									
-									
-							        try {
-							        	if (mLogWriter != null)
-							        		mLogWriter.write(logData);
-									} catch (IOException e) {
-										Log.e(TAG, e.toString());
-									}
-								}			
+//								if (mLoggingEnabled == true) {
+//									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+//									
+//									String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+//									currentDateTimeString = sdf.format(new Date());
+//									
+//									String logData = currentDateTimeString + ", " + currentZephyrData.getLogDataLine();
+//									logData += currentMindsetData.getLogDataLine(mindsetData.exeCode, mSaveRawWave) + "\n";
+//									
+//									
+//							        try {
+//							        	if (mLogWriter != null)
+//							        		mLogWriter.write(logData);
+//									} catch (IOException e) {
+//										Log.e(TAG, e.toString());
+//									}
+//								}			
 							} // End if (mPaused == false)
 			        	}
 					}
@@ -844,7 +846,8 @@ public class BuddahActivity extends BaseActivity
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			if (mPaused == true || currentMindsetData == null) {
+			// We get here every .01 second
+			if (mPaused == true || currentMindsetData == null || currentZephyrData == null) {
 				return;
 			}
 
@@ -855,6 +858,16 @@ public class BuddahActivity extends BaseActivity
 					mLotusImage.setAlpha(mIntroFade--);
 					
 				}
+				
+				
+//				float v = (float) currentZephyrData.skinTemp  / 110F ; 
+//				float f = interpolator.getInterpolation(v);
+//				audioToneThread.setFrequency(f * 110 * 4);
+								
+				
+				
+				
+				
 				return;
 			}
 			else {
@@ -862,7 +875,26 @@ public class BuddahActivity extends BaseActivity
 				
 			}
 			
+			// We get here every 1 second
 			numSecsWithoutData++;
+			
+			if (mLoggingEnabled == true && numSecsWithoutData < 2) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+				
+				String currentDateTimeString = DateFormat.getDateInstance().format(new Date());				
+				currentDateTimeString = sdf.format(new Date());
+				
+				String logData = currentDateTimeString + ", " + currentZephyrData.getLogDataLine();
+				logData += currentMindsetData.getLogDataLine(currentMindsetData.exeCode, mSaveRawWave) + "\n";
+				
+				
+		        try {
+		        	if (mLogWriter != null)
+		        		mLogWriter.write(logData);
+				} catch (IOException e) {
+					Log.e(TAG, e.toString());
+				}
+			}			
 
 
 			int iBuddahAlphaValue;
@@ -896,7 +928,7 @@ public class BuddahActivity extends BaseActivity
 			if (mIntroFade <= 0) {
 				mBuddahImage.setAlpha(iBuddahAlphaValue);
 				
-				audioToneThread.setFrequency(iBuddahAlphaValue * 6);
+//				audioToneThread.setFrequency(iBuddahAlphaValue * 6);
 				
 				
 				if (mShowLotus) {
@@ -930,11 +962,11 @@ public class BuddahActivity extends BaseActivity
 	protected void onPause() {
 		Log.i(TAG, TAG +  " onPause");
 		
-		if(audioToneThread != null) {
-			audioToneThread.cancel();
-			audioToneThread.interrupt();
-			audioToneThread = null;
-		}		
+//		if(audioToneThread != null) {
+//			audioToneThread.cancel();
+//			audioToneThread.interrupt();
+//			audioToneThread = null;
+//		}		
 		
 		
 		mDataUpdateTimer.purge();
@@ -978,8 +1010,8 @@ public class BuddahActivity extends BaseActivity
 		// (I register myself since I'm a SPINEListener implementation!)
 		mManager.addListener(this);	     
 		
-		audioToneThread = new AudioToneThread();
-		audioToneThread.start();		
+//		audioToneThread = new AudioToneThread();
+//		audioToneThread.start();		
 		
 		super.onResume();
 	}
