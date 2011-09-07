@@ -24,17 +24,26 @@ import com.t2.R;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
 
-public class BioZenPreferenceActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener{
+public class BioZenPreferenceActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener, OnPreferenceChangeListener{
     public static final String KEY_PREFERENCE = "change_user_mode_preference";
 
+    
+    String existingSessionLength;    
+    String existingAlphaGain;    
+    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        existingSessionLength = SharedPref.getString(this, "session_length", "-1");    
+        existingAlphaGain = SharedPref.getString(this, "alpha_gain", "-1");    
         
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.bio_zen_preferences);
@@ -51,9 +60,55 @@ public class BioZenPreferenceActivity extends PreferenceActivity implements OnSh
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences arg0, String key) {
-      if (key.equals("audio_track")) {
-      Toast.makeText(this, "Thanks! You increased my count to ", Toast.LENGTH_SHORT).show();
-  }
-		
+      if (key.endsWith("session_length")) {
+    	  String stringValue = arg0.getString(key, "-1");
+    	  int value = 0;
+    	  try {
+    		  value = Integer.parseInt(stringValue);
+			} 
+    	  catch (NumberFormatException e) {
+    		  value = -1;
+    	  }
+    	  finally {
+        	  if (value < 1 || value > 60) {
+        	      Toast.makeText(this, " *** " + stringValue + " is an invalid value, try again ***\n Valid values are 1 - 60", Toast.LENGTH_LONG).show();
+        	      SharedPref.putString(this, "session_length", existingSessionLength);        	      
+        	      
+        	  }
+        	  else {
+        	      Toast.makeText(this, key + " changed to " + value, Toast.LENGTH_LONG).show();
+        	  }
+    	  }
+      }
+      else if (key.endsWith("alpha_gain")) {
+    	  String stringValue = arg0.getString(key, "-1");
+    	  int value = 0;
+    	  try {
+    		  value = Integer.parseInt(stringValue);
+			} 
+    	  catch (NumberFormatException e) {
+    		  value = -1;
+    	  }
+    	  finally {
+        	  if (value < 1 || value > 10) {
+        	      Toast.makeText(this, " *** " + stringValue + " is an invalid value, try again ***\n Valid values are 1 - 10", Toast.LENGTH_LONG).show();
+        	      SharedPref.putString(this, "alpha_gain", existingAlphaGain);        	      
+        	      
+        	  }
+        	  else {
+        	      Toast.makeText(this, key + " changed to " + value, Toast.LENGTH_LONG).show();
+        	  }
+    	  }
+      }
+      
+      
+      
+	}
+
+
+	@Override
+	public boolean onPreferenceChange(Preference arg0, Object arg1) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

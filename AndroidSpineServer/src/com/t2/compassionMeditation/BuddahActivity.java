@@ -1075,6 +1075,7 @@ public class BuddahActivity extends BaseActivity
 	@Override
 	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
 		mAlphaGain = arg1/10;
+		if (mAlphaGain <= 0) mAlphaGain = 1;
 	}
 
 	@Override

@@ -20,7 +20,7 @@
 
     <PreferenceCategory android:title="Meditation Session Preferences">
         <EditTextPreference android:key="session_length" android:summary="Sets length of meditation session" android:title="Session Length"></EditTextPreference>
-        <EditTextPreference android:key="alpha_gain" android:summary="Sets how strongly the band of interest will affect the image intensity" android:title="Alpha Gain"></EditTextPreference>
+        <EditTextPreference android:title="Alpha Gain" android:key="alpha_gain" android:summary="Sets how strongly the band of interest will affect the image intensity"></EditTextPreference>
         <CheckBoxPreference android:defaultValue="true" android:title="Show Lotus" android:key="show_lotus" android:summary="Selects whether or not to show the lotus flower"></CheckBoxPreference>
         <ListPreference
                 android:dialogTitle="Audio Track" android:key="audio_track" android:summary="Selects the music to play during the session" android:title="Audio Track" android:entries="@array/audio_selection_array" android:entryValues="@array/audio_selection_array"/>

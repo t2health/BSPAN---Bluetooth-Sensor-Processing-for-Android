@@ -113,4 +113,26 @@ public class BioSession {
 		}
 		return out;
 	}
+	
+	public String toString() {
+		String result = "";
+		for (int i = 0; i < BioZenConstants.MAX_KEY_ITEMS; i++) {
+			result += minFilteredValue[i] + ", ";
+		}
+		for (int i = 0; i < BioZenConstants.MAX_KEY_ITEMS; i++) {
+			result += maxFilteredValue[i] + ", ";
+		}
+		for (int i = 0; i < BioZenConstants.MAX_KEY_ITEMS; i++) {
+			result += avgFilteredValue[i] + ", ";
+		}
+		
+		result += mindsetBandOfInterestIndex + ", ";	
+		result += bioHarnessParameterOfInterest + ", ";	
+		result += comments + ", ";	
+		result += category + ", ";	
+		result += secondsCompleted + ", ";	
+		result += precentComplete + ", ";	
+		return result;
+		
+	}
 }
