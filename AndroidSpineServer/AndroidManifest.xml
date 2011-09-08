@@ -133,6 +133,7 @@
         <activity android:name=".compassionMeditation.ViewSessionsActivity"></activity>
         <activity android:name=".compassionMeditation.MainChooserActivity"></activity>
         <activity android:name=".compassionMeditation.EndSessionActivity"></activity>
+        <activity android:name=".compassionMeditation.SplashScreenActivity"></activity>
         
 
         

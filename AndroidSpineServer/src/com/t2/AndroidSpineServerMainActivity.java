@@ -2,6 +2,7 @@ package com.t2;
 
 import com.t2.biomap.BioMapActivity;
 import com.t2.compassionMeditation.MainChooserActivity;
+import com.t2.compassionMeditation.SplashScreenActivity;
 import com.t2.Constants;
 
 import spine.SPINEFactory;
@@ -177,8 +178,9 @@ public class AndroidSpineServerMainActivity extends Activity{
 //			Intent i = new Intent(this, BioMapActivity.class);
 //			Intent i = new Intent(this, CompassionActivity.class);
 //			Intent i = new Intent(this, MeditationActivity.class);
-			Intent i = new Intent(this, MainChooserActivity.class);
 //			Intent i = new Intent(this, BioDetailActivity.class);
+//			Intent i = new Intent(this, MainChooserActivity.class);
+			Intent i = new Intent(this, SplashScreenActivity.class);
 			this.startActivity(i);
 		}
 	}

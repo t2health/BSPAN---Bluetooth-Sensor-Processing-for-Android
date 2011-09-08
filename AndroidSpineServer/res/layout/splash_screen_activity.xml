@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/splashWrapper"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="vertical"
+	android:padding="5dip"
+	android:background="#FF000000">
+	<FrameLayout android:layout_width="fill_parent" android:id="@+id/frameLayout1" android:layout_height="wrap_content">
+		<ImageView android:src="@drawable/biozen_splash_bkgrd" android:layout_width="wrap_content" android:id="@+id/imageView2" android:layout_height="wrap_content"></ImageView>
+		<ImageView android:src="@drawable/biozen_logo" android:layout_width="fill_parent" android:scaleType="fitCenter" android:id="@+id/imageView1" android:layout_height="wrap_content"></ImageView>
+	</FrameLayout>
+
+</LinearLayout>

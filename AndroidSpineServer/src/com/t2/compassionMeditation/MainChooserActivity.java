@@ -54,7 +54,7 @@ public class MainChooserActivity extends Activity {
             R.drawable.newsession_tab,
             R.drawable.view_tab,
             R.drawable.review_tab,
-            R.drawable.files_tab,
+//            R.drawable.files_tab,
     };
 	
 	/**
@@ -210,12 +210,18 @@ public class MainChooserActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
+		
+		case R.id.itemFileView:
+			Intent intent = new Intent(instance, FileChooser.class);
+			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY); 			
+			return true;
+			
 		case R.id.settings:
 			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
 			return true;
 			
 		case R.id.preferences:
-			Intent intent = new Intent(this, BioZenPreferenceActivity.class);
+			intent = new Intent(this, BioZenPreferenceActivity.class);
 //			Intent intent = new Intent(this, PreferenceActivity.class);
 			this.startActivity(intent);	
 			return true;
