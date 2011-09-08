@@ -15,6 +15,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
@@ -74,12 +76,16 @@ public class MainChooserActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
-        setContentView(R.layout.main_chooser_activity_layout);
+        
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
+        
+        setContentView(R.layout.new_main_chooser_activity_layout);
         
         PreferenceManager.setDefaultValues(this, R.xml.bio_zen_preferences, false);        
         
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);    
-        setTitle("BioZen");
+        //setTitle("BioZen");
         
         String s = SharedPref.getString(this,BioZenConstants.PREF_USER_MODE,BioZenConstants.PREF_USER_MODE_DEFAULT);
         mUserMode = Integer.parseInt(s);
