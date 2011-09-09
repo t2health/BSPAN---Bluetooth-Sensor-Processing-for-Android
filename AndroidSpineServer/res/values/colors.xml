@@ -21,4 +21,5 @@
 	<color name="chart_gradient_end">#FF356aa2</color>
 	<color name="chart_text">#FFFFFFFF</color>
 	<color name="ColorBlack">#FF000000</color>
+	<color name="ColorCoolGrey">#ff667484</color>
 </resources>

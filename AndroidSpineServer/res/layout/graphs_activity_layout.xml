@@ -3,9 +3,10 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
+    <ImageView android:layout_height="wrap_content" android:id="@+id/imageView2" android:layout_width="wrap_content" android:src="@drawable/biozen_logo_short"></ImageView>
     <RelativeLayout android:layout_width="fill_parent" android:id="@+id/relativeLayout1" android:layout_height="wrap_content">
         <Button android:layout_width="wrap_content" android:text="@string/button_back" android:id="@+id/buttonBack" android:gravity="right" android:layout_height="wrap_content" android:onClick="onButtonClick"></Button>
-        <ImageView android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/imageView1" android:layout_alignParentRight="true" android:layout_width="wrap_content"></ImageView>
+        <ImageView android:layout_height="wrap_content" android:id="@+id/imageView1" android:layout_alignParentRight="true" android:layout_width="wrap_content" android:src="@drawable/signal_bars0"></ImageView>
     </RelativeLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/seekbarText" android:text="@string/seekbarText" android:visibility="gone"></TextView>
     <SeekBar 
@@ -22,9 +23,11 @@
     	android:gravity="right" 
     	android:layout_width="fill_parent">
     </LinearLayout>
+    <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent">
+        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddMeasure" android:text="@string/button_add_measure" android:onClick="onButtonClick"></Button>
+        <Button android:layout_height="wrap_content" android:id="@+id/buttonPause" android:text="@string/button_pause" android:onClick="onButtonClick" android:layout_gravity="right" android:layout_width="fill_parent"></Button>
+    </LinearLayout>
     <TextView android:layout_height="wrap_content" android:id="@+id/measuresDisplayText" android:layout_width="wrap_content"></TextView>
-    <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddMeasure" android:onClick="onButtonClick" android:text="@string/button_add_measure"></Button>
     <TextView android:text="TextView" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInfo"></TextView>
-    <Button android:onClick="onButtonClick" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/button_pause" android:id="@+id/buttonPause"></Button>
 		
 </LinearLayout>
