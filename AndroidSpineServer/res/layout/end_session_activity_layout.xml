@@ -2,29 +2,48 @@
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
-  android:layout_height="fill_parent" android:orientation="vertical">
-    <LinearLayout android:layout_width="fill_parent" android:id="@+id/linearLayout3" android:layout_height="200dip" >
-        <LinearLayout android:layout_width="wrap_content" android:id="@+id/linearLayout4" android:layout_height="fill_parent" android:orientation="vertical">
-            <LinearLayout android:id="@+id/linearLayout5" android:layout_height="wrap_content" android:layout_width="fill_parent">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView2" android:text="Categories:" android:layout_weight="1"></TextView>
-                <Button android:layout_width="wrap_content" android:text="Add Category" android:layout_height="wrap_content" android:id="@+id/buttonNewCategory" android:layout_gravity="right"></Button>
+  android:layout_height="fill_parent" 
+  android:orientation="vertical"
+  >
+    <FrameLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/frameLayout1">
+		    <ImageView 
+		    	android:id="@+id/imageView2" 
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" 
+		    	android:src="@drawable/biozen_splash_bkgrd"
+		    	></ImageView>
+		    <ImageView 
+		    	android:layout_width="wrap_content" 
+		    	android:id="@+id/imageView1" 
+		    	android:layout_height="wrap_content" 
+		    	android:src="@drawable/biozen_logo"
+		    	></ImageView>
+    
+        <LinearLayout 
+        	android:id="@+id/linearLayout6" 
+			  android:layout_width="fill_parent"
+  			android:layout_height="fill_parent" 
+  			android:orientation="vertical"
+        	>
+            <TextView android:layout_width="wrap_content" android:id="@+id/textView3" android:layout_height="150dip"></TextView>
+            <LinearLayout android:layout_height="200dip" android:id="@+id/linearLayout3" android:layout_width="fill_parent">
+                <LinearLayout android:layout_height="fill_parent" android:id="@+id/linearLayout4" android:orientation="vertical" android:layout_width="wrap_content">
+                    <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout5" android:layout_width="fill_parent">
+                        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView2" android:text="Categories:" android:layout_weight="1"></TextView>
+                        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonNewCategory" android:layout_gravity="right" android:text="Add Category" android:visibility="gone"></Button>
+                    </LinearLayout>
+                    <GridView android:layout_height="fill_parent" android:layout_width="wrap_content" android:id="@+id/gridViewCategories"></GridView>
+                </LinearLayout>
             </LinearLayout>
-            <GridView 
-            	android:layout_width="wrap_content" 
-            	android:layout_height="fill_parent" 
-            	android:id="@+id/gridViewCategories">
-            	
-            	</GridView>
-
+            <LinearLayout android:layout_height="100dip" android:id="@+id/linearLayout2" android:orientation="vertical" android:layout_width="fill_parent">
+                <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView1" android:text="Notes:"></TextView>
+                <EditText android:text="EditText" android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/editTextNotes"></EditText>
+            </LinearLayout>
+            <LinearLayout android:layout_height="fill_parent" android:id="@+id/linearLayout1" android:layout_width="fill_parent">
+                <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonSaveSession" android:text="Save" android:layout_weight="1" android:onClick="onButtonClick"></Button>
+                <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonQuitSession" android:text="Quit (no save)" android:onClick="onButtonClick"></Button>
+                <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonRestartSession" android:text="Restart" android:onClick="onButtonClick"></Button>
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:id="@+id/linearLayout2" android:layout_height="100dip" android:orientation="vertical">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/textView1" android:text="Notes:"></TextView>
-        <EditText android:id="@+id/editTextNotes" android:layout_width="fill_parent" android:layout_height="fill_parent"></EditText>
-    </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:id="@+id/linearLayout1" android:layout_height="fill_parent">
-        <Button android:layout_width="wrap_content" android:layout_weight="1" android:onClick="onButtonClick" android:text="Save" android:layout_height="wrap_content" android:id="@+id/buttonSaveSession"></Button>
-        <Button android:layout_width="wrap_content" android:onClick="onButtonClick" android:text="Quit (no save)" android:layout_height="wrap_content" android:id="@+id/buttonQuitSession"></Button>
-        <Button android:layout_width="wrap_content" android:onClick="onButtonClick" android:text="Restart" android:layout_height="wrap_content" android:id="@+id/buttonRestartSession"></Button>
-    </LinearLayout>
+    </FrameLayout>
 </LinearLayout>
