@@ -11,6 +11,7 @@
 		    	android:layout_width="wrap_content" 
 		    	android:layout_height="wrap_content" 
 		    	android:src="@drawable/biozen_splash_bkgrd"
+		    	android:scaleType="fitXY"
 		    	></ImageView>
 		    <ImageView 
 		    	android:layout_width="wrap_content" 
