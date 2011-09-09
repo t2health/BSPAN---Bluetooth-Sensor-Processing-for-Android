@@ -90,8 +90,8 @@ public class BuddahActivity extends BaseActivity
 		implements 	OnBioFeedbackMessageRecievedListener, SPINEListener, 
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
-	private static final String mActivityVersion = "2.3";
-	private boolean mDebug = true;
+	private static final String mActivityVersion = "2.4";
+	private boolean mDebug = false;
 	
 	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
