@@ -140,6 +140,12 @@ public class BuddahActivity extends BaseActivity
      */
     private boolean mShowingControls = false; 
 	
+    /**
+     * Signal quality as reported by the mindset headset
+     * Value 0 - 200 0 is best, 199 is worst, 200 is no connection 
+     */
+    private int mSigQuality = 200;
+    
 	/**
 	 * Timer for updating the UI
 	 */
@@ -442,6 +448,9 @@ public class BuddahActivity extends BaseActivity
 		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
 		mLogCatName = "Logcat" + currentDateTimeString + ".log";		
 		
+		mSignalImage.setImageResource(R.drawable.signal_bars0);
+		mSignalImage.setVisibility(View.VISIBLE);
+		
     	saveState();
     } // End onCreate(Bundle savedInstanceState)
     
@@ -685,22 +694,22 @@ public class BuddahActivity extends BaseActivity
 			        		currentMindsetData.poorSignalStrength = mindsetData.poorSignalStrength;
 			        	}
 
-						int sigQuality = mindsetData.poorSignalStrength & 0xff;
+						mSigQuality = mindsetData.poorSignalStrength & 0xff;
 
-						if (mShowingControls || sigQuality == 200)
+						if (mShowingControls || mSigQuality == 200)
 							mSignalImage.setVisibility(View.VISIBLE);
 						else
 							mSignalImage.setVisibility(View.INVISIBLE);
 						
-						if (sigQuality == 200)
+						if (mSigQuality == 200)
 							mSignalImage.setImageResource(R.drawable.signal_bars0);
-						else if (sigQuality > 150)
+						else if (mSigQuality > 150)
 							mSignalImage.setImageResource(R.drawable.signal_bars1);
-						else if (sigQuality > 100)
+						else if (mSigQuality > 100)
 							mSignalImage.setImageResource(R.drawable.signal_bars2);
-						else if (sigQuality > 50)
+						else if (mSigQuality > 50)
 							mSignalImage.setImageResource(R.drawable.signal_bars3);
-						else if (sigQuality > 25)
+						else if (mSigQuality > 25)
 							mSignalImage.setImageResource(R.drawable.signal_bars4);
 						else 
 							mSignalImage.setImageResource(R.drawable.signal_bars5);

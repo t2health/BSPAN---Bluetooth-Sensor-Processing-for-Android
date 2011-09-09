@@ -3,14 +3,69 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent" >
-    <ImageView android:layout_width="wrap_content" android:id="@+id/imageView1" android:layout_height="wrap_content" android:src="@drawable/biozen_bkgrd_wlogo"></ImageView>
-    <RelativeLayout android:id="@+id/relativeLayout1" android:gravity="fill_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+    <ImageView android:id="@+id/imageView2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/biozen_splash_bkgrd"></ImageView>
+    <ImageView 
+    	android:layout_width="wrap_content" 
+    	android:id="@+id/imageView1" 
+    	android:layout_height="wrap_content" 
+    	android:src="@drawable/biozen_logo"
+    	></ImageView>
+    	
+    <RelativeLayout 
+    	android:id="@+id/relativeLayout1" 
+    	android:gravity="fill_vertical" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	>
         <TextView 
         	android:layout_width="fill_parent" 
         	android:id="@+id/textView1" 
         	android:layout_height="120dip"
         	></TextView>
-        <GridView android:verticalSpacing="10dp" android:stretchMode="columnWidth" android:id="@+id/gridview" android:numColumns="auto_fit" android:gravity="center" android:layout_width="fill_parent" android:horizontalSpacing="10dp" android:columnWidth="90dp" android:layout_height="fill_parent" android:layout_below="@+id/textView1" android:layout_alignLeft="@+id/textView1" android:layout_alignRight="@+id/textView1"></GridView>
+        <LinearLayout 
+        	android:id="@+id/linearLayout1" 
+        	android:layout_width="wrap_content" 
+        	android:layout_height="wrap_content"
+        	android:layout_alignParentBottom="true"
+        	>
+            <ImageButton 
+            	android:background="@null" 
+            	android:id="@+id/imageButtonLearn" 
+            	android:src="@drawable/learn_button_images"
+				android:layout_width="80dip" 
+				android:layout_height="80dip"  
+				android:scaleType="fitXY"    
+				android:onClick="onButtonClick"
+            	></ImageButton>
+            <ImageButton 
+            	android:background="@null" 
+            	android:id="@+id/imageButtonNewSession" 
+            	android:src="@drawable/new_session_button_images"
+				android:layout_width="80dip" 
+				android:layout_height="80dip"  
+				android:scaleType="fitXY"          	
+				android:onClick="onButtonClick"
+            	></ImageButton>
+            <ImageButton 
+            	android:background="@null" 
+            	android:id="@+id/imageButtonReview" 
+            	android:src="@drawable/review_button_images"
+				android:layout_width="80dip" 
+				android:layout_height="80dip"  
+				android:scaleType="fitXY"          	
+				android:onClick="onButtonClick"
+            	></ImageButton>
+            <ImageButton 
+            	android:background="@null" 
+            	android:id="@+id/imageButtonView" 
+            	android:src="@drawable/view_button_images"
+				android:layout_width="80dip" 
+				android:layout_height="80dip"  
+				android:scaleType="fitXY"          	
+				android:onClick="onButtonClick"
+            	></ImageButton>
+        </LinearLayout>
+
     </RelativeLayout>  
   
   

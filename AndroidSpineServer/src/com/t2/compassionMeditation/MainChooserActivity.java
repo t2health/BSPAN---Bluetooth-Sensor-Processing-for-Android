@@ -20,7 +20,9 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
@@ -52,10 +54,14 @@ public class MainChooserActivity extends Activity {
 	
     // references to our images - The order MUST match the ID index variables above
     private Integer[] mThumbIds = {
-            R.drawable.learn_tab, 
-            R.drawable.newsession_tab,
-            R.drawable.view_tab,
-            R.drawable.review_tab,
+            R.drawable.learn, 
+            R.drawable.new_session,
+            R.drawable.view,
+            R.drawable.review,
+//            R.drawable.learn_tab, 
+//            R.drawable.newsession_tab,
+//            R.drawable.view_tab,
+//            R.drawable.review_tab,
 //            R.drawable.files_tab,
     };
 	
@@ -100,10 +106,20 @@ public class MainChooserActivity extends Activity {
 			   	Log.e(TAG, e.toString());
 		}        
         
-        GridView gridView = (GridView) findViewById(R.id.gridview);
-        gridView.setNumColumns(2);
-        gridView.setAdapter(new ImageAdapter(this));
+// //       GridView gridView = (GridView) findViewById(R.id.gridview);
+// //       gridView.setAdapter(new ImageAdapter(this));
+//      ImageView imageView = (ImageView)findViewById(R.id.imageView3);
+//        imageView.setImageResource(R.drawable.learn);
+////        mSeekBar = (SeekBar)findViewById(R.id.seekBar1);        
+//  //          imageView = new ImageView(this);
+////        imageView.setLayoutParams(new GridView.LayoutParams(90, 90));
+//        imageView.setLayoutParams(new ViewGroup.LayoutParams(90, 90));
+//            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//      ImageButton imageButton = (ImageButton)findViewById(R.id.imageButton1);
+		
         
+		
+		
 		if (mUserMode == BioZenConstants.PREF_USER_MODE_PROVIDER) {
 			Intent intent2 = new Intent(this, SelectUserActivity.class);
 			this.startActivityForResult(intent2, BioZenConstants.SELECT_USER_ACTIVITY);		
@@ -112,49 +128,81 @@ public class MainChooserActivity extends Activity {
 	    	SharedPref.putString(this, "SelectedUser", 	"");
 		}        
 
-        gridView.setOnItemClickListener(new GridView.OnItemClickListener() 
-        {
-            public void onItemClick(AdapterView parent, View v, int position, long id) 
-            {    
-            	Intent intent;            	
-            	switch (position)
-            	{
-            	case ID_LEARN:
-            		break;
-
-            	case ID_NEW_SESSION:
-        			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
-        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
-        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-
-        			if (instructionsOnStart) {
-        				Intent intent1 = new Intent(instance, InstructionsActivity.class);
-        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
-        			} else {
-        				intent = new Intent(instance, BuddahActivity.class);
-        				instance.startActivity(intent);		
-        			}
-        			break;
-        			
-            	case ID_VIEW_ACTIVITY:
-        			intent = new Intent(instance, GraphsActivity.class);
-        			instance.startActivity(intent);	        			
-            		break;
-            		
-            	case ID_DIRECTORY:
-        			intent = new Intent(instance, FileChooser.class);
-        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-            		break;
-
-            	case ID_REVIEW:
-        			intent = new Intent(instance, ViewSessionsActivity.class);
-        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-            		break;
-            	}
-           }
-        });
+//        gridView.setOnItemClickListener(new GridView.OnItemClickListener() 
+//        {
+//            public void onItemClick(AdapterView parent, View v, int position, long id) 
+//            {    
+//            	Intent intent;            	
+//            	switch (position)
+//            	{
+//            	case ID_LEARN:
+//            		break;
+//
+//            	case ID_NEW_SESSION:
+//        			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
+//        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
+//        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+//
+//        			if (instructionsOnStart) {
+//        				Intent intent1 = new Intent(instance, InstructionsActivity.class);
+//        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
+//        			} else {
+//        				intent = new Intent(instance, BuddahActivity.class);
+//        				instance.startActivity(intent);		
+//        			}
+//        			break;
+//        			
+//            	case ID_VIEW_ACTIVITY:
+//        			intent = new Intent(instance, GraphsActivity.class);
+//        			instance.startActivity(intent);	        			
+//            		break;
+//            		
+//            	case ID_DIRECTORY:
+//        			intent = new Intent(instance, FileChooser.class);
+//        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
+//            		break;
+//
+//            	case ID_REVIEW:
+//        			intent = new Intent(instance, ViewSessionsActivity.class);
+//        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
+//            		break;
+//            	}
+//           }
+//        });
     }
 	
+	public void onButtonClick(View v)
+	{
+		 final int id = v.getId();
+		    switch (id) {
+		    case R.id.imageButtonLearn:
+		    	break;
+		    case R.id.imageButtonNewSession:
+    			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
+				BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
+				BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+
+				if (instructionsOnStart) {
+					Intent intent1 = new Intent(instance, InstructionsActivity.class);
+					instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
+				} else {
+					Intent intent = new Intent(instance, BuddahActivity.class);
+					instance.startActivity(intent);		
+				}		    	
+		    	break;
+		    case R.id.imageButtonReview:
+    			Intent intent = new Intent(instance, ViewSessionsActivity.class);
+    			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY); 		    	
+		    	break;
+		    case R.id.imageButtonView:
+    			intent = new Intent(instance, GraphsActivity.class);
+    			instance.startActivity(intent);		    	
+		    	break;
+		    		    
+		    }
+	}
+    
+    
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -275,9 +323,11 @@ public class MainChooserActivity extends Activity {
 	        ImageView imageView;
 	        if (convertView == null) {  // if it's not recycled, initialize some attributes
 	            imageView = new ImageView(mContext);
-	            imageView.setLayoutParams(new GridView.LayoutParams(150, 150));
+	            imageView.setLayoutParams(new GridView.LayoutParams(90, 90));
 	            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-	            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//	            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//	            imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+//	            imageView.setScaleType(ImageView.ScaleType.FIT_END);
 	            imageView.setPadding(1,1,1,1);
 	        } else {
 	            imageView = (ImageView) convertView;
