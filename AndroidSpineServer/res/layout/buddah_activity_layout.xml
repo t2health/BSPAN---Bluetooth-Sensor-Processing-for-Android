@@ -9,10 +9,10 @@
         <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/lotus_flower" android:layout_gravity="center_horizontal" android:id="@+id/lotusView"></ImageView>
     </FrameLayout>
     <FrameLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/frameLayout2">
-        <RelativeLayout android:layout_height="wrap_content" android:gravity="right" android:layout_width="fill_parent" android:id="@+id/relativeLayout2">
-            <TextView android:gravity="right" android:layout_height="wrap_content" android:id="@+id/textViewBioHarness" android:text="TextView" android:layout_width="200dip"></TextView>
-            <TextView android:gravity="left" android:visibility="visible" android:layout_height="wrap_content" android:id="@+id/textViewInfo" android:text="TextView" android:layout_width="fill_parent"></TextView>
-        </RelativeLayout>
+        <LinearLayout android:id="@+id/linearLayout2" android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <TextView android:layout_height="wrap_content" android:id="@+id/textViewBioHarness" android:text="TextView" android:layout_width="175dip"></TextView>
+            <TextView android:visibility="visible" android:layout_height="wrap_content" android:id="@+id/textViewInfo" android:text="TextView" android:layout_width="fill_parent"></TextView>
+        </LinearLayout>
         <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:orientation="vertical" android:layout_width="fill_parent">
             <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textViewInstructions" android:maxWidth="300dip" android:text='Adjust the headset until you see the meter display "green" bars then press start.' android:layout_gravity="center_horizontal"></TextView>
             <Button android:layout_height="wrap_content" android:layout_width="200dip" android:id="@+id/buttonPause" android:layout_gravity="center_horizontal" android:text="Start" android:onClick="onButtonClick"></Button>

@@ -91,7 +91,8 @@ public class BuddahActivity extends BaseActivity
 					View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 	private static final String TAG = "MeditationActivity";
 	private static final String mActivityVersion = "2.3";
-
+	private boolean mDebug = true;
+	
 	private int mIntroFade = 255;
 	private int mSubTimerClick = 100;
 	
@@ -111,6 +112,12 @@ public class BuddahActivity extends BaseActivity
 	private int mSecondsRemaining = 0;
 	private int mSecondsTotal = 0;
 	
+	/**
+	 * Determines state of on screen button
+	 *   true = this is a start button
+	 *   false = this is a quit button
+	 */
+	private boolean mButtonIsStart = true;
 
 	
 	
@@ -138,7 +145,7 @@ public class BuddahActivity extends BaseActivity
     /**
      * Toggled by screen press, indicates whether or not to show buttons/tools on screen
      */
-    private boolean mShowingControls = false; 
+    private boolean mShowingControls = true; 
 	
     /**
      * Signal quality as reported by the mindset headset
@@ -154,7 +161,7 @@ public class BuddahActivity extends BaseActivity
 	
 	private BufferedWriter mLogWriter = null;
 	private boolean mLoggingEnabled = false;
-	private boolean mPaused = false;
+	private boolean mPaused = true;
 	
 	
 	// UI Elements
@@ -162,6 +169,7 @@ public class BuddahActivity extends BaseActivity
     private Button mLlogMarkerButton;
     private Button mPauseButton;
     private TextView mTextInfoView;
+    private TextView mTextViewInstructions;
     private TextView mTextBioHarnessView;
     private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
@@ -321,7 +329,9 @@ public class BuddahActivity extends BaseActivity
         mTextBioHarnessView = (TextView) findViewById(R.id.textViewBioHarness);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
         mPauseButton = (Button) findViewById(R.id.buttonPause);
-        mSignalImage = (ImageView) findViewById(R.id.imageView1);    
+        mSignalImage = (ImageView) findViewById(R.id.imageView1);  
+        mTextViewInstructions = (TextView) findViewById(R.id.textViewInstructions);
+        
                 
 
         // Note that the seek bar is a debug thing - used only to set the
@@ -335,6 +345,7 @@ public class BuddahActivity extends BaseActivity
 		mTextInfoView.setVisibility(View.INVISIBLE);
 		mTextBioHarnessView.setVisibility(View.INVISIBLE);		
 		mPauseButton.setVisibility(View.INVISIBLE);
+		mPauseButton.setVisibility(View.VISIBLE);
 		mSeekBar.setVisibility(View.INVISIBLE);
 		
         ImageView image = (ImageView) findViewById(R.id.imageView1);
@@ -495,6 +506,7 @@ public class BuddahActivity extends BaseActivity
 		super.onStart();
 		Log.i(TAG, TAG +  " OnStart");
 		
+		mPauseButton.setText("Start");
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -810,7 +822,17 @@ public class BuddahActivity extends BaseActivity
 		    	break;
 		    		    
 		    case R.id.buttonPause:
-		    	handlePause(mSessionName + " Paused");
+		    	if (mPaused) {
+		    		mPaused = false;
+		    		mPauseButton.setText("Quit");
+		    		mTextViewInstructions.setVisibility(View.INVISIBLE);
+		    		toggleControls();		    		
+		    		Toast.makeText(instance, "You may toggle the screen controls back \non by pressing anywhere on the screen", Toast.LENGTH_SHORT).show();
+		    		
+		    	}
+		    	else {
+		    		handlePause(mSessionName + " Paused");
+		    	}
 		    	break;
 		        
 //		    case R.id.buttonLogging:
@@ -950,7 +972,7 @@ public class BuddahActivity extends BaseActivity
 			}
 			
 			if (mSecondsRemaining-- > 0) {
-				mCountdownTextView.setText("Time remaining: " + secsToHMS(mSecondsRemaining));	
+				mCountdownTextView.setText(secsToHMS(mSecondsRemaining));	
 			}
 			else {
 				if (mMediaPlayer != null) {
@@ -1055,10 +1077,7 @@ public class BuddahActivity extends BaseActivity
 		
 	}
 
-	
-	@Override
-	public boolean onTouch(View arg0, MotionEvent arg1) {
-		
+	void toggleControls() {
 		// Toggle showing screen buttons/controls
 		if (mShowingControls) {
 			mShowingControls = false;
@@ -1072,12 +1091,18 @@ public class BuddahActivity extends BaseActivity
 		else {
 			mShowingControls = true;
 			mCountdownTextView.setVisibility(View.VISIBLE);
-			mTextInfoView.setVisibility(View.VISIBLE);
-			mTextBioHarnessView.setVisibility(View.VISIBLE);
+			if (mDebug) mTextInfoView.setVisibility(View.VISIBLE);
+			if (mDebug) mTextBioHarnessView.setVisibility(View.VISIBLE);
 			mPauseButton.setVisibility(View.VISIBLE);
-			mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.INVISIBLE);
+			if (mDebug) mSeekBar.setVisibility(mShowAGain ? View.VISIBLE :View.INVISIBLE);
 
-		}
+		}		
+	}
+	
+	@Override
+	public boolean onTouch(View arg0, MotionEvent arg1) {
+		if (!mPaused) toggleControls();
+
 		return false;
 	}
 
@@ -1107,14 +1132,14 @@ public class BuddahActivity extends BaseActivity
 	 */
 	public void handlePause(String message) {
 		
-		mPaused = true;
+			mPaused = true;
 
-//		if (mMediaPlayer != null) {
-//			mMediaPlayer.pause();
-//		}
+//			if (mMediaPlayer != null) {
+//				mMediaPlayer.pause();
+//			}
 
-		Intent intent1 = new Intent(instance, EndSessionActivity.class);
-		instance.startActivityForResult(intent1, BioZenConstants.END_SESSION_ACTIVITY);		
+			Intent intent1 = new Intent(instance, EndSessionActivity.class);
+			instance.startActivityForResult(intent1, BioZenConstants.END_SESSION_ACTIVITY);		
 	}
 
 	/**
@@ -1152,7 +1177,7 @@ public class BuddahActivity extends BaseActivity
 		
 		if (mLoggingEnabled) {
 
-			Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
+			if (mDebug)	Toast.makeText(instance, "Starting: " + mSessionName, Toast.LENGTH_LONG).show();
 
 			// Open a file for saving data
     		try {
@@ -1257,7 +1282,7 @@ public class BuddahActivity extends BaseActivity
 		
 		
 		addNoteToLog(notes);
-		Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+		if (mDebug)	Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 		
 		
 		// Save catlog file for possible debugging
@@ -1273,7 +1298,7 @@ public class BuddahActivity extends BaseActivity
 		}			
 		
 		if (!mSessionName.equalsIgnoreCase("")) {
-			Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
+			if (mDebug)	Toast.makeText(instance, "Saving: " + mSessionName, Toast.LENGTH_LONG).show();
 		}		
 		
 		// -----------------------------
