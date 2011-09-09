@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
@@ -150,6 +151,7 @@ public class EndSessionActivity extends Activity{
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
 		
 		this.setContentView(R.layout.end_session_activity_layout);
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
 		
 		
         sharedPref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());   

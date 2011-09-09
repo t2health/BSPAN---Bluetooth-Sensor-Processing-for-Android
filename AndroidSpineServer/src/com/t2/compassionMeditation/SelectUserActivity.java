@@ -7,9 +7,12 @@ import java.util.List;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -115,7 +118,12 @@ public class SelectUserActivity extends OrmLiteBaseActivity<DatabaseHelper> {
 		super.onCreate(savedInstanceState);
 		instance = this;
 		
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
+		
 		this.setContentView(R.layout.select_user_activity_layout);
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
+		
 		mListView = (ListView)findViewById(R.id.listViewUsers);
 		
 		

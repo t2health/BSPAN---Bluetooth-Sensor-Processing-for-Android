@@ -3,11 +3,35 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent"
-  android:orientation="vertical">
-    <LinearLayout android:layout_width="fill_parent" android:id="@+id/linearLayout2" android:layout_height="wrap_content">
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddUser" android:text="Add User" android:onClick="onButtonClick"></Button>
-    </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:id="@+id/linearLayout1" android:layout_height="wrap_content">
-        <ListView android:layout_width="fill_parent" android:id="@+id/listViewUsers" android:layout_height="wrap_content"></ListView>
-    </LinearLayout>
+  android:orientation="vertical"
+  >
+    <FrameLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/frameLayout1">
+    		    <ImageView 
+		    	android:id="@+id/imageView2" 
+		    	android:layout_width="wrap_content" 
+		    	android:layout_height="wrap_content" 
+		    	android:src="@drawable/biozen_splash_bkgrd"
+		    	android:scaleType="fitXY"
+		    	></ImageView>
+		    <ImageView 
+		    	android:layout_width="wrap_content" 
+		    	android:id="@+id/imageView1" 
+		    	android:layout_height="wrap_content" 
+		    	android:src="@drawable/biozen_logo"
+		    	></ImageView>
+		    <LinearLayout 
+		    	android:id="@+id/linearLayout3" 
+				  android:layout_width="fill_parent"
+				  android:layout_height="fill_parent"
+				  android:orientation="vertical"
+		    	>
+		        <TextView android:layout_height="130dip" android:id="@+id/textView1" android:layout_width="wrap_content"></TextView>
+		        <LinearLayout android:id="@+id/linearLayout2" android:layout_width="fill_parent" android:layout_height="wrap_content">
+		            <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonAddUser" android:text="Add User" android:onClick="onButtonClick"></Button>
+		        </LinearLayout>
+		        <LinearLayout android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_height="wrap_content">
+		            <ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/listViewUsers"></ListView>
+		        </LinearLayout>
+		    </LinearLayout>
+    </FrameLayout>
 </LinearLayout>
