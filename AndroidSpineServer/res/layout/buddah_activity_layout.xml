@@ -8,12 +8,15 @@
         <ImageView android:id="@+id/buddahView" android:src="@drawable/buddha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"></ImageView>
         <ImageView android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/lotus_flower" android:layout_gravity="center_horizontal" android:id="@+id/lotusView"></ImageView>
     </FrameLayout>
-    <RelativeLayout android:id="@+id/relativeLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent" android:gravity="center_horizontal">
-        <TextView android:layout_width="200dip" android:text="TextView" android:layout_height="wrap_content" android:gravity="right" android:layout_below="@+id/countdownTextView" android:layout_toRightOf="@+id/countdownTextView" android:id="@+id/textViewBioHarness"></TextView>
-        <TextView android:visibility="visible" android:id="@+id/textViewInfo" android:text="TextView" android:layout_height="wrap_content" android:layout_below="@+id/countdownTextView" android:layout_alignLeft="@+id/countdownTextView" android:layout_alignRight="@+id/countdownTextView" android:gravity="left" android:layout_width="fill_parent"></TextView>
-        <Button android:layout_height="wrap_content" android:id="@+id/buttonPause" android:text="@string/button_pause" android:onClick="onButtonClick" android:layout_width="200dip"></Button>
-        <TextView android:layout_height="wrap_content" android:id="@+id/countdownTextView" android:background="@android:drawable/edit_text" android:textSize="26sp" android:text="TextView" android:layout_below="@+id/buttonPause" android:layout_alignLeft="@+id/buttonPause" android:layout_alignRight="@+id/buttonPause" android:layout_width="200dip"></TextView>
+    <RelativeLayout android:id="@+id/relativeLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent" android:gravity="right">
+        <TextView android:layout_height="wrap_content" android:gravity="right" android:layout_width="200dip" android:id="@+id/textViewBioHarness" android:text="TextView"></TextView>
+        <TextView android:gravity="left" android:visibility="visible" android:layout_height="wrap_content" android:id="@+id/textViewInfo" android:text="TextView" android:layout_width="fill_parent"></TextView>
     </RelativeLayout>
-    <SeekBar android:layout_height="wrap_content" android:id="@+id/seekBar1" android:layout_width="fill_parent"></SeekBar>
+    <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:orientation="vertical">
+        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:maxWidth="300dip" android:text='Adjust the headset until you see the meter display "green" bars then press start.' android:layout_gravity="center_horizontal" android:id="@+id/textViewInstructions"></TextView>
+        <Button android:layout_height="wrap_content" android:layout_width="200dip" android:id="@+id/buttonPause" android:layout_gravity="center_horizontal" android:onClick="onButtonClick" android:text="Start"></Button>
+        <TextView android:layout_height="wrap_content" android:id="@+id/countdownTextView" android:textSize="26sp" android:layout_gravity="center_horizontal" android:textColor="@color/chart_text" android:layout_width="wrap_content"></TextView>
+        <SeekBar android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/seekBar1"></SeekBar>
+    </LinearLayout>
 		
 </LinearLayout>
