@@ -19,6 +19,7 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Mobi.MobiBH;
 import com.t2.biofeedback.device.Spine.SpineBH;
 import com.t2.biofeedback.device.neurosky.NeuroskyBH;
+import com.t2.biofeedback.device.shimmer.ShimmerBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
 
 /**
@@ -97,6 +98,8 @@ public class DeviceManager {
 		Iterator bit = deviceBondedDevices.iterator();
 		while(bit.hasNext())
 		{
+			// NOTE: *** 
+			// IF you add a device here, make sure and add it to getInstance() as well
 			BioFeedbackDevice d;
 			BluetoothDevice bt = (BluetoothDevice) bit.next();
 			String name = bt.getName();
@@ -113,9 +116,13 @@ public class DeviceManager {
 			{
 				d = new MobiBH(mServerListeners);
 			}
-			else
+			else if (name.equalsIgnoreCase("RN42-897A"))
 			{
 				d = new SpineBH(mServerListeners);
+			}
+			else
+			{
+				d = new ShimmerBH(mServerListeners);
 			}
 			d.setDevice(bt.getAddress());
 			this.availableDevices.put(d.getAddress(),d);			
@@ -159,13 +166,14 @@ public class DeviceManager {
 			Iterator bit = deviceBondedDevices.iterator();
 			while(bit.hasNext())
 			{
+				// NOTE: *** 
+				// IF you add a device here, make sure and add it to the constructor as well
 				BioFeedbackDevice d;
 				BluetoothDevice bt = (BluetoothDevice) bit.next();
 				String name = bt.getName();
 				if (name.equalsIgnoreCase("BH ZBH002095"))
 				{
 					d = new ZephyrBH(serverListeners);
-					
 				}
 				else if (name.equalsIgnoreCase("MINDSET")) 
 				{
@@ -175,9 +183,13 @@ public class DeviceManager {
 				{
 					d = new MobiBH(serverListeners);
 				}
-				else
+				else if (name.equalsIgnoreCase("RN42-897A"))
 				{
 					d = new SpineBH(serverListeners);
+				}
+				else
+				{
+					d = new ShimmerBH(serverListeners);
 				}
 				d.setDevice(bt.getAddress());
 				deviceManager.availableDevices.put(d.getAddress(),d);			
