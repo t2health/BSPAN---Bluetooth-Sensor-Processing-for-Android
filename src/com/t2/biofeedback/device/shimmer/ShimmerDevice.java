@@ -9,29 +9,70 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
+
 
 /**
  * Encapsulates methods necessary to communicate with a Bluetooth Shimmer device
  *  Note that this is for devices that do NOT use the SPINE protocol
  *  This is for shimmer devices that have been programed with the BoilerPlate firmware
+ *  
+ *  
+ *  	
+ * Message format:
+ * Byte				Contents
+ * -----------------------------
+ * 0 - 8			Spine Header
+ * 9				SHIMMER_FUNCT_CODE (0x0A)         <-- Payload
+ * 10				SHIMMER_SENSOR_CODE (0x0D)
+ * 11			    Packet Type		
+ * 12 -13		    timestamp		
+ * 14 -15		    Accel X		
+ * 16 -17		    Accel Y		
+ * 18 -19		    Accel Z		
+ * 20 -21		    GSR		
  * 
  * @author scott.coleman
  *
  */
-public abstract class ShimmerDevice extends BioFeedbackDevice implements DataListener{
+public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final String TAG = Constants.TAG;
-	private static final int NUM_RAW = 512;
+	
+	// These numbers all add up for the shimmer being programmed
+	// to send only Accel and GSR data (plus timestamp)
+	// as configured in the state machine below
+	private static final int SHIMMER_PREMSG_SIZE  = 2;   	// 	2 bytes in front of every payload, 
+															// SHIMMER_FUNCT_CODE, 
+															// SHIMMER_SENSOR_CODE, 
+	private static final int SHIMMER_MSG_SIZE = 11 + SHIMMER_PREMSG_SIZE;		
+	
 	boolean mTestData = false;
 	int mTestValue = 0;
+	private int state = STATE_OFF;
 	
+	private static final int STATE_OFF = 0;
+	private static final int STATE_SET_SENSORS = 1;
+	private static final int STATE_SET_SAMPLERATE = 2;
+	private static final int STATE_SET_GSRRANGE = 3;
+	private static final int STATE_STREAMING = 4;
 	
+	// Commands for configuring the Shimmer hardware
+	private static final byte[] setSensorsCommand = new byte[] {
+			ShimmerMessage.SETSENSORSCOMMAND,
+			(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorGSR),
+			0
+	};
+	private static final byte[] setSampleRateCommand = new byte[] {
+			ShimmerMessage.SETSAMPLINGRATECOMMAND,
+			ShimmerMessage.SAMPLING4HZ
+	};
+	private static final byte[] setGsrRangeCommand = new byte[] {
+			ShimmerMessage.SETGSRRANGECOMMAND,
+			ShimmerMessage.GSR_RANGE_AUTORANGE
+	};
 	
-	byte t1,t2;
-	byte[] mRawAccumData = new byte[NUM_RAW * 2];
-	int mRawAccumDataIndex = 0;
-	boolean mSendRawWave = true;
-	
+	// Test data vector 
 	byte[] mTestDataBytes = {
 			0x01, 0x02, 0x03, 
 			0x04, 0x05, 0x06, 
@@ -42,66 +83,19 @@ public abstract class ShimmerDevice extends BioFeedbackDevice implements DataLis
 			0x17, 0x18, 0x19, 
 			0x1a, 0x1b, 0x1c, 
 			};	
-	
 
 	/**
-	 * Message format:
-	 * Byte				Contents
-	 * -----------------------------
-	 * 0 - 8			Spine Header
-	 * 9				MINDSET_FUNCT_CODE (0x0A)		<-- Payload
-	 * 10				MINDSET_SENSOR_CODE (0x0D)
-	 * 11				Exe Code 
-	 * 12				Signal Quality                    	<--- EXECODE_POOR_SIG_QUALITY_POS
-	 * 13				Attention							<--- EXECODE_ATTENTION_POS
-	 * 14				Meditation							<--- EXECODE_MEDITATION_POS
-	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
-	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
-	 * 18 - 41			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
-	 * 42 - 			512 samples of raw data 
-	 */
-	
-	/**
-	 * Parses byte stream coming from Neurosky device into complete messages
-	 */
-	StreamParser mStreamParser;
-
-	/**
-	 * Message formatted according to the MindsetProtocol specification
+	 * Message formatted according to the Shimmer Boilerplate specification
 	 */
 	byte[] mShimmerMessage;	
 	
 	private int mMessageIndex = 0;
 	
-	
-	static final int EXECODE_POOR_SIG_QUALITY = 2;
-	static final int EXECODE_ATTENTION = 4;
-	static final int EXECODE_MEDITATION = 5;
-	static final int EXECODE_BLINK_STRENGTH = 0x16;
-	static final int EXECODE_RAW_WAVE = 0x80;
-	static final int EXECODE_SPECTRAL = 0x83;
-	static final int EXECODE_RAW_ACCUM = 0x90;				// Special T2 code for gaterhing 1 second of raw data and sending it all together
+	// TODO: fix shimmer sensor code
 
-	static final int MINDSET_FUNCT_CODE						= 0x0A;
-	static final int MINDSET_SENSOR_CODE 					= 0x0D;
+	static final int SHIMMER_FUNCT_CODE						= 0x0A;
+	static final int SHIMMER_SENSOR_CODE 					= 0x0E;
 	static final int SPINE_HEADER_SIZE 						= 9;
-
-	
-	static final int MINDSET_PREMSG_SIZE 				    = 3;   // 	3 bytes in front of every payload, MINDSET_FUNCT_CODE, MINDSET_SENSOR_CODE, EXECode)	
-	static final int MINDSET_MSG_SIZE 						= 33 + MINDSET_PREMSG_SIZE;		
-	static final int MINDSET_ACCUM_MSG_SIZE 				= 33 + MINDSET_PREMSG_SIZE + NUM_RAW * 2;		
-	
-	
-	// Note that each Spine mindset message has all of the mindset attribuites
-	// Define the hard positions in the Mindset message of each of the attributes
-	static final byte PAYLOAD_POS = SPINE_HEADER_SIZE; 
-	static final byte EXECODE_POOR_SIG_QUALITY_POS = PAYLOAD_POS + MINDSET_PREMSG_SIZE + 0; 
-	static final byte EXECODE_ATTENTION_POS = EXECODE_POOR_SIG_QUALITY_POS + 1; 
-	static final byte EXECODE_MEDITATION_POS = EXECODE_ATTENTION_POS + 1; 
-	static final byte EXECODE_BLINK_STRENGTH_POS = EXECODE_MEDITATION_POS + 1; 
-	static final byte EXECODE_RAW_POS = EXECODE_BLINK_STRENGTH_POS + 1; 
-	static final byte EXECODE_SPECTRAL_POS = EXECODE_RAW_POS + 2; 
-	static final byte EXECODE_ACCUM_MSG_POS = EXECODE_SPECTRAL_POS + 24; 
 	
 	/**
 	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
@@ -110,14 +104,17 @@ public abstract class ShimmerDevice extends BioFeedbackDevice implements DataLis
 	{
 		this.mServerListeners = serverListeners;
 	}
-	
+
 
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#onDeviceConnected()
 	 */
 	protected void onDeviceConnected() 
 	{
-		mStreamParser = new StreamParser(StreamParser.PARSER_TYPE_PACKETS, this, null);
+		Log.i(TAG, "Configurating Shimmer - Setting sensors to monitor");
+		
+		state = STATE_SET_SENSORS;
+		this.write(setSensorsCommand);
 	}
 
 	/* (non-Javadoc)
@@ -125,39 +122,111 @@ public abstract class ShimmerDevice extends BioFeedbackDevice implements DataLis
 	 */
 	protected void onBeforeConnectionClosed() 
 	{
+		Log.i(TAG, "Telling Shimer to stop streaming");
+		this.write(new byte[] {ShimmerMessage.STOPSTREAMINGCOMMAND});
 	}
 	
+	@Override
+	public ModelInfo getModelInfo() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		Log.i(TAG, "Telling Shimer to stop streaming");
+		this.write(new byte[] {ShimmerMessage.STOPSTREAMINGCOMMAND});
+		super.finalize();
+	}
+
+	@Override
+	public String getDeviceAddress() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/**
 	 * 
-	 * Receives bytes from Bluetooth device and sends them to the parser.
-	 * 	Note that the received bytes by come in any length. The parser seeds to 
-	 *  Frame the data and detect complete messages. When this happens the
-	 *  parser will call dataValueReceived with the complete message.
+	 * Receives bytes from Shimmer device Decodes them and sends them to the 
+	 * server
 	 * @see com.t2.biofeedback.device.SerialBTDevice#onBytesReceived(byte[])
 	 */
 	protected void onBytesReceived(byte[] bytes) 
 	{
 	//	Util.logHexByteString(TAG, "Found message:", bytes);
-		// Transfer bytes to parser one by one
-		// Each time updating the state machine
-		// then checking for a value header
-		for (int i=0; i< bytes.length; i++) 
+		byte code = bytes[0];
+		
+		switch (state) {
+		case STATE_SET_SENSORS:
+			if (code == ShimmerMessage.ACKCOMMANDPROCESSED) {
+				Log.i(TAG, "Configurating Shimmer - Setting sample rate");
+				this.write(setSampleRateCommand);
+				state = STATE_SET_SAMPLERATE;
+			}
+			break;
+			
+		case STATE_SET_SAMPLERATE:
+			if (code == ShimmerMessage.ACKCOMMANDPROCESSED) {
+				Log.i(TAG, "Configurating Shimmer - Setting gsr Range");
+				this.write(setGsrRangeCommand);
+				state = STATE_SET_GSRRANGE;
+			}
+			break;
+			
+		case STATE_SET_GSRRANGE:
+			if (code == ShimmerMessage.ACKCOMMANDPROCESSED) {
+				Log.i(TAG, "Telling Shimmer to start streaming");
+				this.write(new byte[] {ShimmerMessage.STARTSTREAMINGCOMMAND});
+				state = STATE_STREAMING;
+			}
+
+		case STATE_STREAMING:
+			if (code == ShimmerMessage.DATAPACKET) {
+				Util.logHexByteString(TAG, "Found message:", bytes);
+			}
+			break;
+		}
+		
+		if (code == 0x00 && bytes.length == SHIMMER_MSG_SIZE)
 		{
-			mStreamParser.parseByte(bytes[i]);		
-		}		
+			startMessage(SHIMMER_MSG_SIZE + SPINE_HEADER_SIZE);
+			for (int i = 0; i < bytes.length; i++) {
+				mShimmerMessage[mMessageIndex++] = bytes[i];
+			}
+			
+			// Now we have a message we need to send it to the server via the server listener(s)
+			if (mServerListeners != null) {
+		        for (int i = mServerListeners.size()-1; i >= 0; i--) {
+			        try {
+						Bundle b = new Bundle();
+						b.putByteArray("message", mShimmerMessage);
+			
+			            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+			            msg1.setData(b);
+			            mServerListeners.get(i).send(msg1);
+			
+			        } catch (RemoteException e) {
+			            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+			        	mServerListeners.remove(i);
+			        }
+		        }			
+			}
+			else {
+				Log.i(TAG, "** No Listeners ** " );
+			}			
+		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#write(byte[])
 	 * 
-	 * Not used - Neurosky device is write only.
 	 */
 	public void write(byte[] bytes) {
 		super.write(bytes);
 	}
 	
 	/**
-	 * Begins a Mindset message, populating common fields
+	 * Begins a Shimmer message, populating common fields
 	 */
 	private void startMessage(int messageSize)
 	{
@@ -172,180 +241,8 @@ public abstract class ShimmerDevice extends BioFeedbackDevice implements DataLis
 		mShimmerMessage[mMessageIndex++] = (byte) 0x00;
 		mShimmerMessage[mMessageIndex++] = (byte) 0x01;
 		mShimmerMessage[mMessageIndex++] = (byte) 0x01;	
-		mShimmerMessage[mMessageIndex++] = MINDSET_FUNCT_CODE;			
-		mShimmerMessage[mMessageIndex++] = MINDSET_SENSOR_CODE;			
+		mShimmerMessage[mMessageIndex++] = SHIMMER_FUNCT_CODE;			
+		mShimmerMessage[mMessageIndex++] = SHIMMER_SENSOR_CODE;			
 	}
 	
-	/* 
-	 * Called when the parser has a data row to send to the server
-	 *  
-	 * (non-Javadoc)
-	 * @see com.t2.biofeedback.device.neurosky.DataListener#dataValueReceived(int, int, int, byte[], java.lang.Object)
-	 */
-	public void dataValueReceived( int extendedCodeLevel, int code, int numBytes,
-			   byte[] valueBytes, Object customData )
-	{
-		// We need to build a SPINE-style message
-		
-		//  SPINE HEADER
-		//  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
-		//  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
-		//  value:| C4            | 0xAB    | 0xfff2   | 0      | 0       | 1           | 1     |
-
-		// 		Note: Pkt Type: 4 = data, Function code: 1 = Raw Data, Sensor code: D = Mindset data 
-
-		// bits    	parameter
-		// 8		function code
-		// 8		sensor code
-		// 8		function type
-		// 8		poor signal bytes
-		// 8		Attention
-		// 8		Meditation
-		// 8		Blink Strength
-		// 16		RAW wave value
-		// 24*8		spectral data
-		
-		// For now we'll ignore all extended codes
-		if (extendedCodeLevel != 0)
-		{
-			Log.i(TAG, "Extended code: -----------------------------" + extendedCodeLevel);
-			return;
-		}
-		
-// TODO: re-do coding scheme to only send bytes necessary for the exe code received
-		//Log.i(TAG, "code: " + code);
-		switch (code)
-		{
-		case EXECODE_POOR_SIG_QUALITY:
-			//Log.i(TAG, "siq Q");
-			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
-			mShimmerMessage[mMessageIndex++] = (byte) code;
-			mShimmerMessage[EXECODE_POOR_SIG_QUALITY_POS] = valueBytes[0];
-			break;
-			
-		case EXECODE_ATTENTION:
-			//Log.i(TAG, "Atten");
-			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
-			mShimmerMessage[mMessageIndex++] = (byte) code;
-			mShimmerMessage[EXECODE_ATTENTION_POS] = valueBytes[0];
-			break;
-		case EXECODE_MEDITATION:
-			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
-			mShimmerMessage[mMessageIndex++] = (byte) code;
-			mShimmerMessage[EXECODE_MEDITATION_POS] = valueBytes[0];
-			break;
-		case EXECODE_BLINK_STRENGTH:
-			startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
-			mShimmerMessage[mMessageIndex++] = (byte) code;
-			mShimmerMessage[EXECODE_BLINK_STRENGTH_POS] = valueBytes[0];
-			break;
-		
-		case EXECODE_RAW_WAVE:
-			// For now we'll NOT ignore raw wave data (comes in every 2 ms)
-			if (mSendRawWave) {
-				if (mRawAccumDataIndex > (NUM_RAW * 2) - 2) {
-					mRawAccumDataIndex = 0;
-
-					// We should never get here
-					Log.e(TAG, "mRawAccumDataIndex overflow");
-					
-				}
-				else {
-					
-					if (mTestData) {
-						byte b1 = (byte) ((mTestValue >> 8) & 0xff) ;
-//						byte b1 = 0x55;
-						byte b2 = (byte) (mTestValue & 0xff);
-						if (b1 == 0x1f && b2 == 0x7f) {
-							int i = 0;
-							i++;
-						}
-						
-						mRawAccumData[mRawAccumDataIndex++] = b1 ;
-						mRawAccumData[mRawAccumDataIndex++] = b2;
-						if (mTestValue++ >= 0xffff)
-							mTestValue = 0;
-							
-					}
-					else {
-						mRawAccumData[mRawAccumDataIndex++] = valueBytes[0] ;
-						mRawAccumData[mRawAccumDataIndex++] = valueBytes[1];
-					}
-				}
-
-			}
-			return;
-		
-		case EXECODE_SPECTRAL:
-			
-			Log.i(TAG, "Spectral, mRawAccumDataIndex = " + mRawAccumDataIndex);
-
-			if (mSendRawWave) {
-				startMessage(MINDSET_ACCUM_MSG_SIZE + SPINE_HEADER_SIZE);
-				
-			//	Log.i(TAG, "fred = " + mRawAccumData[0] + " " + mRawAccumData[1]);
-				mShimmerMessage[mMessageIndex++] = (byte) EXECODE_RAW_ACCUM;	
-
-				for (int i = 0; i < NUM_RAW * 2; i++) {
-					mShimmerMessage[EXECODE_ACCUM_MSG_POS + i] = mRawAccumData[i];
-				}
-				mRawAccumDataIndex = 0;
-
-			}
-			else {
-				mShimmerMessage[mMessageIndex++] = (byte) code;	
-				startMessage(MINDSET_MSG_SIZE + SPINE_HEADER_SIZE);
-
-			}
-			
-			int valueSize = valueBytes.length;
-			
-			
-			// this code should ONLY have 24 bytes length, if not don't do anything
-//			if (numBytes == 24 && valueSize == 24)
-			if (valueSize == 24)
-			{
-				for (int i = 0; i < numBytes; i++)
-				{
-					if (!mTestData) {
-						mShimmerMessage[EXECODE_SPECTRAL_POS + i] = valueBytes[i];
-					}
-					else {
-						mShimmerMessage[EXECODE_SPECTRAL_POS + i] = mTestDataBytes[i];
-					}
-				}
-			}
-			break;
-
-		default:
-			return;
-		
-		}
-		
-//		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
-//		Util.logHexByteString(TAG, "Found message:", mMindsetMessage);
-		
-		// Now we have a message we need to send it to the server via the server listener(s)
-		if (mServerListeners != null)
-		{
-	        for (int i = mServerListeners.size()-1; i >= 0; i--) {
-		        try {
-					Bundle b = new Bundle();
-					b.putByteArray("message", mShimmerMessage);
-		
-		            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
-		            msg1.setData(b);
-		            mServerListeners.get(i).send(msg1);
-		
-		        } catch (RemoteException e) {
-		            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
-		        	mServerListeners.remove(i);
-		        }
-	        }			
-		}
-		else {
-			Log.i(TAG, "** No Listeners ** " );
-			
-		}
-	}
 }
