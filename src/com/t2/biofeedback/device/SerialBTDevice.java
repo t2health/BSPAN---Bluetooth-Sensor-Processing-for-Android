@@ -275,14 +275,15 @@ public abstract class SerialBTDevice {
 	}
 	
 	private void deviceConnecting() {
-		Log.v(TAG, "Device connecting.");
+
+		Log.v(TAG, "Device (" + this.getName() + ") connecting.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnecting(this);
 		}
 	}
 	
 	private void deviceConnected() {
-		Log.v(TAG, "Device connected.");
+		Log.v(TAG, "Device (" + this.getName() + ") connected.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnected(this);
 		}
@@ -300,21 +301,21 @@ public abstract class SerialBTDevice {
 	}
 	
 	private void deviceClosed() {
-		Log.v(TAG, "Device disconnected.");
+		Log.v(TAG, "Device (" + this.getName() + ") disconnected.");
 		if(connectionListener != null) {
 			connectionListener.onDeviceClosed(this);
 		}
 	}
 	
 	private void deviceConnectionLost() {
-		Log.v(TAG, "Lost the connection to the device.");
+		Log.v(TAG, "Lost the connection to the device (" + this.getName() + ")");
 		if(connectionListener != null) {
 			connectionListener.onDeviceConnectionLost(this);
 		}
 		
 		// Try to reconnect.
 		if(this.isBonded() && reconnectOnConnectionLost) {
-			Log.v(TAG, "Trying to reconnect to the device.");
+			Log.v(TAG, "Trying to reconnect to the device (" + this.getName() + ")");
 			this.connect();
 		}
 	}

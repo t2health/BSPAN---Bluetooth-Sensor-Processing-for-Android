@@ -15,21 +15,42 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  * Encapsulates methods necessary to communicate with a Bluetooth Neurosky device
  * 
  * @author scott.coleman
+ * 
+ * Message format:
+ * 
+ *  SPINE HEADER
+ *  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
+ *  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
+ *  value:| C4            | 0xAB    | 0xfff2   | 0      | 0       | 1           | 1     |
  *
+ *  SPINE MESSAGE
+ *  Byte				Contents
+ *  -----------------------------
+ *  0 - 8			Spine Header (see above)
+ *  9				MINDSET_FUNCT_CODE (0x0A)		<-- Payload
+ *  10				MINDSET_SENSOR_CODE (0x0D)
+ *  11				Exe Code 
+ *  12				Signal Quality                    	<--- EXECODE_POOR_SIG_QUALITY_POS
+ *  13				Attention							<--- EXECODE_ATTENTION_POS
+ *  14				Meditation							<--- EXECODE_MEDITATION_POS
+ *  15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
+ *  16 - 17			Raw Data							<--- EXECODE_RAW_POS
+ *  18 - 41			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
+ * 
+ *  42 - 			512 samples of raw data 
  */
 public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataListener{
 	private static final String TAG = Constants.TAG;
 	private static final int NUM_RAW = 512;
+
+	// Change this to reflect the source ID of this sensor
+	// This is the is that the server will use to recognize this sensor
+	private static final byte SOURCE_ID_HIGH = (byte) 0xff;
+	private static final byte SOURCE_ID_LOW = (byte) 0xf2;
+
+	// For testing purposes
 	boolean mTestData = false;
 	int mTestValue = 0;
-	
-	
-	
-	byte t1,t2;
-	byte[] mRawAccumData = new byte[NUM_RAW * 2];
-	int mRawAccumDataIndex = 0;
-	boolean mSendRawWave = true;
-	
 	byte[] mTestDataBytes = {
 			0x01, 0x02, 0x03, 
 			0x04, 0x05, 0x06, 
@@ -41,23 +62,13 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 			0x1a, 0x1b, 0x1c, 
 			};	
 	
-
-	/**
-	 * Message format:
-	 * Byte				Contents
-	 * -----------------------------
-	 * 0 - 8			Spine Header
-	 * 9				MINDSET_FUNCT_CODE (0x0A)		<-- Payload
-	 * 10				MINDSET_SENSOR_CODE (0x0D)
-	 * 11				Exe Code 
-	 * 12				Signal Quality                    	<--- EXECODE_POOR_SIG_QUALITY_POS
-	 * 13				Attention							<--- EXECODE_ATTENTION_POS
-	 * 14				Meditation							<--- EXECODE_MEDITATION_POS
-	 * 15				Blink Strength						<--- EXECODE_BLINK_STRENGTH_POS
-	 * 16 - 17			Raw Data							<--- EXECODE_RAW_POS
-	 * 18 - 41			Spectral Data						<--- EXECODE_SPECTRAL_POS  (8 * 3 bytes each big endian)
-	 * 42 - 			512 samples of raw data 
-	 */
+	
+	
+	byte t1,t2;
+	byte[] mRawAccumData = new byte[NUM_RAW * 2];
+	int mRawAccumDataIndex = 0;
+	boolean mSendRawWave = true;
+	
 	
 	/**
 	 * Parses byte stream coming from Neurosky device into complete messages
@@ -163,8 +174,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 		mMindsetMessage = new byte[messageSize];		
 		mMindsetMessage[mMessageIndex++] = (byte) 0xc4; 
 		mMindsetMessage[mMessageIndex++] = (byte) 0xab;
-		mMindsetMessage[mMessageIndex++] = (byte) 0xff;
-		mMindsetMessage[mMessageIndex++] = (byte) 0xf2;
+		mMindsetMessage[mMessageIndex++] = SOURCE_ID_HIGH;
+		mMindsetMessage[mMessageIndex++] = SOURCE_ID_LOW;
 		mMindsetMessage[mMessageIndex++] = (byte) 0x00;
 		mMindsetMessage[mMessageIndex++] = (byte) 0x00;
 		mMindsetMessage[mMessageIndex++] = (byte) 0x00;
@@ -183,25 +194,8 @@ public abstract class NeuroskyDevice extends BioFeedbackDevice implements DataLi
 	public void dataValueReceived( int extendedCodeLevel, int code, int numBytes,
 			   byte[] valueBytes, Object customData )
 	{
-		// We need to build a SPINE-style message
-		
-		//  SPINE HEADER
-		//  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
-		//  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
-		//  value:| C4            | 0xAB    | 0xfff2   | 0      | 0       | 1           | 1     |
-
-		// 		Note: Pkt Type: 4 = data, Function code: 1 = Raw Data, Sensor code: D = Mindset data 
-
-		// bits    	parameter
-		// 8		function code
-		// 8		sensor code
-		// 8		function type
-		// 8		poor signal bytes
-		// 8		Attention
-		// 8		Meditation
-		// 8		Blink Strength
-		// 16		RAW wave value
-		// 24*8		spectral data
+		// We need to build a SPINE-style message (See Above)
+	
 		
 		// For now we'll ignore all extended codes
 		if (extendedCodeLevel != 0)

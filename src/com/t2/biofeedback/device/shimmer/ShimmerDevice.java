@@ -16,28 +16,40 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 /**
  * Encapsulates methods necessary to communicate with a Bluetooth Shimmer device
  *  Note that this is for devices that do NOT use the SPINE protocol
- *  This is for shimmer devices that have been programed with the BoilerPlate firmware
- *  
+ *  This is for shimmer devices that have been programmed with the BoilerPlate firmware
  *  
  *  	
  * Message format:
- * Byte				Contents
- * -----------------------------
- * 0 - 8			Spine Header
- * 9				SHIMMER_FUNCT_CODE (0x0A)         <-- Payload
- * 10				SHIMMER_SENSOR_CODE (0x0D)
- * 11			    Packet Type		
- * 12 -13		    timestamp		
- * 14 -15		    Accel X		
- * 16 -17		    Accel Y		
- * 18 -19		    Accel Z		
- * 20 -21		    GSR		
+
+ *  SPINE HEADER
+ *  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
+ *  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
+ *  value:| C4            | 0xAB    | 0xfff3   | 0      | 0       | 1           | 1     | *  
+ *  
+ * 
+ *  SPINE MESSAGE
+ *  Byte				Contents
+ *  -----------------------------
+ *  0 - 8			Spine Header (See Above
+ *  9				SHIMMER_FUNCT_CODE (0x0B)         <-- Payload
+ *  10				SHIMMER_SENSOR_CODE (0x0E)
+ *  11			    Packet Type		
+ *  12 -13		    timestamp		
+ *  14 -15		    Accel X		
+ *  16 -17		    Accel Y		
+ *  18 -19		    Accel Z		
+ *  20 -21		    GSR		
  * 
  * @author scott.coleman
  *
  */
 public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final String TAG = Constants.TAG;
+	
+	// Change this to reflect the source ID of this sensor
+	// This is the is that the server will use to recognize this sensor
+	private static final byte SOURCE_ID_HIGH = (byte) 0xff;
+	private static final byte SOURCE_ID_LOW = (byte) 0xf3;
 	
 	static final int SHIMMER_FUNCT_CODE						= 0x0B;
 	static final int SHIMMER_SENSOR_CODE 					= 0x0E;
@@ -50,10 +62,9 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final int SHIMMER_PREMSG_SIZE  = 2;   	// 	2 bytes in front of every payload, 
 															// SHIMMER_FUNCT_CODE, 
 															// SHIMMER_SENSOR_CODE, 
-	private static final int SHIMMER_MSG_SIZE = 11 + SHIMMER_PREMSG_SIZE;		
+	private static final int SENSOR_MSG_SIZE = 11;		
+	private static final int SHIMMER_MSG_SIZE = SENSOR_MSG_SIZE + SHIMMER_PREMSG_SIZE;		
 	
-	boolean mTestData = false;
-	int mTestValue = 0;
 	private int state = STATE_OFF;
 	
 	private static final int STATE_OFF = 0;
@@ -77,16 +88,21 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 			ShimmerMessage.GSR_RANGE_AUTORANGE
 	};
 	
-	// Test data vector 
+	// For testing purposes
+	boolean mTestData = false;
+	int mTestValue = 0xa55a;
 	byte[] mTestDataBytes = {
-			0x01, 0x02, 0x03, 
-			0x04, 0x05, 0x06, 
-			0x07, 0x08, 0x09, 
-			0x0a, 0x0b, 0x0c, 
-			0x11, 0x12, 0x13, 
-			0x14, 0x15, 0x16, 
-			0x17, 0x18, 0x19, 
-			0x1a, 0x1b, 0x1c, 
+			(byte) 0x00,   	// Packet type - data message
+			(byte) 0x41,   	// timestamp low
+			(byte) 0x95,   	// timestamp high
+			(byte) 0x81,   	// accel x low
+			(byte) 0x07,   	// accel x high	
+			(byte) 0x69, 	// accel y low
+			(byte) 0x04, 	// accel y high
+			(byte) 0x62, 	// accel z low
+			(byte) 0x07, 	// accel z high
+			(byte) 0xd4, 	// gsr low
+			(byte) 0xc2		// gsr high
 			};	
 
 	/**
@@ -187,11 +203,20 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 			break;
 		}
 		
-		if (code == 0x00 && bytes.length == SHIMMER_MSG_SIZE)
+		if (code == 0x00 && bytes.length == SENSOR_MSG_SIZE)
 		{
 			startMessage(SHIMMER_MSG_SIZE + SPINE_HEADER_SIZE);
-			for (int i = 0; i < bytes.length; i++) {
-				mShimmerMessage[mMessageIndex++] = bytes[i];
+			if (!mTestData) {
+				for (int i = 0; i < bytes.length; i++) {
+					mShimmerMessage[mMessageIndex++] = bytes[i];
+				}
+			}
+			else {
+				for (int i = 0; i < mTestDataBytes.length; i++) {
+					mShimmerMessage[mMessageIndex++] = mTestDataBytes[i];
+				}
+				
+								
 			}
 			
 			// Now we have a message we need to send it to the server via the server listener(s)
@@ -234,8 +259,8 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 		mShimmerMessage = new byte[messageSize];		
 		mShimmerMessage[mMessageIndex++] = (byte) 0xc4; 
 		mShimmerMessage[mMessageIndex++] = (byte) 0xab;
-		mShimmerMessage[mMessageIndex++] = (byte) 0xff;
-		mShimmerMessage[mMessageIndex++] = (byte) 0xf2;
+		mShimmerMessage[mMessageIndex++] = SOURCE_ID_HIGH;
+		mShimmerMessage[mMessageIndex++] = SOURCE_ID_LOW;
 		mShimmerMessage[mMessageIndex++] = (byte) 0x00;
 		mShimmerMessage[mMessageIndex++] = (byte) 0x00;
 		mShimmerMessage[mMessageIndex++] = (byte) 0x00;

@@ -18,10 +18,29 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  * Encapsulates methods necessary to communicate with a Bluetooth Zephyr device
  * 
  * @author scott.coleman
+ * 
+ * Message format:
+ * 
+ *  SPINE HEADER
+ *  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
+ *  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
+ *  value:| C4            | 0xAB    | 0xfff1   | 0      | 0       | 1           | 1     |
+ * 
+ * SPINE MESSAGE
+ *  desc: | Func | Sensor | Feat| Feat | Feat     | Bat Level | Heart Rate | Resp Rate | Skin Temp | Label  |
+ *  desc: | Code | Code   | Cnt | Code | Bitmask  | Value     | Value      | Value     | Value     | Length |
+ *  size: |  8   |  8     |  8  | 8    | 8        | 32        | 32         | 32        | 32        | 8      |
+ *  value:|  9   |  C     |  4  | 9    | 0x0f     | xxxxxxxx  | xxxxxxxx   | xxxxxxxx  | xxxxxxxx  | 0      |
+ * 
  *
  */
 public abstract class ZephyrDevice extends BioFeedbackDevice {
 	private static final String TAG = Constants.TAG;
+	// Change this to reflect the source ID of this sensor
+	// This is the is that the server will use to recognize this sensor
+	private static final byte SOURCE_ID_HIGH = (byte) 0xff;
+	private static final byte SOURCE_ID_LOW = (byte) 0xf1;	
+	
 	boolean mDebug = true;	
 	long timout;
 	static ZephyrDevice instance;
@@ -159,27 +178,10 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 
 		if (mDebug)	Util.logHexByteString(TAG,   msg.payload);
 		
-		// Use this to send the message directly to the main aplication
-		//this.onDeviceMessage(msg.payload);			
-		// Use this to send the message directly to the main aplication
-		
-
 		// Use this to send the message via the normal SPINE mechanism
 		
 		// We need to build a SPINE-style message
 
-		//  SPINE HEADER
-		//  desc: | Vers:Ext:Type | GroupId | SourceId | DestId | Seq#    | TotalFrag   | Frag #|
-		//  size: | 2:1:5         | 8       | 16       | 16     | 8       | 8           | 8     |
-		//  value:| C4            | 0xAB    | 0xfff1   | 0      | 0       | 1           | 1     |
-
-		// SPINE MESSAGE
-		//  desc: | Func | Sensor | Feat| Feat | Feat     | Bat Level | Heart Rate | Resp Rate | Skin Temp | Label  |
-		//  desc: | Code | Code   | Cnt | Code | Bitmask  | Value     | Value      | Value     | Value     | Length |
-		//  size: |  8   |  8     |  8  | 8    | 8        | 32        | 32         | 32        | 32        | 8      |
-		//  value:|  9   |  C     |  4  | 9    | 0x0f     | xxxxxxxx  | xxxxxxxx   | xxxxxxxx  | xxxxxxxx  | 0      |
-		//
-		// 		Note: Pkt Type: 4 = data, Function code: 1 = Raw Data, Sensor code: C = Zephyr data 
 		
 		final int ZEPHYR_FUNCT_CODE							= 0x09;
 		final int ZEPHER_FUNCT_TYPE							= 1;   //(Raw data)
@@ -195,8 +197,8 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 		// Header
 		zepherMessage[i++] = (byte) 0xc4; 
 		zepherMessage[i++] = (byte) 0xab;
-		zepherMessage[i++] = (byte) 0xff;
-		zepherMessage[i++] = (byte) 0xf1;
+		zepherMessage[i++] = SOURCE_ID_HIGH;
+		zepherMessage[i++] = SOURCE_ID_LOW;
 		zepherMessage[i++] = (byte) 0x00;
 		zepherMessage[i++] = (byte) 0x00;
 		zepherMessage[i++] = (byte) 0x00;
