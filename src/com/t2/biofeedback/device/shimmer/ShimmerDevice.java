@@ -72,6 +72,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final int STATE_SET_SAMPLERATE = 2;
 	private static final int STATE_SET_GSRRANGE = 3;
 	private static final int STATE_STREAMING = 4;
+	private static final int STATE_SENDING_PACKET = 5;
 	
 	// Commands for configuring the Shimmer hardware
 	private static final byte[] setSensorsCommand = new byte[] {
@@ -109,6 +110,8 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	 * Message formatted according to the Shimmer Boilerplate specification
 	 */
 	byte[] mShimmerMessage;	
+	byte[] mSensorBuffer = new byte[SENSOR_MSG_SIZE];
+	int mSensorBufferIndex = 0;
 	
 	private int mMessageIndex = 0;
 	
@@ -197,50 +200,60 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 			}
 
 		case STATE_STREAMING:
+//			Util.logHexByteString(TAG, "Raw Packet:", bytes);
+
 			if (code == ShimmerMessage.DATAPACKET) {
-				Util.logHexByteString(TAG, "Found message:", bytes);
+				mSensorBufferIndex = 0;
 			}
-			break;
-		}
-		
-		if (code == 0x00 && bytes.length == SENSOR_MSG_SIZE)
-		{
-			startMessage(SHIMMER_MSG_SIZE + SPINE_HEADER_SIZE);
-			if (!mTestData) {
-				for (int i = 0; i < bytes.length; i++) {
-					mShimmerMessage[mMessageIndex++] = bytes[i];
-				}
-			}
-			else {
-				for (int i = 0; i < mTestDataBytes.length; i++) {
-					mShimmerMessage[mMessageIndex++] = mTestDataBytes[i];
-				}
 				
-								
+			try {
+				for (int i = 0; i < bytes.length; i++) {
+					mSensorBuffer[mSensorBufferIndex++] = bytes[i];
+				}
+					
+				if (mSensorBufferIndex >= SENSOR_MSG_SIZE) {
+					startMessage(SHIMMER_MSG_SIZE + SPINE_HEADER_SIZE);				
+					for (int i = 0; i < SENSOR_MSG_SIZE; i++) {
+						mShimmerMessage[mMessageIndex++] = mSensorBuffer[i];
+					}	
+					// Now we have a message we need to send it to the server via the server listener(s)
+					Util.logHexByteString(TAG, "Complete Packet:", mSensorBuffer);
+					mSensorBufferIndex = 0;
+					sendMessage();			
+				}
+			} catch (IndexOutOfBoundsException e) {
+			   	Log.e(TAG, e.toString());
+			   	mSensorBufferIndex = 0;
 			}
 			
-			// Now we have a message we need to send it to the server via the server listener(s)
-			if (mServerListeners != null) {
-		        for (int i = mServerListeners.size()-1; i >= 0; i--) {
-			        try {
-						Bundle b = new Bundle();
-						b.putByteArray("message", mShimmerMessage);
-			
-			            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
-			            msg1.setData(b);
-			            mServerListeners.get(i).send(msg1);
-			
-			        } catch (RemoteException e) {
-			            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
-			        	mServerListeners.remove(i);
-			        }
-		        }			
-			}
-			else {
-				Log.i(TAG, "** No Listeners ** " );
-			}			
+			break;
+		} // End switch (state) 
+		
+
+	}
+	
+	void sendMessage() {
+		if (mServerListeners != null) {
+	        for (int i = mServerListeners.size()-1; i >= 0; i--) {
+		        try {
+					Bundle b = new Bundle();
+					b.putByteArray("message", mShimmerMessage);
+		
+		            Message msg1 = Message.obtain(null, MSG_SET_ARRAY_VALUE);
+		            msg1.setData(b);
+		            mServerListeners.get(i).send(msg1);
+		
+		        } catch (RemoteException e) {
+		            // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
+		        	mServerListeners.remove(i);
+		        }
+	        }			
+		}
+		else {
+			Log.i(TAG, "** No Listeners ** " );
 		}
 	}
+	
 	
 	/* (non-Javadoc)
 	 * @see com.t2.biofeedback.device.BioFeedbackDevice#write(byte[])
