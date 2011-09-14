@@ -7,8 +7,9 @@ package com.t2;
  */
 public class Constants {
 	public static final String TAG = "BFDemo";
-	public static final int RESERVED_ADDRESS_ZEPHYR = -15;
-	public static final int RESERVED_ADDRESS_MINDSET = -14;
+	public static final int RESERVED_ADDRESS_ZEPHYR = -15;   // 0xfff1
+	public static final int RESERVED_ADDRESS_MINDSET = -14;  // 0xfff2
+	public static final int RESERVED_ADDRESS_SHIMMER = -13;  // 0xfff3
 	public static final int RESERVED_ADDRESS_ARDUINO = 1;
 	
 	

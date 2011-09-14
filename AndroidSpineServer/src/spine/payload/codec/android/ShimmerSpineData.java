@@ -46,15 +46,36 @@ public class ShimmerSpineData extends SpineCodec {
 		byte functionCode = payload[pldIndex++];
 		byte sensorCode = payload[pldIndex++];
 		byte packetType = payload[pldIndex++];
-		int gsr = payload[pldIndex++];
-		gsr += ((int)payload[pldIndex++] << 8) & 0xFF00;
 
 		ShimmerData data = new ShimmerData(functionCode, sensorCode, packetType);
-		data.gsr = gsr;
+		
+		
+		data.timestamp = convertTwoBytesToInt(payload, pldIndex);
+		pldIndex += 2;
+		data.accel[ShimmerData.AXIS_X] = convertTwoBytesToInt(payload, pldIndex);
+		pldIndex += 2;
+		data.accel[ShimmerData.AXIS_Y] = convertTwoBytesToInt(payload, pldIndex);
+		pldIndex += 2;
+		data.accel[ShimmerData.AXIS_Z] = convertTwoBytesToInt(payload, pldIndex);
+		pldIndex += 2;
+		data.gsr = convertTwoBytesToInt(payload, pldIndex);
 
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
 
 		return data;
 	}
+	
+	
+	public static int convertTwoBytesToInt(byte[] bytes, int index) {    
+		if(bytes.length < 2) return 0;
+		
+		return ( bytes[index] & 0xFF) 		 |
+	           ((bytes[index + 1] & 0xFF) << 8);
+	}
+//	byte hi = payload[EXECODE_ACCUM_MSG_POS + j++];
+//	byte lo = payload[EXECODE_ACCUM_MSG_POS + j++];
+//	int value = ((hi << 8) & 0xff00) | (lo & 0xff);
+//	if( value >= 32768 ) value = value - 65536;		
+	
 }

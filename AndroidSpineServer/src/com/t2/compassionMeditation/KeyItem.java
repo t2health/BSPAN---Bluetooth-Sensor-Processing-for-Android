@@ -22,14 +22,14 @@ public class KeyItem {
 
 	
 
-	int rawValue;
-	private int scaledValue;
-	int filteredValue;
+	public int rawValue;
+	public int scaledValue;
+	public int filteredValue;
 
 	private int maxFilteredValue = 0;
 	private int minFilteredValue = 9999;
-	int numFilterSamples = 0;
-	long totalOfFilterSamples = 0;
+	private int numFilterSamples = 0;
+	private long totalOfFilterSamples = 0;
 
 	
 	

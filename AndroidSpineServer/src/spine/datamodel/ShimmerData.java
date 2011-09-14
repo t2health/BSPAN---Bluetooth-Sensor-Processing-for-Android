@@ -60,6 +60,7 @@ public class ShimmerData  extends Data {
     public static byte ACKCOMMANDPROCESSED         = (byte) 0XFF;	
 	
 	
+	public int timestamp;
 	public int gsr;
 	public int emg;
 	public int heartrate;
@@ -91,12 +92,15 @@ public class ShimmerData  extends Data {
 	
 	public String getLogDataLine() {
 		String line = "";							// Comment
+		line += this.timestamp + ", ";
+		line += this.accel[AXIS_X] + ", ";
+		line += this.gsr + "\n";
 		return line;
 	}
 
 	
 	public String getLogDataLineHeader() {
-		String line = "";							// Comment
+		String line = "timestamp, accelX, gsr";							// Comment
 		return line;
 	}
 

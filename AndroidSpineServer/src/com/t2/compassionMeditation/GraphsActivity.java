@@ -24,6 +24,7 @@ import bz.org.t2health.lib.activity.BaseActivity;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.RateOfChange;
 
 import com.t2.Constants;
@@ -39,6 +40,7 @@ import spine.datamodel.Feature;
 import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
+import spine.datamodel.ShimmerData;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -88,6 +90,10 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 	private int heartRatePos;
 	private int respRatePos;
 	private int skinTempPos;
+	private int accelXPos;
+	private int accelYPos;
+	private int accelZPos;
+	private int gsrPos;
 	
     private RateOfChange mRateOfChange;
     private int mRateOfChangeSize = 6;
@@ -210,6 +216,10 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 		zepherNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_ZEPHYR));
 		mManager.getActiveNodes().add(zepherNode);
 		
+		Node shimmerNode = null;
+		shimmerNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_SHIMMER));
+		mManager.getActiveNodes().add(shimmerNode);
+		
 		
 		
 		// ... then we need to register a SPINEListener implementation to the SPINE manager instance
@@ -228,15 +238,22 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
             keyItems.add(key);
         }
         heartRatePos = i;
-    	GraphKeyItem key = new GraphKeyItem(i++, "HeartRate", "");
+    	GraphKeyItem key = new GraphKeyItem(i, "HeartRate", "");
+    	i++;
         keyItems.add(key);
         
         respRatePos = i;
-        key = new GraphKeyItem(i++, "RespRate", "");
+        key = new GraphKeyItem(i, "RespRate", "");
+    	i++;
         keyItems.add(key);
         
         skinTempPos = i;
     	key = new GraphKeyItem(i, "SkinTemp", "");
+    	i++;
+        keyItems.add(key);
+        
+        gsrPos = i;
+    	key = new GraphKeyItem(i, "Gsr", "");
         keyItems.add(key);
         
 
@@ -438,6 +455,22 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 		
 		if (data != null) {
 			switch (data.getFunctionCode()) {
+
+			case SPINEFunctionConstants.SHIMMER: {
+				numSecsWithoutData = 0;		
+				
+				Node source = data.getNode();
+				ShimmerData shimmerData = (ShimmerData) data;
+//				Log.i("SensorData","gsr= " + shimmerData.gsr );
+				Log.i("SensorData",shimmerData.getLogDataLine() );
+	        	synchronized(mKeysLock) {
+    				float scaled  = MathExtra.scaleData((float)shimmerData.gsr, 65000F, 0F, 100);
+					keyItems.get(gsrPos).rawValue = (int) scaled;
+	        	}
+				
+				
+				break;
+			}			
 			
 			case SPINEFunctionConstants.ZEPHYR: {
 				Node source = data.getNode();
@@ -471,9 +504,8 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 			} // End case SPINEFunctionConstants.ZEPHYR:			
 
 			case SPINEFunctionConstants.MINDSET: {
-					Node source = data.getNode();
-				
-					MindsetData mindsetData = (MindsetData) data;
+				Node source = data.getNode();
+				MindsetData mindsetData = (MindsetData) data;
 					
 					if (mindsetData.exeCode == Constants.EXECODE_RAW_ACCUM) {
 						Log.i(TAG, "Raw Wave Data" );
