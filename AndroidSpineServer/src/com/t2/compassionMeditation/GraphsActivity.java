@@ -464,7 +464,7 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 //				Log.i("SensorData","gsr= " + shimmerData.gsr );
 				Log.i("SensorData",shimmerData.getLogDataLine() );
 	        	synchronized(mKeysLock) {
-    				float scaled  = MathExtra.scaleData((float)shimmerData.gsr, 1023F, 0F, 100);
+    				float scaled  = MathExtra.scaleData((float)shimmerData.gsr, 4000F, 0F, 100);
 					keyItems.get(gsrPos).rawValue = (int) scaled;
 	        	}
 				
