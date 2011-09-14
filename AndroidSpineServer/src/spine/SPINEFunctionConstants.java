@@ -49,6 +49,7 @@ public class SPINEFunctionConstants {
 	public static final byte HEARTBEAT = 0x08;
 	public static final byte ZEPHYR = 0x09;
 	public static final byte MINDSET = 0x0A;
+	public static final byte SHIMMER = 0x0B;
 	
 	//alarm types
 	public static final byte BELOW_THRESHOLD = 0x01;
@@ -85,6 +86,7 @@ public class SPINEFunctionConstants {
 	public static final String HEARTBEAT_LABEL = "HeartBeat";
 	public static final String ZEPHYR_LABEL = "Zephyr";
 	public static final String MINDSET_LABEL = "Mindset";
+	public static final String SHIMMER_LABEL = "Shimmer";
 	
 	// if new function libraries are added, declare their labels down here
 	public static final String RAW_DATA_LABEL = "Raw Data";
@@ -122,11 +124,14 @@ public class SPINEFunctionConstants {
 			case HEARTBEAT: return HEARTBEAT_LABEL;
 			case ZEPHYR: return ZEPHYR_LABEL;
 			case MINDSET: return MINDSET_LABEL;
+			case SHIMMER: return SHIMMER_LABEL;
 			default: return "?";
 		}
 	}
 	
 	public static byte functionCodeByString(String label) {
+		if(label.equals(SHIMMER_LABEL))
+			return SHIMMER;
 		if(label.equals(MINDSET_LABEL))
 			return MINDSET;
 		if(label.equals(FEATURE_LABEL))
@@ -189,6 +194,8 @@ public class SPINEFunctionConstants {
 			case HEARTBEAT: return HEARTBEAT_LABEL;
 			case SIGNAL_PROCESSING:	return "?"; 
 			case ZEPHYR: return ZEPHYR_LABEL;
+			case SHIMMER: return SHIMMER_LABEL;
+			
 			
 			default: return "?";
 		}
