@@ -39,6 +39,11 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final String TAG = Constants.TAG;
 	
+	static final int SHIMMER_FUNCT_CODE						= 0x0B;
+	static final int SHIMMER_SENSOR_CODE 					= 0x0E;
+	static final int SPINE_HEADER_SIZE 						= 9;
+	
+
 	// These numbers all add up for the shimmer being programmed
 	// to send only Accel and GSR data (plus timestamp)
 	// as configured in the state machine below
@@ -91,12 +96,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	
 	private int mMessageIndex = 0;
 	
-	// TODO: fix shimmer sensor code
 
-	static final int SHIMMER_FUNCT_CODE						= 0x0A;
-	static final int SHIMMER_SENSOR_CODE 					= 0x0E;
-	static final int SPINE_HEADER_SIZE 						= 9;
-	
 	/**
 	 * @param serverListeners 	List of server listeners (used to transmit messages to the Spine server) 
 	 */
