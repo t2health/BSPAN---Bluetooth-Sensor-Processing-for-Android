@@ -58,7 +58,13 @@ public class ShimmerSpineData extends SpineCodec {
 		pldIndex += 2;
 		data.accel[ShimmerData.AXIS_Z] = convertTwoBytesToInt(payload, pldIndex);
 		pldIndex += 2;
-		data.gsr = convertTwoBytesToInt(payload, pldIndex);
+
+		
+		// We need to treat gsr special since in it's top 2 bits it has
+		// the gsr range coded into it (For Auto range only)
+		data.gsr = ( payload[pldIndex] & 0xFF)| ((payload[pldIndex + 1] & 0x3F) << 8);
+		data.gsrRange = ((payload[pldIndex + 1] & 0xC0) >> 6);
+//		data.gsr = convertTwoBytesToInt(payload, pldIndex);
 
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
@@ -71,7 +77,7 @@ public class ShimmerSpineData extends SpineCodec {
 		if(bytes.length < 2) return 0;
 		
 		return ( bytes[index] & 0xFF) 		 |
-	           ((bytes[index + 1] & 0xFF) << 8);
+        ((bytes[index + 1] & 0xFF) << 8);
 	}
 //	byte hi = payload[EXECODE_ACCUM_MSG_POS + j++];
 //	byte lo = payload[EXECODE_ACCUM_MSG_POS + j++];
