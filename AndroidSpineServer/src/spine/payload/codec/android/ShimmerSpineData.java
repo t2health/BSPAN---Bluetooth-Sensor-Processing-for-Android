@@ -1,8 +1,5 @@
 package spine.payload.codec.android;
 
-import com.t2.Constants;
-
-import spine.datamodel.MindsetData;
 import spine.datamodel.Node;
 import spine.datamodel.ShimmerData;
 import spine.datamodel.functions.SpineCodec;

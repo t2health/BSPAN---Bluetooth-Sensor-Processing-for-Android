@@ -1,6 +1,5 @@
 package com.t2.compassionMeditation;
 
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,9 +12,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 
 //Need the following import to get access to the app resources, since this

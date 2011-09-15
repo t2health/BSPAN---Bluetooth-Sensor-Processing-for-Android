@@ -41,7 +41,6 @@ import spine.datamodel.FeatureData;
 import spine.datamodel.MindsetData;
 import spine.datamodel.ServiceMessage;
 import spine.datamodel.ShimmerData;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;

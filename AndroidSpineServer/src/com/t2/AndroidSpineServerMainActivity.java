@@ -1,18 +1,14 @@
 package com.t2;
 
-import com.t2.biomap.BioMapActivity;
-import com.t2.compassionMeditation.MainChooserActivity;
 import com.t2.compassionMeditation.SplashScreenActivity;
 import com.t2.Constants;
 
 import spine.SPINEFactory;
 import spine.SPINEManager;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -23,9 +19,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 
 /**
  * Main (test) activity for Spine server.
@@ -110,10 +103,7 @@ public class AndroidSpineServerMainActivity extends Activity{
         super.onCreate(savedInstanceState);
 		Log.i(TAG, "OnCreate");
 		firstTime = true;
-        setContentView(R.layout.main);
         instance = this;
-
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);        
 
         AndroidSpineConnector.setMainActivityInstance(instance);
         
@@ -145,9 +135,7 @@ public class AndroidSpineServerMainActivity extends Activity{
     @Override
 	protected void onDestroy() {
     	super.onDestroy();
-    	
-    	saveState();
-    	
+
     	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
 		Log.i(TAG, "MainActivity onDestroy");
 	    	
@@ -182,47 +170,6 @@ public class AndroidSpineServerMainActivity extends Activity{
 //			Intent i = new Intent(this, MainChooserActivity.class);
 			Intent i = new Intent(this, SplashScreenActivity.class);
 			this.startActivity(i);
-		}
-	}
-    
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		this.getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch(item.getItemId()) {
-		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
-			return true;
-			
-		case R.id.discover:
-			mManager.discoveryWsn();
-
-			return true;
-			
-		case R.id.about:
-			String content = "National Center for Telehealth and Technology (T2)\n\n";
-			content += "Spine Server Test Application\n";
-			content += "Version " + mVersionName;
-			
-			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-			
-			alert.setTitle("About");
-			alert.setMessage(content);	
-			alert.show();			
-			return true;
-			
-		case R.id.biomap:
-
-			Intent i = new Intent(this, BioMapActivity.class);
-			this.startActivity(i);
-			return true;
-
-		default:
-				return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -284,15 +231,10 @@ public class AndroidSpineServerMainActivity extends Activity{
 	        mIsBound = false;
 	    }
 	}
-	
-	public void onButtonClick(View v)
-	{
-	}
 
 	@Override
 	protected void onPause() {
 		Log.i(TAG, "MainActivity onPause");
-    	saveState();
 		super.onPause();
 	}
 
@@ -305,33 +247,14 @@ public class AndroidSpineServerMainActivity extends Activity{
 	@Override
 	protected void onRestart() {
 		Log.i(TAG, "MainActivity onRestart");
-		// We know that we'll get here the first time we start so we don't want to kill 
-		// ourselves then.
-		// Any time after that if we get here is means the last of the spine activities have been squashed
-		// so then we can kill oursef.
-		
-//		if (!firstTime)
-			finish();
+		finish();
 		firstTime = false;
 		super.onRestart();
-
-		
 	}
 
 	@Override
 	protected void onResume() {
 		Log.i(TAG, "MainActivity onResume");
-		
-		restoreState();
 		super.onResume();
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	}
-
-	void saveState() {
-	}
-	void restoreState() {
 	}
 }

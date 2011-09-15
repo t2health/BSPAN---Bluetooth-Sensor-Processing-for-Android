@@ -193,7 +193,7 @@ public class BioDetailActivity extends Activity implements OnBioFeedbackMessageR
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.biodetail_activity_layout);
         instance = this;
     
 //		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

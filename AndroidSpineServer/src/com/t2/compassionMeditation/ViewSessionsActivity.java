@@ -47,7 +47,6 @@ import android.widget.TextView;
 import bz.org.t2health.lib.activity.BaseActivity;
 
 
-import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
@@ -55,7 +54,6 @@ import com.t2.R;
 
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
-import com.t2.compassionDB.DatabaseHelper;
 import com.t2.compassionUtils.MathExtra;
 
 public class ViewSessionsActivity extends BaseActivity
