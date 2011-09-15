@@ -67,18 +67,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 		this.sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_START));
 		
 		this.setContentView(R.layout.manager);
-		
-		((ToggleButton)this.findViewById(R.id.serviceToggleButton)).setOnCheckedChangeListener(new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView,
-					boolean isChecked) {
-				if(isChecked) {
-					sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_START));
-				} else {
-					sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_STOP));
-				}
-			}
-		});
+
 		this.findViewById(R.id.bluetoothSettingsButton).setOnClickListener(this);
 		this.findViewById(R.id.about).setOnClickListener(this);
 		

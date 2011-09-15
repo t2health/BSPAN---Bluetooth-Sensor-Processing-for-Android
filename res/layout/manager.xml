@@ -18,13 +18,6 @@
 		android:layout_marginBottom="10dip"
 		android:layout_weight="1.0" />
 		
-	<ToggleButton
-		android:id="@+id/serviceToggleButton"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:textOn="Started"
-		android:textOff="Stopped"
-		android:visibility="gone" />
 	<LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="fill_parent">
 		<Button android:layout_height="wrap_content" android:layout_gravity="right" android:id="@+id/bluetoothSettingsButton" android:layout_width="wrap_content" android:text="@string/bluetooth_settings"></Button>
 		<Button android:layout_height="wrap_content" android:layout_gravity="left" android:id="@+id/about" android:text="@string/about_button_text" android:layout_width="fill_parent"></Button>
