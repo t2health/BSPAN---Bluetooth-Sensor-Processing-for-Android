@@ -24,6 +24,7 @@ import bz.org.t2health.lib.activity.BaseActivity;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.compassionUtils.MathExtra;
 import com.t2.compassionUtils.RateOfChange;
 
@@ -384,7 +385,8 @@ public class GraphsActivity extends BaseActivity implements OnBioFeedbackMessage
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
+			Intent intent2 = new Intent(this, BTServiceManager.class);
+			this.startActivity(intent2);			
 			return true;
 			
 		case R.id.discover:

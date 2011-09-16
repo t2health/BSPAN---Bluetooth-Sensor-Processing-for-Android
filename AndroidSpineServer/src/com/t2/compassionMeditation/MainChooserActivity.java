@@ -26,6 +26,7 @@ import android.widget.Toast;
 //class is in a sub-package.
 import com.t2.R;
 
+import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.filechooser.FileChooser;
 
 
@@ -268,7 +269,8 @@ public class MainChooserActivity extends Activity {
 			return true;
 			
 		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
+			Intent intent2 = new Intent(this, BTServiceManager.class);
+			this.startActivity(intent2);				
 			return true;
 			
 		case R.id.preferences:

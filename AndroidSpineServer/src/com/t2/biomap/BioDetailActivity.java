@@ -24,6 +24,7 @@ import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
 import com.t2.Util;
+import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.biomap.BioLocation;
 import com.t2.biomap.BioMapActivity;
 import com.t2.biomap.SharedPref;
@@ -400,7 +401,8 @@ public class BioDetailActivity extends Activity implements OnBioFeedbackMessageR
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
+			Intent intent2 = new Intent(this, BTServiceManager.class);
+			this.startActivity(intent2);			
 			return true;
 			
 		case R.id.discover:

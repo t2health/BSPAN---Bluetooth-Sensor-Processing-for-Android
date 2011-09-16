@@ -60,7 +60,7 @@ public class SPINEFactory {
 	public static SPINEManager createSPINEManager(String appPropertiesFile, Resources resources) throws InstantiationException {
 		if (managerInstance != null)
 		{
-			Log.i("BFDemo", "	gOT HERE 2, managerInstance = " + managerInstance);			
+//			Log.i("BFDemo", "	gOT HERE 2, managerInstance = " + managerInstance);			
 			
 		}
 //			throw new InstantiationException("SPINEManager already initialized");
@@ -78,7 +78,7 @@ public class SPINEFactory {
 				throw new InstantiationException(APP_PROP_MISSING_MSG);
 			
 			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
-			Log.i("BFDemo", "	gOT HERE 1, managerInstance = " + managerInstance);			
+//			Log.i("BFDemo", "	gOT HERE 1, managerInstance = " + managerInstance);			
 			
 		}
 		return managerInstance;

@@ -27,6 +27,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.compassionDB.BioSession;
 import com.t2.compassionDB.BioUser;
 import com.t2.compassionUtils.MathExtra;
@@ -579,7 +580,8 @@ public class BuddahActivity extends BaseActivity
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 		case R.id.settings:
-			startActivity(new Intent("com.t2.biofeedback.MANAGER"));
+			Intent intent2 = new Intent(this, BTServiceManager.class);
+			this.startActivity(intent2);			
 			return true;
 			
 		case R.id.discover:
