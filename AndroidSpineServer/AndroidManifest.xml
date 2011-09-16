@@ -137,7 +137,6 @@
         <activity android:name=".compassionMeditation.SplashScreenActivity"></activity>
         <activity android:name="com.t2.biofeedback.activity.BTServiceManager"></activity>        
 
-
     	<receiver
         	android:name="com.t2.biofeedback.BioFeedbackServiceManagerReceiver">
 			<intent-filter>
@@ -156,7 +155,6 @@
 	        	<action android:name="com.t2.biofeedback.IBioFeedbackService"/>			
 	        </intent-filter>       
 		</service>
-        
 
     </application>
 </manifest>

@@ -1,12 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridView xmlns:android="http://schemas.android.com/apk/res/android" 
-    android:id="@+id/gridview"
-    android:layout_width="fill_parent" 
-    android:layout_height="fill_parent"
-    android:columnWidth="90dp"
-    android:numColumns="auto_fit"
-    android:verticalSpacing="10dp"
-    android:horizontalSpacing="10dp"
-    android:stretchMode="columnWidth"
-    android:gravity="center"
-/>
+<FrameLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent" >
+    <ImageView 
+    	android:id="@+id/imageView2" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content" 
+    	android:src="@drawable/biozen_splash_bkgrd"
+    	></ImageView>
+    <ImageView 
+    	android:layout_width="wrap_content" 
+    	android:id="@+id/imageView1" 
+    	android:layout_height="wrap_content" 
+    	android:src="@drawable/biozen_logo"
+    	></ImageView>
+    	
+    <RelativeLayout 
+    	android:id="@+id/relativeLayout1" 
+    	android:gravity="fill_vertical" 
+    	android:layout_width="wrap_content" 
+    	android:layout_height="wrap_content"
+    	>
+        <TextView 
+        	android:layout_width="fill_parent" 
+        	android:id="@+id/textView1" 
+        	android:layout_height="120dip"
+        	></TextView>
+        <LinearLayout 
+        	android:id="@+id/linearLayout1" 
+        	android:layout_width="wrap_content" 
+        	android:layout_height="wrap_content"
+        	android:layout_alignParentBottom="true"
+        	>
+			<GridView xmlns:android="http://schemas.android.com/apk/res/android" 
+			    android:id="@+id/gridview"
+			    android:layout_width="fill_parent" 
+			    android:layout_height="fill_parent"
+			    android:numColumns="4"
+			    android:stretchMode="columnWidth"
+			    android:gravity="center"
+			/>
+        </LinearLayout>
+    </RelativeLayout>  
+</FrameLayout>

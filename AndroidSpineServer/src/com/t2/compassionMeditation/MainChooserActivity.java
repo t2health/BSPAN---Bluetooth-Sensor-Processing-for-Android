@@ -8,23 +8,28 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
 import com.t2.R;
+
 
 import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.filechooser.FileChooser;
@@ -35,7 +40,7 @@ import com.t2.filechooser.FileChooser;
  * @author scott.coleman
  *
  */
-public class MainChooserActivity extends Activity {
+public class MainChooserActivity extends Activity implements OnClickListener{
 	private static final String TAG = "MainActivity";
 	private static final String mActivityVersion = "1.1";
 	private static boolean firstTime = true;
@@ -49,26 +54,15 @@ public class MainChooserActivity extends Activity {
 	private static final int ID_VIEW_ACTIVITY = 2;
 	private static final int ID_REVIEW = 3;
 	private static final int ID_DIRECTORY = 4;
-	
-    // references to our images - The order MUST match the ID index variables above
-    private Integer[] mThumbIds = {
-            R.drawable.learn, 
-            R.drawable.new_session,
-            R.drawable.view,
-            R.drawable.review,
-//            R.drawable.learn_tab, 
-//            R.drawable.newsession_tab,
-//            R.drawable.view_tab,
-//            R.drawable.review_tab,
-//            R.drawable.files_tab,
-    };
-	
+
 	/**
 	 * User mode - Determines whether or not to show a dialog showing potential users
 	 * @see BioZenConstants.java
 	 *  PREF_USER_MODE_DEFAULT, PREF_USER_MODE_SINGLE_USER, PREF_USER_MODE_PROVIDER
 	 */
 	int mUserMode;
+
+	
 	
 	/**
 	 * Application version info determined by the package manager
@@ -84,7 +78,7 @@ public class MainChooserActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
         
-        setContentView(R.layout.new_main_chooser_activity_layout);
+        setContentView(R.layout.main_chooser_activity_layout);
         
         PreferenceManager.setDefaultValues(this, R.xml.bio_zen_preferences, false);        
         
@@ -104,18 +98,8 @@ public class MainChooserActivity extends Activity {
 			   	Log.e(TAG, e.toString());
 		}        
         
-// //       GridView gridView = (GridView) findViewById(R.id.gridview);
-// //       gridView.setAdapter(new ImageAdapter(this));
-//      ImageView imageView = (ImageView)findViewById(R.id.imageView3);
-//        imageView.setImageResource(R.drawable.learn);
-////        mSeekBar = (SeekBar)findViewById(R.id.seekBar1);        
-//  //          imageView = new ImageView(this);
-////        imageView.setLayoutParams(new GridView.LayoutParams(90, 90));
-//        imageView.setLayoutParams(new ViewGroup.LayoutParams(90, 90));
-//            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//      ImageButton imageButton = (ImageButton)findViewById(R.id.imageButton1);
-		
-        
+	    GridView gridView = (GridView) findViewById(R.id.gridview);
+        gridView.setAdapter(new ImageAdapter(this, this));		
 		
 		
 		if (mUserMode == BioZenConstants.PREF_USER_MODE_PROVIDER) {
@@ -126,47 +110,47 @@ public class MainChooserActivity extends Activity {
 	    	SharedPref.putString(this, "SelectedUser", 	"");
 		}        
 
-//        gridView.setOnItemClickListener(new GridView.OnItemClickListener() 
-//        {
-//            public void onItemClick(AdapterView parent, View v, int position, long id) 
-//            {    
-//            	Intent intent;            	
-//            	switch (position)
-//            	{
-//            	case ID_LEARN:
-//            		break;
-//
-//            	case ID_NEW_SESSION:
-//        			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
-//        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
-//        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-//
-//        			if (instructionsOnStart) {
-//        				Intent intent1 = new Intent(instance, InstructionsActivity.class);
-//        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
-//        			} else {
-//        				intent = new Intent(instance, BuddahActivity.class);
-//        				instance.startActivity(intent);		
-//        			}
-//        			break;
-//        			
-//            	case ID_VIEW_ACTIVITY:
-//        			intent = new Intent(instance, GraphsActivity.class);
-//        			instance.startActivity(intent);	        			
-//            		break;
-//            		
-//            	case ID_DIRECTORY:
-//        			intent = new Intent(instance, FileChooser.class);
-//        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-//            		break;
-//
-//            	case ID_REVIEW:
-//        			intent = new Intent(instance, ViewSessionsActivity.class);
-//        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-//            		break;
-//            	}
-//           }
-//        });
+        gridView.setOnItemClickListener(new GridView.OnItemClickListener() 
+        {
+            public void onItemClick(AdapterView parent, View v, int position, long id) 
+            {    
+            	Intent intent;            	
+            	switch (position)
+            	{
+            	case ID_LEARN:
+            		break;
+
+            	case ID_NEW_SESSION:
+        			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
+        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
+        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+
+        			if (instructionsOnStart) {
+        				Intent intent1 = new Intent(instance, InstructionsActivity.class);
+        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
+        			} else {
+        				intent = new Intent(instance, BuddahActivity.class);
+        				instance.startActivity(intent);		
+        			}
+        			break;
+        			
+            	case ID_VIEW_ACTIVITY:
+        			intent = new Intent(instance, GraphsActivity.class);
+        			instance.startActivity(intent);	        			
+            		break;
+            		
+            	case ID_DIRECTORY:
+        			intent = new Intent(instance, FileChooser.class);
+        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
+            		break;
+
+            	case ID_REVIEW:
+        			intent = new Intent(instance, ViewSessionsActivity.class);
+        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
+            		break;
+            	}
+           }
+        });
     }
 	
 	public void onButtonClick(View v)
@@ -298,42 +282,107 @@ public class MainChooserActivity extends Activity {
 	}
 	
 	
-	public class ImageAdapter extends BaseAdapter {
-	    private Context mContext;
+    public class ImageAdapter extends BaseAdapter {
+        private Context mContext;
 
-	    public ImageAdapter(Context c) {
-	        mContext = c;
-	    }
+        private OnClickListener mListener;
 
-	    public int getCount() {
-	        return mThumbIds.length;
-	    }
+        public ImageAdapter(Context c, OnClickListener l)
+        {
+          mContext = c;
+          mListener = l;
+        }        
+        
+        public ImageAdapter(Context c) {
+            mContext = c;
+        }
 
-	    public Object getItem(int position) {
-	        return null;
-	    }
+        public int getCount() {
+            return mThumbIds.length;
+        }
 
-	    public long getItemId(int position) {
-	        return 0;
-	    }
+        public Object getItem(int position) {
+            return null;
+        }
 
-	    // create a new ImageView for each item referenced by the Adapter
-	    public View getView(int position, View convertView, ViewGroup parent) {
-	        ImageView imageView;
-	        if (convertView == null) {  // if it's not recycled, initialize some attributes
-	            imageView = new ImageView(mContext);
-	            imageView.setLayoutParams(new GridView.LayoutParams(90, 90));
-	            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//	            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//	            imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-//	            imageView.setScaleType(ImageView.ScaleType.FIT_END);
-	            imageView.setPadding(1,1,1,1);
-	        } else {
-	            imageView = (ImageView) convertView;
-	        }
+        public long getItemId(int position) {
+            return 0;
+        }
 
-	        imageView.setImageResource(mThumbIds[position]);
-	        return imageView;
-	    }
-	}	
+        // create a new ImageView for each item referenced by the Adapter
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ImageButton imageView;
+            final int mPosition = position;
+            if (convertView == null) {  // if it's not recycled, initialize some attributes
+                imageView = new ImageButton(mContext);
+                imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                imageView.setPadding(6, 6, 6, 6);
+            } else {
+                imageView = (ImageButton) convertView;
+            }
+
+            imageView.setImageResource(mThumbIds[position]);
+            imageView.setBackgroundColor(Color.TRANSPARENT);
+            
+//            imageView.setOnClickListener(mListener);
+            imageView.setOnClickListener(new OnClickListener(){
+
+                public void onClick(View arg0) {
+
+                	int pos = mPosition;
+        		    switch (pos) {
+        		    case ID_LEARN:
+        		    	break;
+        		    case ID_NEW_SESSION:
+            			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
+        				BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
+        				BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
+
+        				if (instructionsOnStart) {
+        					Intent intent1 = new Intent(instance, InstructionsActivity.class);
+        					instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
+        				} else {
+        					Intent intent = new Intent(instance, BuddahActivity.class);
+        					instance.startActivity(intent);		
+        				}		    	
+        		    	break;
+        		    case ID_VIEW_ACTIVITY:
+            			Intent intent = new Intent(instance, ViewSessionsActivity.class);
+            			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY); 		    	
+        		    	break;
+        		    case ID_REVIEW:
+            			intent = new Intent(instance, GraphsActivity.class);
+            			instance.startActivity(intent);		    	
+        		    	break;
+        		    		    
+        		    }
+
+           }
+
+            });            
+
+            return imageView;
+        }
+
+        // references to our images
+        private Integer[] mThumbIds = {
+                R.drawable.learn_button_images,
+                R.drawable.new_session_button_images,
+                R.drawable.review_button_images,
+                R.drawable.view_button_images,
+        };
+    } // End class ImageAdapter extends BaseAdapter
+
+
+	@Override
+	public void onClick(View view) {
+		// TODO Auto-generated method stub
+//		int i2 = view.getResources()
+		//i2++;
+		Log.i("onClick()", "view=" + view);
+		onButtonClick(view);
+		
+		
+	}   	
 }
