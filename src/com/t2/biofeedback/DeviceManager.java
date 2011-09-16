@@ -92,56 +92,63 @@ public class DeviceManager {
 		
 		this.loadSettings();
 		
-		// Display option A
-		// Use this block if you want to list all bonded BT devices regardless of their BT Address
-		Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
-		Iterator bit = deviceBondedDevices.iterator();
-		while(bit.hasNext())
-		{
-			// NOTE: *** 
-			// IF you add a device here, make sure and add it to getInstance() as well
-			BioFeedbackDevice d;
-			BluetoothDevice bt = (BluetoothDevice) bit.next();
-			String name = bt.getName();
-			if (name.equalsIgnoreCase("BH ZBH002095"))
-			{
-				d = new ZephyrBH(mServerListeners);
+		try {
+				// Display option A
+				// Use this block if you want to list all bonded BT devices regardless of their BT Address
+				Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
+				Iterator bit = deviceBondedDevices.iterator();
+				while(bit.hasNext())
+				{
+					// NOTE: *** 
+					// IF you add a device here, make sure and add it to getInstance() as well
+					BioFeedbackDevice d;
+					BluetoothDevice bt = (BluetoothDevice) bit.next();
+					String name = bt.getName();
+					if (name.equalsIgnoreCase("BH ZBH002095"))
+					{
+						d = new ZephyrBH(mServerListeners);
+						
+					}
+					else if (name.equalsIgnoreCase("MINDSET")) 
+					{
+						d = new NeuroskyBH(mServerListeners);
+					}
+					else if (name.startsWith("NeXus")) 
+					{
+						d = new MobiBH(mServerListeners);
+					}
+					else if (name.equalsIgnoreCase("RN42-897A"))
+					{
+						d = new SpineBH(mServerListeners);
+					}
+					else
+					{
+						d = new ShimmerBH(mServerListeners);
+					}
+					d.setDevice(bt.getAddress());
+					this.availableDevices.put(d.getAddress(),d);			
+				}
 				
-			}
-			else if (name.equalsIgnoreCase("MINDSET")) 
-			{
-				d = new NeuroskyBH(mServerListeners);
-			}
-			else if (name.startsWith("NeXus")) 
-			{
-				d = new MobiBH(mServerListeners);
-			}
-			else if (name.equalsIgnoreCase("RN42-897A"))
-			{
-				d = new SpineBH(mServerListeners);
-			}
-			else
-			{
-				d = new ShimmerBH(mServerListeners);
-			}
-			d.setDevice(bt.getAddress());
-			this.availableDevices.put(d.getAddress(),d);			
+	
+				// Display option B
+		 		// Use this block if you want to list only devices that match the specific Addresses
+				// of devices in the static array "devices" (see above
+	//			for(int i = 0; i < devices.length; i++) {
+	//				BioFeedbackDevice d = devices[i];
+	//				
+	//				this.availableDevices.put(
+	//						d.getAddress(), 
+	//						d
+	//				);
+	//			}
+				
+				manage();		
+			} catch (Exception e) {
+			Log.e(TAG, e.toString());
 		}
 		
-
-		// Display option B
- 		// Use this block if you want to list only devices that match the specific Addresses
-		// of devices in the static array "devices" (see above
-//		for(int i = 0; i < devices.length; i++) {
-//			BioFeedbackDevice d = devices[i];
-//			
-//			this.availableDevices.put(
-//					d.getAddress(), 
-//					d
-//			);
-//		}
 		
-		manage();
+
 	}
 	
 	/**
