@@ -74,6 +74,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -167,15 +168,17 @@ public class BuddahActivity extends BaseActivity
 	// UI Elements
 	private Button mToggleLogButton;
     private Button mLlogMarkerButton;
-    private Button mPauseButton;
+    private ImageButton mPauseButton;
     private TextView mTextInfoView;
     private TextView mTextViewInstructions;
     private TextView mTextBioHarnessView;
-    private TextView mCountdownTextView;
     private ImageView mBuddahImage; 
     private ImageView mLotusImage; 
     private SeekBar mSeekBar;
     private ImageView mSignalImage;    
+    private ImageView mCountdownImageView; 
+    private TextView mCountdownTextView;
+    
     /**
      * Moving average used to smooth the display of the band of interest
      */
@@ -328,7 +331,9 @@ public class BuddahActivity extends BaseActivity
         mTextInfoView = (TextView) findViewById(R.id.textViewInfo);
         mTextBioHarnessView = (TextView) findViewById(R.id.textViewBioHarness);
         mCountdownTextView = (TextView) findViewById(R.id.countdownTextView);
-        mPauseButton = (Button) findViewById(R.id.buttonPause);
+        mCountdownImageView = (ImageView) findViewById(R.id.imageViewCountdown);  
+        
+        mPauseButton = (ImageButton) findViewById(R.id.buttonPause);
         mSignalImage = (ImageView) findViewById(R.id.imageView1);  
         mTextViewInstructions = (TextView) findViewById(R.id.textViewInstructions);
         
@@ -342,6 +347,7 @@ public class BuddahActivity extends BaseActivity
 		
         // Controls start as invisible, need to touch screen to activate them
 		mCountdownTextView.setVisibility(View.INVISIBLE);
+		mCountdownImageView.setVisibility(View.INVISIBLE);
 		mTextInfoView.setVisibility(View.INVISIBLE);
 		mTextBioHarnessView.setVisibility(View.INVISIBLE);		
 		mPauseButton.setVisibility(View.INVISIBLE);
@@ -506,7 +512,8 @@ public class BuddahActivity extends BaseActivity
 		super.onStart();
 		Log.i(TAG, TAG +  " OnStart");
 		
-		mPauseButton.setText("Start");
+//		mPauseButton.setText("Start");
+		mPauseButton.setImageResource(R.drawable.start); 		    		
 		
 		// Set up filter intents so we can receive broadcasts
 		IntentFilter filter = new IntentFilter();
@@ -825,7 +832,8 @@ public class BuddahActivity extends BaseActivity
 		    case R.id.buttonPause:
 		    	if (mPaused) {
 		    		mPaused = false;
-		    		mPauseButton.setText("Quit");
+//		    		mPauseButton.setText("Quit");
+		    		mPauseButton.setImageResource(R.drawable.quit); 		    		
 		    		mTextViewInstructions.setVisibility(View.INVISIBLE);
 		    		toggleControls();		    		
 		    		Toast.makeText(instance, "You may toggle the screen controls back \non by pressing anywhere on the screen", Toast.LENGTH_SHORT).show();
@@ -1082,6 +1090,7 @@ public class BuddahActivity extends BaseActivity
 		// Toggle showing screen buttons/controls
 		if (mShowingControls) {
 			mShowingControls = false;
+			mCountdownImageView.setVisibility(View.INVISIBLE);
 			mCountdownTextView.setVisibility(View.INVISIBLE);
 			mTextInfoView.setVisibility(View.INVISIBLE);
 			mTextBioHarnessView.setVisibility(View.INVISIBLE);
@@ -1091,6 +1100,7 @@ public class BuddahActivity extends BaseActivity
 		}
 		else {
 			mShowingControls = true;
+			mCountdownImageView.setVisibility(View.VISIBLE);
 			mCountdownTextView.setVisibility(View.VISIBLE);
 			if (mDebug) mTextInfoView.setVisibility(View.VISIBLE);
 			if (mDebug) mTextBioHarnessView.setVisibility(View.VISIBLE);
