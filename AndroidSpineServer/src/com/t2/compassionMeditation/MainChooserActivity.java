@@ -34,7 +34,6 @@ import com.t2.R;
 import com.t2.biofeedback.activity.BTServiceManager;
 import com.t2.filechooser.FileChooser;
 
-
 /**
  * Main menu activity for application
  * @author scott.coleman
@@ -55,20 +54,26 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 	private static final int ID_REVIEW = 3;
 	private static final int ID_DIRECTORY = 4;
 
+    // Button images
+    private Integer[] mThumbIds = {
+            R.drawable.learn_button_images,
+            R.drawable.new_session_button_images,
+            R.drawable.review_button_images,
+            R.drawable.view_button_images,
+    };
+	
+	
 	/**
 	 * User mode - Determines whether or not to show a dialog showing potential users
 	 * @see BioZenConstants.java
 	 *  PREF_USER_MODE_DEFAULT, PREF_USER_MODE_SINGLE_USER, PREF_USER_MODE_PROVIDER
 	 */
 	int mUserMode;
-
-	
 	
 	/**
 	 * Application version info determined by the package manager
 	 */
 	private String mApplicationVersion = "";	
-	
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -184,7 +189,6 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 		    }
 	}
     
-    
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -259,7 +263,6 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 			
 		case R.id.preferences:
 			intent = new Intent(this, BioZenPreferenceActivity.class);
-//			Intent intent = new Intent(this, PreferenceActivity.class);
 			this.startActivity(intent);	
 			return true;
 						
@@ -280,7 +283,6 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
 	
     public class ImageAdapter extends BaseAdapter {
         private Context mContext;
@@ -325,7 +327,6 @@ public class MainChooserActivity extends Activity implements OnClickListener{
             imageView.setImageResource(mThumbIds[position]);
             imageView.setBackgroundColor(Color.TRANSPARENT);
             
-//            imageView.setOnClickListener(mListener);
             imageView.setOnClickListener(new OnClickListener(){
 
                 public void onClick(View arg0) {
@@ -357,32 +358,17 @@ public class MainChooserActivity extends Activity implements OnClickListener{
         		    	break;
         		    		    
         		    }
-
            }
-
             });            
 
             return imageView;
         }
 
-        // references to our images
-        private Integer[] mThumbIds = {
-                R.drawable.learn_button_images,
-                R.drawable.new_session_button_images,
-                R.drawable.review_button_images,
-                R.drawable.view_button_images,
-        };
     } // End class ImageAdapter extends BaseAdapter
-
 
 	@Override
 	public void onClick(View view) {
-		// TODO Auto-generated method stub
-//		int i2 = view.getResources()
-		//i2++;
 		Log.i("onClick()", "view=" + view);
 		onButtonClick(view);
-		
-		
 	}   	
 }
