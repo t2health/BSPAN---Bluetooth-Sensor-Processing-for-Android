@@ -45,6 +45,7 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 	private static boolean firstTime = true;
 
 	private MainChooserActivity instance;
+	private int mLastButtonPressed;
 
 	
 	// ID index variables - The enumerations MUST match the image references below
@@ -115,79 +116,8 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 	    	SharedPref.putString(this, "SelectedUser", 	"");
 		}        
 
-        gridView.setOnItemClickListener(new GridView.OnItemClickListener() 
-        {
-            public void onItemClick(AdapterView parent, View v, int position, long id) 
-            {    
-            	Intent intent;            	
-            	switch (position)
-            	{
-            	case ID_LEARN:
-            		break;
 
-            	case ID_NEW_SESSION:
-        			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
-        					BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
-        					BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-
-        			if (instructionsOnStart) {
-        				Intent intent1 = new Intent(instance, InstructionsActivity.class);
-        				instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
-        			} else {
-        				intent = new Intent(instance, BuddahActivity.class);
-        				instance.startActivity(intent);		
-        			}
-        			break;
-        			
-            	case ID_VIEW_ACTIVITY:
-        			intent = new Intent(instance, GraphsActivity.class);
-        			instance.startActivity(intent);	        			
-            		break;
-            		
-            	case ID_DIRECTORY:
-        			intent = new Intent(instance, FileChooser.class);
-        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-            		break;
-
-            	case ID_REVIEW:
-        			intent = new Intent(instance, ViewSessionsActivity.class);
-        			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY);            		
-            		break;
-            	}
-           }
-        });
     }
-	
-	public void onButtonClick(View v)
-	{
-		 final int id = v.getId();
-		    switch (id) {
-		    case R.id.imageButtonLearn:
-		    	break;
-		    case R.id.imageButtonNewSession:
-    			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
-				BioZenConstants.PREF_INSTRUCTIONS_ON_START, 
-				BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
-
-				if (instructionsOnStart) {
-					Intent intent1 = new Intent(instance, InstructionsActivity.class);
-					instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
-				} else {
-					Intent intent = new Intent(instance, BuddahActivity.class);
-					instance.startActivity(intent);		
-				}		    	
-		    	break;
-		    case R.id.imageButtonReview:
-    			Intent intent = new Intent(instance, ViewSessionsActivity.class);
-    			instance.startActivityForResult(intent, BioZenConstants.FILECHOOSER_USER_ACTIVITY); 		    	
-		    	break;
-		    case R.id.imageButtonView:
-    			intent = new Intent(instance, GraphsActivity.class);
-    			instance.startActivity(intent);		    	
-		    	break;
-		    		    
-		    }
-	}
     
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -232,8 +162,11 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 			      break; 	
 			      
 		    case (BioZenConstants.INSTRUCTIONS_USER_ACTIVITY):
-				intent = new Intent(this, BuddahActivity.class);
-				this.startActivity(intent);		
+		    	
+		    	if (mLastButtonPressed == ID_NEW_SESSION) {
+					intent = new Intent(this, BuddahActivity.class);
+					this.startActivity(intent);		
+		    	}
 		    	break;
 		    	
 		    case (BioZenConstants.USER_MODE_ACTIVITY):
@@ -314,7 +247,7 @@ public class MainChooserActivity extends Activity implements OnClickListener{
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
             ImageButton imageView;
-            final int mPosition = position;
+            final int fPosition = position;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
                 imageView = new ImageButton(mContext);
                 imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
@@ -331,9 +264,12 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 
                 public void onClick(View arg0) {
 
-                	int pos = mPosition;
+                	int pos = fPosition;
+                	mLastButtonPressed = fPosition; 
         		    switch (pos) {
         		    case ID_LEARN:
+    					Intent intent1 = new Intent(instance, InstructionsActivity.class);
+    					instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
         		    	break;
         		    case ID_NEW_SESSION:
             			boolean instructionsOnStart = SharedPref.getBoolean(instance, 
@@ -341,7 +277,7 @@ public class MainChooserActivity extends Activity implements OnClickListener{
         				BioZenConstants.PREF_INSTRUCTIONS_ON_START_DEFAULT);        
 
         				if (instructionsOnStart) {
-        					Intent intent1 = new Intent(instance, InstructionsActivity.class);
+        					intent1 = new Intent(instance, InstructionsActivity.class);
         					instance.startActivityForResult(intent1, BioZenConstants.INSTRUCTIONS_USER_ACTIVITY);		
         				} else {
         					Intent intent = new Intent(instance, BuddahActivity.class);
@@ -368,7 +304,5 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 
 	@Override
 	public void onClick(View view) {
-		Log.i("onClick()", "view=" + view);
-		onButtonClick(view);
 	}   	
 }

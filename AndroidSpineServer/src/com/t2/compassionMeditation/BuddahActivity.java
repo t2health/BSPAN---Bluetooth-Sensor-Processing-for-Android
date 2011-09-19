@@ -463,7 +463,7 @@ public class BuddahActivity extends BaseActivity
 		String currentDateTimeString = sdf.format(new Date());
 		
 		mSessionName = selectedUserName + "_" + currentDateTimeString + ".log";
-		mLogCatName = "Logcat" + currentDateTimeString + ".log";		
+		mLogCatName = "Logcat_" + selectedUserName + currentDateTimeString + ".log";		
 		
 		mSignalImage.setImageResource(R.drawable.signal_bars0);
 		mSignalImage.setVisibility(View.VISIBLE);
@@ -1195,6 +1195,8 @@ public class BuddahActivity extends BaseActivity
     		    File root = Environment.getExternalStorageDirectory();
     		    if (root.canWrite()){
     		        mLogFile = new File(root, mSessionName);
+    			    mLogFileName = mLogFile.getAbsolutePath();
+    		        
     		        FileWriter gpxwriter = new FileWriter(mLogFile, true); // open for append
     		        mLogWriter = new BufferedWriter(gpxwriter);
 
@@ -1300,7 +1302,7 @@ public class BuddahActivity extends BaseActivity
 		try {
 		    File filename = new File(Environment.getExternalStorageDirectory() + "/" + mLogCatName); 
 		    filename.createNewFile(); 
-		    mLogFileName = filename.getAbsolutePath();
+//		    mLogFileName = filename.getAbsolutePath();
 		    String cmd = "logcat -d -f "+filename.getAbsolutePath();
 		    Runtime.getRuntime().exec(cmd);
 		} catch (IOException e) {

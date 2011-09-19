@@ -38,7 +38,7 @@
             </LinearLayout>
             <LinearLayout android:layout_height="100dip" android:id="@+id/linearLayout2" android:orientation="vertical" android:layout_width="fill_parent">
                 <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView1" android:text="Notes:"></TextView>
-                <EditText android:text="EditText" android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/editTextNotes"></EditText>
+                <EditText android:layout_height="fill_parent" android:layout_width="fill_parent" android:id="@+id/editTextNotes"></EditText>
             </LinearLayout>
             <LinearLayout android:layout_height="fill_parent" android:id="@+id/linearLayout1" android:layout_width="fill_parent">
                 <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/buttonSaveSession" android:text="Save" android:layout_weight="1" android:onClick="onButtonClick"></Button>

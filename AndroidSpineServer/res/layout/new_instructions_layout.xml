@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent" android:orientation="vertical"
+  android:id="@+id/instructionslayout">
+    <LinearLayout 
+    	android:id="@+id/linearLayout1" 
+    	android:layout_height="wrap_content" 
+    	android:layout_width="fill_parent"
+    	>
+        <Button android:layout_height="wrap_content" android:gravity="left" android:text="Back/Continue" android:layout_width="wrap_content" android:onClick="onButtonClick" android:id="@+id/buttonBack"></Button>
+    </LinearLayout>  
+    <WebView
+        android:id="@+id/webview"
+    	android:layout_width="fill_parent" 
+    	android:layout_height="fill_parent"
+    	android:layout_weight="1"
+    	/>
+    	<CheckBox android:id="@+id/checkBox1" 
+    		android:layout_width="fill_parent" 
+    		android:layout_height="wrap_content" 
+    		android:layout_alignParentBottom="true" android:text="Show instructions on session start"></CheckBox>  
+  
+  
+  
+</LinearLayout>

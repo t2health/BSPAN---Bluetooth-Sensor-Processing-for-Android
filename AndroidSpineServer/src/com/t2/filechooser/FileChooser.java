@@ -12,7 +12,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
@@ -23,14 +26,31 @@ import com.t2.compassionMeditation.BioZenConstants;
 
 
 public class FileChooser extends ListActivity {
+	private static final int FILTER_DATA = 0;
+	private static final int FILTER_CAT = 1;
+	private static final int FILTER_ALL = 2;
 	
     private File currentDir;
     private FileArrayAdapter adapter;
+    private int fileFilter = FILTER_DATA;
+
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //currentDir = new File("/sdcard/");
         currentDir = Environment.getExternalStorageDirectory();
+        
+        setContentView(R.layout.file_chooser_activity_layout);   
+        
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerFilter);
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(
+                this, R.array.filechooser_spinner_items, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);        
+        
+        spinner.setOnItemSelectedListener(new MyOnItemSelectedListener());    
+        
         
         fill(currentDir);
         
@@ -67,6 +87,32 @@ public class FileChooser extends ListActivity {
         });         
         
     }
+    
+    
+    public class MyOnItemSelectedListener implements OnItemSelectedListener {
+
+        public void onItemSelected(AdapterView<?> parent,
+            View view, int pos, long id) {
+        	Toast.makeText(parent.getContext(), "Showing " +
+              parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
+        	
+            fileFilter = pos;
+            fill(currentDir);
+            
+
+//        	if (parent.getItemAtPosition(pos).toString().contains("cat")) {
+//        		showAllFiles = true;
+//        	}
+//        	else {
+//        		showAllFiles = false;
+//        		
+//        	}
+        }
+
+        public void onNothingSelected(AdapterView parent) {
+          // Do nothing.
+        }
+    }    
     private void fill(File f)
     {
     	File[]dirs = f.listFiles();
@@ -82,8 +128,23 @@ public class FileChooser extends ListActivity {
 				else
 				{
 					String fileName = ff.toString();
-					if (fileName.endsWith(".log"))
+					switch (fileFilter) {
+					case  FILTER_ALL:
 						fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+						break;
+						
+					case  FILTER_DATA:
+						if (fileName.endsWith(".log") && !fileName.contains("cat"))
+							fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+						break;
+						
+					case  FILTER_CAT:
+						if (fileName.endsWith(".log") && fileName.contains("cat"))
+							fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+						break;
+						
+
+					}
 				}
 			 }
 		 }catch(Exception e)

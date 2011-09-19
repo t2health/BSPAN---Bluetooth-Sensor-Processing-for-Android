@@ -43,7 +43,7 @@
                 android:dialogTitle="User Mode" android:key="user_mode" android:title="User Mode" android:entries="@array/user_mode_array" android:entryValues="@array/user_mode_array_values" android:defaultValue="1" android:summary="Selects between provider mode and single user mode"/>
     
         <CheckBoxPreference
-                android:title="Show Instructions on Start" android:summary="Selects wheather or not to show instructions when app starts" android:defaultValue="false" android:key="instructions_on_start"/>
+                android:title="Show Instructions on Start" android:summary="Selects wheather or not to show instructions when meditation session starts" android:defaultValue="false" android:key="instructions_on_start"/>
             
     </PreferenceCategory>
     
