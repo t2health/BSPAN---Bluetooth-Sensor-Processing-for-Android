@@ -11,6 +11,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,6 +47,7 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 
 	private MainChooserActivity instance;
 	private int mLastButtonPressed;
+    DisplayMetrics metrics = new DisplayMetrics();
 
 	
 	// ID index variables - The enumerations MUST match the image references below
@@ -80,6 +82,8 @@ public class MainChooserActivity extends Activity implements OnClickListener{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
+        
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);        
         
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);		// This needs to happen BEFORE setContentView
@@ -255,9 +259,11 @@ public class MainChooserActivity extends Activity implements OnClickListener{
             final int fPosition = position;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
                 imageView = new ImageButton(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+                
+                imageView.setLayoutParams(new GridView.LayoutParams(metrics.widthPixels/4, metrics.widthPixels/4));
+//                imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                imageView.setPadding(6, 6, 6, 6);
+                imageView.setPadding(2, 2, 2, 2);
             } else {
                 imageView = (ImageButton) convertView;
             }

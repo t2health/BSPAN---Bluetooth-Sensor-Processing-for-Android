@@ -14,7 +14,7 @@
     	android:id="@+id/imageView1" 
     	android:layout_height="wrap_content" 
     	android:src="@drawable/biozen_pages_logo_new"
-    	></ImageView>
+    	android:paddingTop="200dip"></ImageView>
     	
     <RelativeLayout 
     	android:id="@+id/relativeLayout1" 
