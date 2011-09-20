@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
  <selector xmlns:android="http://schemas.android.com/apk/res/android">
      <item android:state_pressed="true"
-           android:drawable="@drawable/view_pressed" /> <!-- pressed -->
+           android:drawable="@drawable/biozen_view_down_new" /> <!-- pressed -->
      <item android:state_focused="true"
-           android:drawable="@drawable/view" /> <!-- focused -->
-     <item android:drawable="@drawable/view" /> <!-- default -->
+           android:drawable="@drawable/biozen_view_up_new" /> <!-- focused -->
+     <item android:drawable="@drawable/biozen_view_up_new" /> <!-- default -->
  </selector>

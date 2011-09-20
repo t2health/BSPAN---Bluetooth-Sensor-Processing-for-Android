@@ -8,8 +8,8 @@
 	android:padding="5dip"
 	android:background="#FF000000">
 	<FrameLayout android:layout_width="fill_parent" android:id="@+id/frameLayout1" android:layout_height="wrap_content">
-		<ImageView android:src="@drawable/biozen_splash_bkgrd" android:layout_width="wrap_content" android:id="@+id/imageView2" android:layout_height="wrap_content"></ImageView>
-		<ImageView android:src="@drawable/biozen_logo" android:layout_width="fill_parent" android:scaleType="fitCenter" android:id="@+id/imageView1" android:layout_height="wrap_content"></ImageView>
+		<ImageView android:src="@drawable/biozen_bkgd_new" android:layout_width="wrap_content" android:id="@+id/imageView2" android:layout_height="wrap_content"></ImageView>
+		<ImageView android:src="@drawable/biozen_splash_logo_new" android:layout_width="fill_parent" android:scaleType="fitCenter" android:id="@+id/imageView1" android:layout_height="wrap_content"></ImageView>
 	</FrameLayout>
 
 </LinearLayout>

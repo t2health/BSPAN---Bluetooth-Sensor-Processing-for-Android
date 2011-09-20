@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
  <selector xmlns:android="http://schemas.android.com/apk/res/android">
      <item android:state_pressed="true"
-           android:drawable="@drawable/new_session_pressed" /> <!-- pressed -->
+           android:drawable="@drawable/biozen_newsession_down_new" /> <!-- pressed -->
      <item android:state_focused="true"
-           android:drawable="@drawable/new_session" /> <!-- focused -->
-     <item android:drawable="@drawable/new_session" /> <!-- default -->
+           android:drawable="@drawable/biozen_newsession_up_new" /> <!-- focused -->
+     <item android:drawable="@drawable/biozen_newsession_up_new" /> <!-- default -->
  </selector>

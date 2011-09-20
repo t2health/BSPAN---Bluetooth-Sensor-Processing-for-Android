@@ -6,7 +6,7 @@
     <ImageView 
     	android:id="@+id/imageView2" 
     	android:layout_height="wrap_content" 
-    	android:src="@drawable/biozen_splash_bkgrd" 
+    	android:src="@drawable/biozen_bkgd_new" 
     	android:layout_width="fill_parent"
     	android:scaleType="fitXY"    
     	

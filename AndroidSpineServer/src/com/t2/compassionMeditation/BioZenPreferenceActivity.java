@@ -99,6 +99,32 @@ public class BioZenPreferenceActivity extends PreferenceActivity implements OnSh
         	  }
     	  }
       }
+      else if (key.endsWith("band_of_interest")) {
+    	  String stringValue = arg0.getString(key, "");
+    	  String[] bands = getResources().getStringArray(R.array.bands_of_interest_array);
+    	  int value = 0;
+    	  try {
+    		  value = Integer.parseInt(stringValue);
+    	      Toast.makeText(this, key + " changed to " + bands[value], Toast.LENGTH_LONG).show();
+    		  
+			} 
+    	  catch (NumberFormatException e) {
+    		  value = -1;
+    	  }    	  
+      }      
+      else if (key.endsWith("parameter_of_interest")) {
+    	  String stringValue = arg0.getString(key, "");
+    	  String[] bands = getResources().getStringArray(R.array.bands_of_interest_array);
+    	  int value = 0;
+    	  try {
+    		  value = Integer.parseInt(stringValue);
+    	      Toast.makeText(this, key + " changed to " + bands[value], Toast.LENGTH_LONG).show();
+    		  
+			} 
+    	  catch (NumberFormatException e) {
+    		  value = -1;
+    	  }    	  
+      }      
       
       
       
