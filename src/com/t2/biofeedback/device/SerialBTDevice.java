@@ -291,6 +291,7 @@ public abstract class SerialBTDevice {
 	}
 	
 	private void beforeDeviceClosed() {
+		Log.v(TAG, "beforeDeviceClosed() - this = " + this);
 		if(this.isConencted()) {
 			Log.v(TAG, "Run before device disconnected.");
 			if(connectionListener != null) {

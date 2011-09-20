@@ -64,14 +64,28 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		this.sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_START));
+		//this.sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_START));
 		
 		this.setContentView(R.layout.manager);
 
 		this.findViewById(R.id.bluetoothSettingsButton).setOnClickListener(this);
 		this.findViewById(R.id.about).setOnClickListener(this);
 		
-		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), null);
+
+		// *************************
+		// Note - when used only in conjunction with the Spine server
+		// where we know that a device manager has been instantiated then use the nocreate
+		// option.
+		// Otherwise use the normal DeviceManager.getInstance.
+		// *************************
+		this.deviceManager = DeviceManager.getInstanceNoCreate();
+		if (this.deviceManager == null) {
+		   	Log.e(TAG, "There is no device manager instance!");
+		   	return;
+			
+		}
+		
+		//		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), null);
 		this.deviceList = (ListView)this.findViewById(R.id.list);
 		
 		this.deviceListAdapter = new ManagerItemAdapter(
@@ -147,6 +161,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));		
 		this.unregisterReceiver(this.generalBroadcastReceiver);
 	}
 	
