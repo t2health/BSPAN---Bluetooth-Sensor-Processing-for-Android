@@ -38,16 +38,45 @@
 		<meta-data android:name="analyticsProvider" android:value="flurry" />
 		<meta-data android:name="analyticsKey" android:value="J62LQR3TCMQ6KGJZGBRV" />    
 
+        <activity 
+        	android:name=".compassionMeditation.StartupActivity"
+        			android:theme="@android:style/Theme.NoDisplay"
+        	>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        	
+        </activity>
+
+
+        <activity 
+        	android:name=".compassionMeditation.MainChooserActivity"
+        	>
+            <intent-filter>
+            	<action android:name="com.t2.biozen.MAIN_CHOOSER" />
+            	<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        	
+        </activity>
+
+        <activity android:name=".compassionMeditation.SplashScreenActivity">
+            <intent-filter>
+            	<action android:name="com.t2.biozen.SPLASH" />
+            	<category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        
+        
+        </activity>
+
+
+
         <activity android:name=".AndroidSpineServerMainActivity"
         			android:excludeFromRecents="true"
         			android:label="@string/app_name" 
         			android:theme="@android:style/Theme.NoDisplay"
         			android:screenOrientation="portrait"
         			>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             
             
         </activity>
@@ -132,9 +161,8 @@
         </activity>
         <activity android:name=".compassionMeditation.SelectUserActivity"></activity>
         <activity android:name=".compassionMeditation.ViewSessionsActivity"></activity>
-        <activity android:name=".compassionMeditation.MainChooserActivity"></activity>
+
         <activity android:name=".compassionMeditation.EndSessionActivity"></activity>
-        <activity android:name=".compassionMeditation.SplashScreenActivity"></activity>
         <activity android:name="com.t2.biofeedback.activity.BTServiceManager"></activity>        
 
     	<receiver

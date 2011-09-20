@@ -77,6 +77,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 	private String mPackageName = "";
 	private int mVersionCode;
 	private String mVersionName = "";
+	private String mTargetName = "";
 	
 	public static final int ANDROID_SPINE_SERVER_ACTIVITY = 0;
 	public static final String ANDROID_SPINE_SERVER_ACTIVITY_RESULT = "AndroidSpineServerActivityResult";
@@ -105,6 +106,17 @@ public class AndroidSpineServerMainActivity extends Activity{
 		firstTime = true;
         instance = this;
 
+        // If we were called from the Biomap activity then it will have
+        // sent us a target to focus on
+        try {
+			// Get target name if one was supplied
+			Bundle bundle = getIntent().getExtras();
+			mTargetName = bundle.getString("TARGET_NAME");
+		} catch (Exception e1) {
+			mTargetName = "";
+		}
+        
+        
         AndroidSpineConnector.setMainActivityInstance(instance);
         
         Resources resources = this.getResources();
@@ -168,7 +180,8 @@ public class AndroidSpineServerMainActivity extends Activity{
 //			Intent i = new Intent(this, MeditationActivity.class);
 //			Intent i = new Intent(this, BioDetailActivity.class);
 //			Intent i = new Intent(this, MainChooserActivity.class);
-			Intent i = new Intent(this, SplashScreenActivity.class);
+//			Intent i = new Intent(this, SplashScreenActivity.class);
+			Intent i = new Intent(mTargetName);
 			this.startActivity(i);
 		}
 	}

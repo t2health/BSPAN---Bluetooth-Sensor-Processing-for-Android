@@ -76,5 +76,12 @@ public class BioZenConstants {
 	public static final int END_SESSION_QUIT = 0; 
 	public static final int END_SESSION_SAVE = 1; 
 	public static final int END_SESSION_RESTART = 2; 
+
+	public static final int SPINE_MAINSERVER_ACTIVITY = 0x307;	
+	public static final String SPINE_MAINSERVER_ACTIVITY_RESULT = "SpineMainServerActivityResult";	
+	
 	
 }
+
+
+

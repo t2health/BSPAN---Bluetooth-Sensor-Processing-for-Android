@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 //Need the following import to get access to the app resources, since this
 //class is in a sub-package.
+import com.t2.AndroidSpineServerMainActivity;
 import com.t2.R;
 
 
@@ -42,7 +43,6 @@ import com.t2.filechooser.FileChooser;
 public class MainChooserActivity extends Activity implements OnClickListener{
 	private static final String TAG = "MainActivity";
 	private static final String mActivityVersion = "1.1";
-	private static boolean firstTime = true;
 
 	private MainChooserActivity instance;
 	private int mLastButtonPressed;
@@ -119,6 +119,11 @@ public class MainChooserActivity extends Activity implements OnClickListener{
 
     }
     
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
