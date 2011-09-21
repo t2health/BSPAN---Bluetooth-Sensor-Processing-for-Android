@@ -1,6 +1,6 @@
 package com.t2;
 
-
+ 
 public class AndroidSpineConnector {
 	
 	public static AndroidSpineServerMainActivity mainActivityInstance;
