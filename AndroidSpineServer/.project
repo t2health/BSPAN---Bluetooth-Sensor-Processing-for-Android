@@ -32,11 +32,6 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>AndroidBTServiceService_src</name>
-			<type>2</type>
-			<locationURI>_android_AndroidBTServiceService_6993bf81/src</locationURI>
-		</link>
-		<link>
 			<name>AndroidBTService_src</name>
 			<type>2</type>
 			<locationURI>_android_AndroidBTService_50d49094/src</locationURI>
