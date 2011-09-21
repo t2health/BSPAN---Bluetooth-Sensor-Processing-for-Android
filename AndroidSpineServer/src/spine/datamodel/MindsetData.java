@@ -1,7 +1,7 @@
 package spine.datamodel;
 
 import com.t2.Constants;
-import com.t2.biomap.SharedPref;
+
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -64,18 +64,18 @@ public class MindsetData  extends Data {
 		context = aContext;
         sharedPref = PreferenceManager.getDefaultSharedPreferences(context);   
 		
-        mScaleData = SharedPref.getIntValues(
-				sharedPref, 
-				"BandScales", 
-				","
-		);
+//        mScaleData = SharedPref.getIntValues(
+//				sharedPref, 
+//				"BandScales", 
+//				","
+//		);
         
         // For now at least let's not use the stored max. The problem is that
         // the max can very quite a bit from session to session based on
         // battery level, different headsets, etc.
         mScaleData = null;
         
-        mTotalSamples = SharedPref.getInt(context, "totalSamples", 1);
+//        mTotalSamples = SharedPref.getInt(context, "totalSamples", 1);
         
 		if (mScaleData == null) {
 			mScaleData = new int[] {1,1,1,1,1,1,1,1};
@@ -96,10 +96,10 @@ public class MindsetData  extends Data {
 	}	
 
 	public void saveScaleData() {
-		if (sharedPref != null && mScaleData != null )
-			SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);
-		
-		SharedPref.getInt(context, "totalSamples", mTotalSamples);
+//		if (sharedPref != null && mScaleData != null )
+//			SharedPref.setIntValues(sharedPref, "BandScales", ",", mScaleData);
+//		
+//		SharedPref.getInt(context, "totalSamples", mTotalSamples);
 	}
 	
 	public int getRawFeature(int feature) {

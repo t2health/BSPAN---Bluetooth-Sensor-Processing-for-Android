@@ -1,6 +1,5 @@
 package com.t2;
 
-import com.t2.compassionMeditation.SplashScreenActivity;
 import com.t2.Constants;
 
 import spine.SPINEFactory;

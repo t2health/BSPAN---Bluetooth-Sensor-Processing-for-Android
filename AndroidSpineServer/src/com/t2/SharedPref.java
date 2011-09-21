@@ -1,4 +1,4 @@
-package com.t2.compassionMeditation;
+package com.t2;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;

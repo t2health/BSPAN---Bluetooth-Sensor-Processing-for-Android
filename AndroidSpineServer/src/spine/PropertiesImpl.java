@@ -81,15 +81,26 @@ public class PropertiesImpl extends spine.Properties {
 	}
 	
 	private void loadPropFile() throws IOException {
+
+		if (loaded)
+			return;
 		InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream(propertiesFileName); 
 		if (is == null)
 		{
 		//	is = new FileInputStream(propertiesFileName);
-	        AssetManager assetManager = resources.getAssets();
-			is = assetManager.open(propertiesFileName);				
+			if (resources == null) {
+//				throw new RuntimeException( "Spine has not been initialized!" );
+			}
+			else {
+		        AssetManager assetManager = resources.getAssets();
+				is = assetManager.open(propertiesFileName);				
+			}
 		}
-		p.load(is);
-		loaded = true;
+		if (is != null) {
+			p.load(is);
+			loaded = true;
+			
+		}
 	}
 	
 	public void store() {

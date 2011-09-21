@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>AndroidSpineServer</name>
+	<name>AndroidSpineServerLib</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -31,6 +31,11 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
 	<linkedResources>
+		<link>
+			<name>AndroidBTServiceService_src</name>
+			<type>2</type>
+			<locationURI>_android_AndroidBTServiceService_6993bf81/src</locationURI>
+		</link>
 		<link>
 			<name>AndroidBTService_src</name>
 			<type>2</type>

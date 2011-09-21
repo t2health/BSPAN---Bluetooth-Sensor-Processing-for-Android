@@ -26,7 +26,6 @@ package spine;
 
 
 import android.content.res.Resources;
-import android.util.Log;
 
 
 /**
