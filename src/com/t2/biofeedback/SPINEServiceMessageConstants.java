@@ -1,4 +1,4 @@
-package com.t2.biofeedback.device.Spine;
+package com.t2.biofeedback;
 
 public class SPINEServiceMessageConstants {
 	// MESSAGE TYPES
