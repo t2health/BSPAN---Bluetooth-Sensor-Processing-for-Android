@@ -38,6 +38,7 @@ public class AndroidMessageServer extends BroadcastReceiver {
 	public static final String EXTRA_ADDRESS = "address";
 	public static final String EXTRA_NAME = "name";
 	public static final String EXTRA_MESSAGE_TYPE = "messageType";
+	public static final String EXTRA_MESSAGE_PAYLOAD = "messagePayload";
 	public static final String EXTRA_MESSAGE_ID = "messageId";
 	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
 	public static final String EXTRA_TIMESTAMP = "timestamp";
@@ -120,6 +121,12 @@ public class AndroidMessageServer extends BroadcastReceiver {
 		// TODO: Fix this - put all packet pieces in		
 		short pktType = andMsg.header.getPktType();
 		intent.putExtra(EXTRA_MESSAGE_TYPE, pktType);
+		
+		
+		if (andMsg.payloadBuf.length > 0) {
+			intent.putExtra(EXTRA_MESSAGE_PAYLOAD, andMsg.payloadBuf);
+		}
+		
 //		AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
 		AndroidSpineConnector.getInstance().sendBroadcast(intent);			
 	}		

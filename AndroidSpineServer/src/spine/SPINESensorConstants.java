@@ -50,6 +50,11 @@ public class SPINESensorConstants {
 	public static final byte HEARTRATE_SENSOR = 0x0a;
 	public static final byte RESPIRATIONRATE_SENSOR = 0x0b;
 	public static final byte ZEPHYR_SENSOR = 0x0c;
+	public static final byte SHIMMER_GSR_SENSOR = 0x0d;
+	public static final byte SHIMMER_EMG_SENSOR = 0x0e;
+	public static final byte SHIMMER_ECG_SENSOR = 0x0f;
+	public static final byte SHIMMER_MAG_SENSOR = 0x10;
+	public static final byte SHIMMER_STRAIN_SENSOR = 0x11;
 	
 	public static final String ACC_SENSOR_LABEL = "accelerometer";
 	public static final String VOLTAGE_SENSOR_LABEL = "voltage";

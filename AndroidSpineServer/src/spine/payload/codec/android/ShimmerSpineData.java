@@ -29,8 +29,7 @@ public class ShimmerSpineData extends SpineCodec {
 	
 
 	public byte[] encode(SpineObject payload) throws MethodNotSupportedException {
-//		throw new MethodNotSupportedException("encode");
-		return new byte[] {1,2,3,4};
+		throw new MethodNotSupportedException("encode");
 	};
 
 	public SpineObject decode(Node node, byte[] payload) {

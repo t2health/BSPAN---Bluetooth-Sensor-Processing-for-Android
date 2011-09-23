@@ -501,10 +501,10 @@ public class SPINEManager {
 			//	dynamic class loading of the proper SpineCodec implementation
 			if (payload != null){
 				    String payloadClassName = payload.getClass().getSimpleName();
-					spineCodec = (SpineCodec)htInstance.get (payload.getClass().getSimpleName());
+				    spineCodec = (SpineCodec)htInstance.get (payloadClassName);
+					
 				    if (spineCodec==null){
-				    	Class p =  Class.forName(SPINEDATACODEC_PACKAGE +
-			    		      payload.getClass().getSimpleName());
+				    	Class p =  Class.forName(SPINEDATACODEC_PACKAGE + payloadClassName + "_codec");
 				    	spineCodec = (SpineCodec)p.newInstance();
 				    	htInstance.put (payload.getClass().getSimpleName(), spineCodec);	
 				    } 

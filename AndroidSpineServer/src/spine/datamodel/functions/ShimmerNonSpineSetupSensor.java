@@ -41,10 +41,14 @@ import spine.SPINESensorConstants;
 public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	
 	private static final long serialVersionUID = 1L;
+
+	public static final byte SHIMMER_COMMAND_STOPPED = 0;
+	public static final byte SHIMMER_COMMAND_RUNNING = 1;
 	
-	private byte sensor = -1;
-	private byte timeScale = -1;
+	private byte sensor = -1; // See SPINESensorConstants
+	private byte[] btAddress = new byte[6];
 	private int samplingTime = -1;
+	private byte command = 0;   // 0 = stopped, 1 = running
 
 
 	/**
@@ -72,53 +76,23 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	}
 	
 	
-	/**
-	 * Sets the time scale of the sampling time.	  
-	 * 
-	 * @param timeScale the time scale
-	 * 
-	 * @see spine.SPINESensorConstants for the defined time-scales 
-	 */
-	public void setTimeScale(byte timeScale) {
-		this.timeScale = timeScale;	
+	public byte[] getBtAddress() {
+		return btAddress;
 	}
-	
-	/**
-	 * Getter method of the time scale
-	 * 
-	 * @return the time scale of this setup-sensor request
-	 * 
-	 * @see spine.SPINESensorConstants for the defined time-scales
-	 */
-	public byte getTimeScale() {
-		byte timeScale;
-		timeScale=this.timeScale;
-		return timeScale;
+
+	public void setBtAddress(byte[] btAddress) {
+		this.btAddress = btAddress;
 	}
-	
-	
-	/**
-	 * Set the absolute value of the sampling time (the actual sampling interval depends on the time scale)
-	 * 
-	 * @param samplingTime the value of the sampling time
-	 *
-	 * @see spine.SPINESensorConstants for the defined time-scales
-	 */
-	public void setSamplingTime(int samplingTime) {
-		this.samplingTime = samplingTime;
+
+
+	public byte getCommand() {
+		return command;
 	}
-	
-	/**
-	 * Getter method of the sampling time in number of 'timeScale' units
-	 * 
-	 * @return samplingTime the value of the sampling time of this setup-sensor request
-	 */
-	public int getSamplingTime() {
-		int samplingTime;
-		samplingTime=this.samplingTime;
-		return samplingTime;
+
+	public void setCommand(byte command) {
+		this.command = command;
 	}
-	
+
 	/**
 	 * The hash code is represented by the sensor code
 	 * 
@@ -151,7 +125,6 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 		String s = "Sensor Setup {";
 		
 		s += "sensor = " + SPINESensorConstants.sensorCodeToString(sensor) + ", ";
-		s += "timeScale = " + SPINESensorConstants.timeScaleToString(timeScale) + ", ";
 		s += "samplingTime = " + samplingTime + "}";
 		
 		return s;
