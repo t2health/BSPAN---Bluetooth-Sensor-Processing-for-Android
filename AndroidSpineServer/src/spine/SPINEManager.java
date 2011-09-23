@@ -59,6 +59,7 @@ import spine.SPINEPacketsConstants;
 import spine.SPINESensorConstants;
 import spine.datamodel.Address;
 import spine.datamodel.Node;
+import spine.datamodel.functions.ShimmerNonSpineSetupSensor;
 import spine.datamodel.functions.SpineCodec;
 import spine.datamodel.functions.SpineFunctionReq;
 import spine.datamodel.functions.SpineObject;
@@ -345,6 +346,18 @@ public class SPINEManager {
 		send(node.getPhysicalID(), SPINEPacketsConstants.SETUP_SENSOR, setupSensor);
 	}
 
+	public void setup(Node node, ShimmerNonSpineSetupSensor setupSensor) {
+		if (node == null) 
+			throw new RuntimeException("Can't setup the sensor: node is null");
+		if (setupSensor == null)
+			throw new RuntimeException("Can't setup the sensor: setupSensor is null");
+		
+		send(node.getPhysicalID(), SPINEPacketsConstants.SETUP_SENSOR, setupSensor);
+		
+	}
+	
+	
+	
 	/**
 	 * Setups a specific function of the given node.
 	 * The parameters involved are 'function dependent' and are specified by providing a proper
@@ -487,7 +500,8 @@ public class SPINEManager {
 			
 			//	dynamic class loading of the proper SpineCodec implementation
 			if (payload != null){
-				    spineCodec = (SpineCodec)htInstance.get (payload.getClass().getSimpleName());
+				    String payloadClassName = payload.getClass().getSimpleName();
+					spineCodec = (SpineCodec)htInstance.get (payload.getClass().getSimpleName());
 				    if (spineCodec==null){
 				    	Class p =  Class.forName(SPINEDATACODEC_PACKAGE +
 			    		      payload.getClass().getSimpleName());
@@ -531,23 +545,23 @@ public class SPINEManager {
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 
-				l.log(Logger.SEVERE, e.getMessage());
+				l.log(Logger.SEVERE, "InstantiationException" + e.getMessage());
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 
-				l.log(Logger.SEVERE, e.getMessage());
+				l.log(Logger.SEVERE, "IllegalAccessException" + e.getMessage());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 
-				l.log(Logger.SEVERE, e.getMessage());
+				l.log(Logger.SEVERE, "ClassNotFoundException" + e.getMessage());
 		} catch (InterruptedIOException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 
-				l.log(Logger.SEVERE, e.getMessage());
+				l.log(Logger.SEVERE, "InterruptedIOException" + e.getMessage());
 		} catch (UnsupportedOperationException e) {
 			e.printStackTrace();
 			if (l.isLoggable(Logger.SEVERE)) 
-				l.log(Logger.SEVERE, e.getMessage());
+				l.log(Logger.SEVERE, "UnsupportedOperationException" + e.getMessage());
 		}			
 	}
 	
@@ -665,5 +679,6 @@ public class SPINEManager {
 		}
 		System.exit(-1);
 	}
+
 	
 }

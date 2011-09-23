@@ -17,7 +17,7 @@ import spine.exceptions.MethodNotSupportedException;
  * 12 -13		    gsr		
  */
 
-public class ShimmerSpineData extends SpineCodec {
+public class ShimmerNonSpineSetupSensor extends SpineCodec {
 	
 	// Note that each Spine mindset message has all of the Shimmer attribuites
 	// Define the hard positions in the Shimmer message of each of the attributes

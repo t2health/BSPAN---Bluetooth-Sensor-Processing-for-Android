@@ -17,7 +17,7 @@ import spine.exceptions.MethodNotSupportedException;
  * 12 -13		    gsr		
  */
 
-public class ShimmerSpineData extends SpineCodec {
+public class SpineSetupSensor extends SpineCodec {
 	
 	// Note that each Spine mindset message has all of the Shimmer attribuites
 	// Define the hard positions in the Shimmer message of each of the attributes
@@ -29,8 +29,7 @@ public class ShimmerSpineData extends SpineCodec {
 	
 
 	public byte[] encode(SpineObject payload) throws MethodNotSupportedException {
-//		throw new MethodNotSupportedException("encode");
-		return new byte[] {1,2,3,4};
+		throw new MethodNotSupportedException("encode");
 	};
 
 	public SpineObject decode(Node node, byte[] payload) {
