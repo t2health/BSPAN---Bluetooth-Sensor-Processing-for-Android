@@ -50,4 +50,21 @@ public class Util {
 	}
 	
 	
+	static public String getBtStringAddress(byte[] bytes) {
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < bytes.length; i++) {
+			String s = Integer.toHexString(0xFF & bytes[i]);
+			if (s.length() < 2)
+			{
+				s = "0" + s;
+			}
+			
+		    hexString.append(s);
+		    if (i < bytes.length - 1)
+		    	hexString.append(":");
+	    }		
+		return hexString.toString();
+	}
+	
+	
 }

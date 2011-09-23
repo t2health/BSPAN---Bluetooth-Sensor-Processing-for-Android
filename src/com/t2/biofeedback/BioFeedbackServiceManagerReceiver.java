@@ -3,6 +3,7 @@ package com.t2.biofeedback;
 
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Spine.SpineDevice;
+import com.t2.biofeedback.device.shimmer.ShimmerDevice;
 
 //import t2.spine.communication.android.AndroidMessage;
 import android.bluetooth.BluetoothAdapter;
@@ -31,6 +32,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	public static final String EXTRA_MESSAGE_ID = "messageId";
 	public static final String EXTRA_MESSAGE_VALUE = "messageValue";
 	public static final String EXTRA_TIMESTAMP = "timestamp";	
+	public static final String EXTRA_MESSAGE_PAYLOAD = "messagePayload";	
 
 	private Intent mServiceIntent;
 	
@@ -81,7 +83,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 				Log.i(TAG, "*** Received message type " + pktType + "  ***");
 
 				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
-//					Log.i(TAG, "*** Received a discovery msg  ***");
+					Log.i(TAG, "*** Received a discovery msg  ***");
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
@@ -95,7 +97,49 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 							}
 						}
 					}					
-				}
+				} // End if (pktType == xxx
+				else if (pktType == SPINEPacketsConstants.SETUP_SENSOR) {
+					Log.i(TAG, "*** Received a SETUP_SENSOR msg  ***");
+					byte[] payload =  intent.getByteArrayExtra(EXTRA_MESSAGE_PAYLOAD);
+					byte sensor;
+					byte command;
+					byte[] btAddress = new byte[6];
+					String btAddressString;
+					
+					if (payload.length == 8) {
+						// See ShimmerNonSpineSetupSensor_codec for coding format
+						sensor = payload[0];
+						command = payload[1];
+						for (int i = 0; i < 6; i++) {
+							btAddress[i] = payload[i+2];
+						}
+						btAddressString = Util.getBtStringAddress(btAddress);
+						
+						BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
+						for(BioFeedbackDevice d: enabledDevices) {
+							if(d.isBonded() && d.isConencted() ) {
+								
+								if (d instanceof ShimmerDevice)
+								{
+									
+									String s = d.getAddress();
+									Log.i(TAG, "Address = " + s);
+									
+									if (d.getAddress().equalsIgnoreCase(btAddressString)) {
+										ShimmerDevice dev = (ShimmerDevice)d;
+										dev.setup(sensor, command);
+										
+									}
+									
+								}
+							}
+						}					
+						
+					}
+					
+					
+
+				} // End if (pktType == xxx
 			}
 		}
 	}

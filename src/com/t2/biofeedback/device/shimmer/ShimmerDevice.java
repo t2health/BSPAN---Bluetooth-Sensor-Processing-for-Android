@@ -9,6 +9,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.t2.biofeedback.Constants;
+import com.t2.biofeedback.SPINESensorConstants;
 import com.t2.biofeedback.Util;
 import com.t2.biofeedback.device.BioFeedbackDevice;
 
@@ -46,6 +47,9 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
 public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final String TAG = Constants.TAG;
 	
+	public static final byte SHIMMER_COMMAND_STOPPED = 0;
+	public static final byte SHIMMER_COMMAND_RUNNING = 1;	
+	
 	// Change this to reflect the source ID of this sensor
 	// This is the is that the server will use to recognize this sensor
 	private static final byte SOURCE_ID_HIGH = (byte) 0xff;
@@ -75,11 +79,35 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final int STATE_SENDING_PACKET = 5;
 	
 	// Commands for configuring the Shimmer hardware
-	private static final byte[] setSensorsCommand = new byte[] {
-			ShimmerMessage.SETSENSORSCOMMAND,
-			(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorGSR),
-			0
+	private static final byte[] setSensorsCommand_GSR = new byte[] {
+		ShimmerMessage.SETSENSORSCOMMAND,
+		(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorGSR),
+		0
 	};
+	private static final byte[] setSensorsCommand_EMG = new byte[] {
+		ShimmerMessage.SETSENSORSCOMMAND,
+		(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorEMG),
+		0
+	};
+
+	private static final byte[] setSensorsCommand_ECG = new byte[] {
+		ShimmerMessage.SETSENSORSCOMMAND,
+		(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorECG),
+		0
+	};
+
+	private static final byte[] setSensorsCommand_MAG = new byte[] {
+		ShimmerMessage.SETSENSORSCOMMAND,
+		(byte) (ShimmerMessage.SENSOR0_SensorAccel | ShimmerMessage.SENSOR0_SensorMag),
+		0
+	};
+
+	private static final byte[] setSensorsCommand_STRAIN = new byte[] {
+		ShimmerMessage.SETSENSORSCOMMAND,
+		(byte) (ShimmerMessage.SENSOR0_SensorAccel),
+		(byte) (ShimmerMessage.SENSOR1_SensorStrain)
+	};
+
 	private static final byte[] setSampleRateCommand = new byte[] {
 			ShimmerMessage.SETSAMPLINGRATECOMMAND,
 			ShimmerMessage.SAMPLING4HZ
@@ -132,8 +160,8 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	{
 		Log.i(TAG, "Configurating Shimmer - Setting sensors to monitor");
 		
-		state = STATE_SET_SENSORS;
-		this.write(setSensorsCommand);
+//		state = STATE_SET_SENSORS;
+//		this.write(setSensorsCommand);
 	}
 
 	/* (non-Javadoc)
@@ -142,8 +170,14 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	protected void onBeforeConnectionClosed() 
 	{
 		Log.i(TAG, "Telling Shimer to stop streaming");
-		this.write(new byte[] {ShimmerMessage.STOPSTREAMINGCOMMAND});
+		stopStreaming();
 	}
+	
+	protected void stopStreaming() {
+		this.write(new byte[] {ShimmerMessage.STOPSTREAMINGCOMMAND});
+		state = STATE_OFF;
+	}
+	
 	
 	@Override
 	public ModelInfo getModelInfo() {
@@ -154,7 +188,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	@Override
 	protected void finalize() throws Throwable {
 		Log.i(TAG, "Telling Shimer to stop streaming");
-		this.write(new byte[] {ShimmerMessage.STOPSTREAMINGCOMMAND});
+		stopStreaming();
 		super.finalize();
 	}
 
@@ -163,7 +197,40 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public void setup(byte sensor, byte command) {
 
+		if (command == SHIMMER_COMMAND_STOPPED) {
+			Log.i(TAG, "Received command to STOP streaming");
+			stopStreaming();
+		}
+		else if (command == SHIMMER_COMMAND_RUNNING) {
+			Log.i(TAG, "Received command to START streaming");
+			state = STATE_SET_SENSORS;
+			
+			switch (sensor) {
+			case SPINESensorConstants.SHIMMER_GSR_SENSOR:
+				this.write(setSensorsCommand_GSR);
+				break;
+			case SPINESensorConstants.SHIMMER_EMG_SENSOR:
+				this.write(setSensorsCommand_EMG);
+				break;
+			case SPINESensorConstants.SHIMMER_ECG_SENSOR:
+				this.write(setSensorsCommand_ECG);
+				break;
+			case SPINESensorConstants.SHIMMER_MAG_SENSOR:
+				this.write(setSensorsCommand_MAG);
+				break;
+			case SPINESensorConstants.SHIMMER_STRAIN_SENSOR:
+				this.write(setSensorsCommand_STRAIN);
+				break;
+			}
+			
+			
+			
+		}
+	}
+	
 	/**
 	 * 
 	 * Receives bytes from Shimmer device Decodes them and sends them to the 
