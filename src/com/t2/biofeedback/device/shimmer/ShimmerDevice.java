@@ -175,6 +175,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	//	Util.logHexByteString(TAG, "Found message:", bytes);
 		byte code = bytes[0];
 		
+//		switch (9999) {
 		switch (state) {
 		case STATE_SET_SENSORS:
 			if (code == ShimmerMessage.ACKCOMMANDPROCESSED) {

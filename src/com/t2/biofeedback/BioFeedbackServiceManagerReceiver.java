@@ -78,9 +78,10 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			if (deviceManger != null) {
 				
 				short pktType = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
+				Log.i(TAG, "*** Received message type " + pktType + "  ***");
 
 				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
-					Log.i(TAG, "*** Received a discovery msg  ***");
+//					Log.i(TAG, "*** Received a discovery msg  ***");
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
