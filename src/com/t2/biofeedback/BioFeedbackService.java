@@ -183,13 +183,15 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 
 	@Override
 	public void onDeviceConnected(SerialBTDevice d) {
+		int i = 1;
+		i++;
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, "CONN_CONNECTED", null)
 		);
 		
 		if(this.deviceManager.isAnyDeviceConnected()) {
 			this.sendBroadcast(
-				getStatusBroadcastIntent(null, BroadcastMessage.Type.STATUS, "CONN_ANY_CONNECTED", null)
+				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, "CONN_ANY_CONNECTED", null)
 			);
 		}
 	}
