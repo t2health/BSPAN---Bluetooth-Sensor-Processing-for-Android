@@ -1,41 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string-array name="measure_select_dialog_items">
-        <item>Delta</item>
-        <item>Theta</item>
-        <item>Low Alpha</item>
-        <item>High Alpha</item>
-        <item>Low Beta</item>
-        <item>High Beta</item>
-        <item>Low Gamma</item>
-        <item>Mid Gamma</item>
-        <item>(e)Attention</item>
-        <item>(e)Meditation</item>
-    </string-array>
-
-    <string-array name="filechooser_spinner_items">
-        <item>Only Data Files</item>
-        <item>Only LogCat Files</item>
-        <item>All</item>
-    </string-array>
-
-
-    <string-array name="user_mode_array">
-        <item>Single User Mode</item>
-        <item>Provider Mode</item>
-    </string-array>
-
-    <string-array name="user_mode_array_values">
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-
-    <string-array name="audio_selection_array">
-        <item>None</item>
-        <item>Meditate Grandpa</item>
-        <item>Pancake Brain</item>
-        <item>Peace Eggplant</item>
-    </string-array>
 
 </resources>

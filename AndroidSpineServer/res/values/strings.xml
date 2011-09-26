@@ -1,117 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="biozen">BioZen</string>
-    <string name="hello">Hello World, AndroidSpineServerMainActivity!</string>
     <string name="app_name">BioZen</string>
-    <string name="StatusLogLabelText">Status/Log</string>
-    <string name="discoverbutton">DiscoverAndStart</string>
-	<string name="chart_high">Hi</string>
-	<string name="chart_low">Lo</string>
-    <string name="alert_dialog_measure_selector">Select Measures to graph</string>	
-    
-	<!--  Graph results -->
-	<string name="results_title">Results</string>
-	<string name="groups_tab">Categories</string>
-	<string name="scales_tab">Scales</string>
-	<string name="notes_tab">Notes</string>
-	<string name="alert_dialog_ok">Ok</string>
-	<string name="alert_dialog_cancel">Cancel</string>
-	<string name="button_pause">Start/Pause</string>
-	<string name="button_add_measure">Add Measure</string>
-	<string name="button_back">Back</string>
-	<string name="seekbarText">Meditate to keep the bar in the center</string>
-	<string name="select_users_text">Select User</string>
-	<string name="new_user_text">Add</string>
-	<string name="new_name_dialog">Enter new user name</string>
-    
-<!-- Main Screen Buttons -->
-    <string name="button_learn_how_to_meditate">Learn How to Meditate</string>
-    <string name="button_new_session">New Session</string>
-    <string name="button_review_history">Review History</string>
-    <string name="button_set_reminder">Set Reminder</string>
-    <string name="device_status">Device Status:</string>
-    <string name="connected">Connected</string>
-    <string name="not_connected">Not Connected</string>
-    <string name="connect">Connect</string>
 
 <!-- Connection Dialog Box -->
 	<string name="connecting...">Connecting...</string>
 	<string name="connect_to_device">Connect to</string>
 	
-    
-<!-- How to meditate -->
-	<string name="meditation_instructions">
-	
-		1. Sit in a comfortable position with your back straight. \n
-		2. Begin focusing on your chest or "heart center," breathing in and out from that area. Pay attention to the sensations you feel from this core body region.\n
-		3. Generate a loving, accepting, kind feeling toward yourself, letting go of any judgmental thoughts that may arise.\n
-		4. As you breathe in and out,  silently repeat: "May I be free of distress and suffering".\n
-		5. Continue this process for the individual, animal or situation you wish to feel compassion for, substituting their name for "I".\n
-	
-	
-	</string>
-
-	<string name="meditation_title">How to meditate</string>
-	<string-array name="meditation_steps">
-		<item>1. Sit in a comfortable position with your back straight. </item>
-		<item>2. Begin focusing on your chest or "heart center," breathing in and out from that area. Pay attention to the sensations you feel from this core body region.</item>
-		<item>3. Generate a loving, accepting, kind feeling toward yourself, letting go of any judgmental thoughts that may arise.</item>
-		<item>4. As you breathe in and out,  silently repeat: "May I be free of distress and suffering".</item>
-		<item>5. Continue this process for the individual, animal or situation you wish to feel compassion for, substituting their name for "I".</item>
-	</string-array>
-	<string name="state_meditation_session">Start Meditation Session</string>
-	
-    <string-array name="bands_of_interest_array">
-    "Delta", "Theta", "LowAlpha", "HighAlpha", "LowBeta", "HighBeta", "LowGamma", "MidGamma", "(e)Attention", "(e)Meditation", "Heart Rate", Respiration Rate", "Skin Temp"
-        <item>Delta</item>
-        <item>Theta</item>
-        <item>LowAlpha</item>
-        <item>HighAlpha</item>
-        <item>LowBeta</item>
-        <item>HighBeta</item>
-        <item>LowGamma</item>
-        <item>MidGamma</item>
-        <item>(e)Attention</item>
-        <item>(e)Meditation</item>
-        <item>HeartRate</item>
-        <item>RespRate</item>
-        <item>SkinTemp</item>
-    </string-array>	
-
-    <string-array name="bands_of_interest_arrayvalues">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-        <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
-        <item>10</item>
-        <item>11</item>
-        <item>12</item>
-    </string-array>	
-	
-
-	
-    <string-array name="bioharness_parameters_array">
-    
-        
-        <item>Heart Rate</item>
-        <item>Respiration Rate</item>
-        <item>Skin Temp</item>
-        <item>None</item>
-    </string-array>	
-	
-<!-- New Session -->
-	<string name="meditation_bar">Meditate to keep the bar in the center</string>
-	<string name="time_label">Time</string>
-	<string name="displaying">Displaying:</string>
-	<string name="time_remaining">Time Remaining</string>
-	<string name="start">Start</string>
-	<string name="pause">Pause</string>
 	
 <!-- Brain Waves -->
 	<string name="delta">Delta</string>
@@ -120,11 +15,6 @@
 	<string name="beta">Beta</string>
 	<string name="gamma">Gamma</string>
 
-<!-- Comparison Page (Progress charts) -->
-	<string name="progress_chart">Progress Chart</string>
-	<string name="time_in_theta">Time (min) in Theta</string>
-	<string name="theta_time">Theta time:</string>
-	<string name="session">Session</string>
 
 <!-- Set a reminder -->
 	<string name="create_a_reminder">Create a Reminder</string>
