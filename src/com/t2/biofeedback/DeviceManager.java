@@ -104,7 +104,8 @@ public class DeviceManager {
 					BioFeedbackDevice d;
 					BluetoothDevice bt = (BluetoothDevice) bit.next();
 					String name = bt.getName();
-					if (name.equalsIgnoreCase("BH ZBH002095"))
+//					if (name.equalsIgnoreCase("BH ZBH002095"))
+					if (name.startsWith("BH ZB"))
 					{
 						d = new ZephyrBH(mServerListeners);
 						
@@ -178,7 +179,7 @@ public class DeviceManager {
 				BioFeedbackDevice d;
 				BluetoothDevice bt = (BluetoothDevice) bit.next();
 				String name = bt.getName();
-				if (name.equalsIgnoreCase("BH ZBH002095"))
+				if (name.startsWith("BH ZB"))
 				{
 					d = new ZephyrBH(serverListeners);
 				}
