@@ -320,7 +320,13 @@ public class SPINEManager {
 			new DiscoveryTimer(this.discoveryTimeout).start();
 	}
 	
-
+	public void pollBluetoothDevices() {
+		send(new Address(""+SPINEPacketsConstants.SPINE_BROADCAST), SPINEPacketsConstants.POLL_BLUETOOTH_DEVICES, null);
+	}
+	
+	
+	
+	
 	/**
 	 * 
 	 * Currently, it does nothing!
