@@ -85,6 +85,16 @@ public class DeviceManager {
 //		this.mBiofeedbackService = biofeedbackService;
 //	}
 
+	public void update() {
+		try {
+			updateAvailableDevices(this, mServerListeners);				
+			manage();		
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+		}		
+		
+	}
+	
 	private DeviceManager(Context c, ArrayList<Messenger> serverListeners) {
 		this.mServerListeners = serverListeners;
 		this.context = c;
@@ -93,58 +103,9 @@ public class DeviceManager {
 		this.loadSettings();
 		
 		try {
-				// Display option A
-				// Use this block if you want to list all bonded BT devices regardless of their BT Address
-				Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
-				Iterator bit = deviceBondedDevices.iterator();
-				while(bit.hasNext())
-				{
-					// NOTE: *** 
-					// IF you add a device here, make sure and add it to getInstance() as well
-					BioFeedbackDevice d;
-					BluetoothDevice bt = (BluetoothDevice) bit.next();
-					String name = bt.getName();
-//					if (name.equalsIgnoreCase("BH ZBH002095"))
-					if (name.startsWith("BH ZB"))
-					{
-						d = new ZephyrBH(mServerListeners);
-						
-					}
-					else if (name.equalsIgnoreCase("MINDSET")) 
-					{
-						d = new NeuroskyBH(mServerListeners);
-					}
-					else if (name.startsWith("NeXus")) 
-					{
-						d = new MobiBH(mServerListeners);
-					}
-					else if (name.equalsIgnoreCase("RN42-897A"))
-					{
-						d = new SpineBH(mServerListeners);
-					}
-					else
-					{
-						d = new ShimmerBH(mServerListeners);
-					}
-					d.setDevice(bt.getAddress());
-					this.availableDevices.put(d.getAddress(),d);			
-				}
-				
-	
-				// Display option B
-		 		// Use this block if you want to list only devices that match the specific Addresses
-				// of devices in the static array "devices" (see above
-	//			for(int i = 0; i < devices.length; i++) {
-	//				BioFeedbackDevice d = devices[i];
-	//				
-	//				this.availableDevices.put(
-	//						d.getAddress(), 
-	//						d
-	//				);
-	//			}
-				
-				manage();		
-			} catch (Exception e) {
+			updateAvailableDevices(this, serverListeners);				
+			manage();		
+		} catch (Exception e) {
 			Log.e(TAG, e.toString());
 		}
 		
@@ -167,42 +128,7 @@ public class DeviceManager {
 			
 			// We need to reset the list of available devices (in case something changed)
 			deviceManager.availableDevices.clear();
-			
-			// Display option A
-			// Use this block if you want to list all bonded BT devices regardless of their BT Address
-			Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
-			Iterator bit = deviceBondedDevices.iterator();
-			while(bit.hasNext())
-			{
-				// NOTE: *** 
-				// IF you add a device here, make sure and add it to the constructor as well
-				BioFeedbackDevice d;
-				BluetoothDevice bt = (BluetoothDevice) bit.next();
-				String name = bt.getName();
-				if (name.startsWith("BH ZB"))
-				{
-					d = new ZephyrBH(serverListeners);
-				}
-				else if (name.equalsIgnoreCase("MINDSET")) 
-				{
-					d = new NeuroskyBH(serverListeners);
-				}
-				else if (name.startsWith("NeXus")) 
-				{
-					d = new MobiBH(serverListeners);
-				}
-				else if (name.equalsIgnoreCase("RN42-897A"))
-				{
-					d = new SpineBH(serverListeners);
-				}
-				else
-				{
-					d = new ShimmerBH(serverListeners);
-				}
-				d.setDevice(bt.getAddress());
-				deviceManager.availableDevices.put(d.getAddress(),d);			
-			}
-						
+			updateAvailableDevices(deviceManager, serverListeners);			
 			
 			
 			// There is already a device manager.
@@ -217,12 +143,65 @@ public class DeviceManager {
 				// the server finally starts it will update us with it's listeners 
 				deviceManager.mServerListeners = serverListeners;
 				// Now we need to go through each existing device and make sure it knows about this service
-				deviceManager.updateAvailableDevices(serverListeners);
+				deviceManager.updateAvailableDeviceListeners(serverListeners);
 			}
 			
 		}
 		return deviceManager;
 	}
+	
+	static void updateAvailableDevices(DeviceManager dm, ArrayList<Messenger> serverListeners) {
+		// Display option A
+		// Use this block if you want to list all bonded BT devices regardless of their BT Address
+		Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
+		Iterator bit = deviceBondedDevices.iterator();
+		while(bit.hasNext())
+		{
+			// NOTE: *** 
+			// IF you add a device here, make sure and add it to getInstance() as well
+			BioFeedbackDevice d;
+			BluetoothDevice bt = (BluetoothDevice) bit.next();
+			String name = bt.getName();
+//			if (name.equalsIgnoreCase("BH ZBH002095"))
+			if (name.startsWith("BH ZB"))
+			{
+				d = new ZephyrBH(serverListeners);
+				
+			}
+			else if (name.equalsIgnoreCase("MINDSET")) 
+			{
+				d = new NeuroskyBH(serverListeners);
+			}
+			else if (name.startsWith("NeXus")) 
+			{
+				d = new MobiBH(serverListeners);
+			}
+			else if (name.equalsIgnoreCase("RN42-897A"))
+			{
+				d = new SpineBH(serverListeners);
+			}
+			else
+			{
+				d = new ShimmerBH(serverListeners);
+			}
+			d.setDevice(bt.getAddress());
+			dm.availableDevices.put(d.getAddress(),d);			
+		}
+		
+
+		// Display option B
+ 		// Use this block if you want to list only devices that match the specific Addresses
+		// of devices in the static array "devices" (see above
+//			for(int i = 0; i < devices.length; i++) {
+//				BioFeedbackDevice d = devices[i];
+//				
+//				this.availableDevices.put(
+//						d.getAddress(), 
+//						d
+//				);
+//			}		
+	}
+	
 	
 	/**
 	 * Grabs static instance of DeviceManager - Does not create if not present
@@ -373,7 +352,7 @@ public class DeviceManager {
 	 * This updates the server listeners array of all available devices
 	 * @param mServerListeners New list of server listeners
 	 */
-	private void updateAvailableDevices(ArrayList<Messenger> mServerListeners)
+	private void updateAvailableDeviceListeners(ArrayList<Messenger> mServerListeners)
 	{
 		for(String address: this.availableDevices.keySet()) {
 			BioFeedbackDevice d = this.availableDevices.get(address);

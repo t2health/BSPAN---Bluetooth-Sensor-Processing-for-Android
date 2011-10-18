@@ -90,6 +90,12 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 
 				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
 					Log.i(TAG, "*** Received a discovery msg  *** message type " + pktType);
+					
+					// Make sure the device manager has the most up to date set of BT sensors
+//					deviceManger.manage();					
+					deviceManger.update();					
+					
+					
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
@@ -197,7 +203,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 		try {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("name", "system");
-			jsonObject.put("address", "");
+			jsonObject.put("address", "system");
 			jsonObject.put("enabled", bluetoothEnabled);
 			
 			jsonArray.put(jsonObject);			
