@@ -178,7 +178,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 //			Intent i = new Intent(this, CompassionActivity.class);
 //			Intent i = new Intent(this, MeditationActivity.class);
 //			Intent i = new Intent(this, BioDetailActivity.class);
-//			Intent i = new Intent(this, MainChooserActivity.class);
+//			Intent i = new Intent(this, BioSoundMainActivity.class);
 //			Intent i = new Intent(this, SplashScreenActivity.class);
 			Intent i = new Intent(mTargetName);
 			this.startActivity(i);
