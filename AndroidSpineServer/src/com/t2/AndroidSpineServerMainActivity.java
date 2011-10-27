@@ -147,7 +147,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 	protected void onDestroy() {
     	super.onDestroy();
 
-    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
+ //   	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
 		Log.i(TAG, "MainActivity onDestroy");
 	    	
     	doUnbindService();   
@@ -167,7 +167,9 @@ public class AndroidSpineServerMainActivity extends Activity{
 		Log.i(TAG, "OnStart, FirstTime = " + firstTime);
 		
 		// Tell the AndroidBTService to start up
-		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
+		// No longer necessary because service is started automatically on binding
+		// In fact if you start it here then it won't stop at app termination
+		//this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
 		if (firstTime) 
 		{
