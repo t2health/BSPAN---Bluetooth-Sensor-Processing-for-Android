@@ -9,6 +9,9 @@ import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -123,38 +126,65 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		Log.i(TAG, "Binding BiofeedbackService");
-		
+		Log.d(TAG, this.getClass().getSimpleName() + ".onBind()");		
         return mMessenger.getBinder();
+	}
+
+	
+	
+	@Override
+	public void onRebind(Intent intent) {
+		Log.d(TAG, this.getClass().getSimpleName() + ".onReBind()");		
+		super.onRebind(intent);
+	}
+
+	@Override
+	public boolean onUnbind(Intent intent) {
+		Log.d(TAG, this.getClass().getSimpleName() + ".onUnBind()");		
+		return super.onUnbind(intent);
 	}
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		
-		this.startService();
+		String version = "";
+		
+		try {
+			PackageManager packageManager = this.getPackageManager();
+			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
+			version = info.versionName;
+		} 
+		catch (NameNotFoundException e) {
+			   	Log.e(TAG, e.toString());
+		}		
+        Log.d(TAG, this.getClass().getSimpleName() + ".onCreate(), Version " + version); 
+		
+		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), mServerListeners);
+		this.manageDeviceThread = new ManageDeviceThread();
+		this.manageDeviceThread.start();		
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		
-		this.stopService();
-	}
-	
-	
-	private void startService() {
-		Log.i(TAG,"Starting Service");
-		this.deviceManager = DeviceManager.getInstance(this.getBaseContext(), mServerListeners);
-		this.manageDeviceThread = new ManageDeviceThread();
-		this.manageDeviceThread.start();
-	}
-	
-	private void stopService() {
-		Log.i(TAG,"Stopping Service");
+		String version = "";
+		
+		try {
+			PackageManager packageManager = this.getPackageManager();
+			PackageInfo info = packageManager.getPackageInfo(this.getPackageName(), 0);			
+			version = info.versionName;
+		} 
+		catch (NameNotFoundException e) {
+			   	Log.e(TAG, e.toString());
+		}			
+		
+        Log.d(TAG, this.getClass().getSimpleName() + ".onDestroy(), Version " + version); 
 		this.manageDeviceThread.setRun(false);
 		this.deviceManager.closeAll();
 	}
+	
 	
 	private void setListeners(BioFeedbackDevice device) {
 		device.setDeviceConnectionListener(this);

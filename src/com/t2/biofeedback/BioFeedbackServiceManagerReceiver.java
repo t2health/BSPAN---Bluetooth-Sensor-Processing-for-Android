@@ -16,6 +16,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
 
 /**
@@ -41,6 +44,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	public static final String EXTRA_MESSAGE_PAYLOAD = "messagePayload";	
 
 	private Intent mServiceIntent;
+	String mVersion = "";	
 	
 	@Override
 	// Receiving command messages from the SPINE server
@@ -55,21 +59,28 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 		// Start the service.
 		if(action.equals(BioFeedbackService.ACTION_SERVICE_START)) {
 			// In the event that bluetooth isn't on, tell the service to start when bluetooth does start.
+			
+			Log.d(TAG, this.getClass().getSimpleName() + ".onReceive(ACTION_SERVICE_START)"); 			
 			mStartServiceOnBluetoothStarted = true;
-			this.startService(context);
+			// Note that we DON'T want to explicitly start the service here.
+			// IT will be started on bind()
+			// In general, when using bind(autocreate) we NEVER want to use StartService
+//			this.startService(context);
 			
 		} else if(action.equals(BioFeedbackService.ACTION_SERVICE_STOP)) {
+			Log.d(TAG, this.getClass().getSimpleName() + ".onReceive(ACTION_SERVICE_STOP)"); 			
 			mStartServiceOnBluetoothStarted = false;
-			this.stopService(context);
+//			this.stopService(context);
 			
 		} else if(action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 			int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
 			
 			switch(state) {
 				case BluetoothAdapter.STATE_ON:
-					Log.v(TAG, "Bluetooth enabled.");
+					Log.d(TAG, this.getClass().getSimpleName() + ".onReceive(ACTION_STATE_CHANGED) state = Bluetooth enabled"); 			
 					// Turn on the service because bluetooth has been enabled.
 					if(mStartServiceOnBluetoothStarted) {
+						// It's ok to use start service here because we know bluetooth just turned on 
 						this.startService(context);
 					}
 					break;
@@ -77,6 +88,8 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 				// Turn off the service if bluetooth turns off.
 				case BluetoothAdapter.STATE_OFF:
 				case BluetoothAdapter.STATE_TURNING_OFF:
+					Log.d(TAG, this.getClass().getSimpleName() + ".onReceive(ACTION_STATE_CHANGED) state = Bluetooth disabled"); 			
+					
 					this.stopService(context);
 					break;
 			}
@@ -90,12 +103,6 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 
 				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
 					Log.i(TAG, "*** Received a discovery msg  *** message type " + pktType);
-					
-					// Make sure the device manager has the most up to date set of BT sensors
-//					deviceManger.manage();					
-					deviceManger.update();					
-					
-					
 					BioFeedbackDevice[] enabledDevices =  deviceManger.getEnabledDevices();
 					for(BioFeedbackDevice d: enabledDevices) {
 						if(d.isBonded() && d.isConencted() ) {
@@ -164,6 +171,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 	}
 	
 	private void startService(Context context) {
+
 		Log.v(TAG, "Starting service");
 		context.startService(mServiceIntent);
 	}
@@ -203,7 +211,7 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 		try {
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("name", "system");
-			jsonObject.put("address", "system");
+			jsonObject.put("address", "");
 			jsonObject.put("enabled", bluetoothEnabled);
 			
 			jsonArray.put(jsonObject);			

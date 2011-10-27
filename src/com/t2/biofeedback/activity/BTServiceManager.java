@@ -111,7 +111,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 			.setOnCancelListener(new OnCancelListener(){
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_STOP));
+//					sendBroadcast(new Intent(BioFeedbackService.ACTION_SERVICE_STOP));
 					finish();
 				}
 			})
@@ -161,7 +161,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));		
+//    	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));		
 		this.unregisterReceiver(this.generalBroadcastReceiver);
 	}
 	
