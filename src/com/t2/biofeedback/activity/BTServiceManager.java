@@ -79,6 +79,7 @@ public class BTServiceManager extends Activity implements OnClickListener {
 		// Otherwise use the normal DeviceManager.getInstance.
 		// *************************
 		this.deviceManager = DeviceManager.getInstanceNoCreate();
+//		this.deviceManager = DeviceManager..getInstance();
 		if (this.deviceManager == null) {
 		   	Log.e(TAG, "There is no device manager instance!");
 		   	return;
@@ -155,7 +156,9 @@ public class BTServiceManager extends Activity implements OnClickListener {
 		if(!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
 			this.bluetoothDisabledDialog.show();
 		}
-		this.deviceListAdapter.reloadItems();
+		if (deviceListAdapter != null) {
+			deviceListAdapter.reloadItems();
+		}
 	}
 
 	@Override
@@ -188,7 +191,8 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	private class GeneralReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			deviceListAdapter.reloadItems();
+			if (deviceListAdapter != null)
+				deviceListAdapter.reloadItems();
 		}
 	}
 	

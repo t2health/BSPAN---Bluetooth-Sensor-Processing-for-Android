@@ -96,6 +96,7 @@ public class DeviceManager {
 	}
 	
 	private DeviceManager(Context c, ArrayList<Messenger> serverListeners) {
+		Log.d(TAG, this.getClass().getSimpleName() + ".DeviceManager()");
 		this.mServerListeners = serverListeners;
 		this.context = c;
 		this.sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
@@ -120,11 +121,14 @@ public class DeviceManager {
 	 * @return					Instance of the DeviceManager
 	 */
 	public static DeviceManager getInstance(Context c, ArrayList<Messenger> serverListeners) {
+		Log.d(TAG, "DeviceManager.getInstance()"); 
 		if(deviceManager == null) {
 			deviceManager = new DeviceManager(c, serverListeners);
+			Log.d(TAG, "DeviceManager.getInstance() previous doesn't already exist, creating deviceManager = " + deviceManager); 
 		}
 		else
 		{
+			Log.d(TAG, "DeviceManager.getInstance() previous exists: deviceManager = " + deviceManager); 
 			
 			// We need to reset the list of available devices (in case something changed)
 			deviceManager.availableDevices.clear();
@@ -149,6 +153,18 @@ public class DeviceManager {
 		}
 		return deviceManager;
 	}
+
+	
+	/**
+	 * Grabs static instance of DeviceManager - Does not create if not present
+	 * @return
+	 */
+	public static DeviceManager getInstanceNoCreate() {
+		Log.d(TAG, "getInstanceNoCreate() Returning " + deviceManager); 
+		
+		return deviceManager;
+	}
+		
 	
 	static void updateAvailableDevices(DeviceManager dm, ArrayList<Messenger> serverListeners) {
 		// Display option A
@@ -202,15 +218,7 @@ public class DeviceManager {
 //			}		
 	}
 	
-	
-	/**
-	 * Grabs static instance of DeviceManager - Does not create if not present
-	 * @return
-	 */
-	public static DeviceManager getInstanceNoCreate() {
-		return deviceManager;
-	}
-	
+
 	/**
 	 * Load settings (disabled devices) from shared preferences
 	 */

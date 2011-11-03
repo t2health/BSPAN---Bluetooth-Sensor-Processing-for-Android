@@ -113,6 +113,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	 * connect/disconnect, etc.
 	 */
 	private void mangeDevices() {
+		Log.d(TAG, this.getClass().getSimpleName() + ".mangeDevicesAAAAA()");		
 		deviceManager.manage();
 		
 		// Set the listeners for all the enabled devices.
@@ -183,6 +184,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
         Log.d(TAG, this.getClass().getSimpleName() + ".onDestroy(), Version " + version); 
 		this.manageDeviceThread.setRun(false);
 		this.deviceManager.closeAll();
+//		this.deviceManager = null;
 	}
 	
 	
@@ -319,9 +321,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
                 	mServerListeners.add(msg.replyTo);
+                	Log.d(TAG, this.getClass().getSimpleName() + " MSG_REGISTER_CLIENT - Adding client data listener: " + msg.replyTo + ", len = " + mServerListeners.size()); 
                     break;
                 case MSG_UNREGISTER_CLIENT:
+//                	mServerListeners.clear();
                 	mServerListeners.remove(msg.replyTo);
+                	Log.d(TAG, this.getClass().getSimpleName() + " MSG_UNREGISTER_CLIENT - Removing client data listener: " + msg.replyTo + ", len = " + mServerListeners.size()); 
                     break;
 
                 // This is not currently used (except by example). 

@@ -65,12 +65,12 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			// Note that we DON'T want to explicitly start the service here.
 			// IT will be started on bind()
 			// In general, when using bind(autocreate) we NEVER want to use StartService
-//			this.startService(context);
+			this.startService(context);
 			
 		} else if(action.equals(BioFeedbackService.ACTION_SERVICE_STOP)) {
 			Log.d(TAG, this.getClass().getSimpleName() + ".onReceive(ACTION_SERVICE_STOP)"); 			
 			mStartServiceOnBluetoothStarted = false;
-//			this.stopService(context);
+			this.stopService(context);
 			
 		} else if(action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 			int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
@@ -98,7 +98,6 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 			// SPINE Command message
 			DeviceManager deviceManger = DeviceManager.getInstanceNoCreate();
 			if (deviceManger != null) {
-				
 				short pktType = intent.getShortExtra(EXTRA_MESSAGE_TYPE, (short)-1);
 
 				if (pktType == SPINEPacketsConstants.SERVICE_DISCOVERY) {
@@ -167,17 +166,20 @@ public class BioFeedbackServiceManagerReceiver extends BroadcastReceiver {
 					sendDeviceList(context);
 				}
 			}
+			else {
+				Log.e(TAG, "*** There is no DeviceManager ***");				
+			}
 		}
 	}
 	
 	private void startService(Context context) {
 
-		Log.v(TAG, "Starting service");
+		Log.v(TAG, "Starting service, context = " + context);
 		context.startService(mServiceIntent);
 	}
 	
 	private void stopService(Context context) {
-		Log.v(TAG, "Stopping service");
+		Log.v(TAG, "Stopping service, context = " + context);
 		context.stopService(mServiceIntent);
 	}
 	
