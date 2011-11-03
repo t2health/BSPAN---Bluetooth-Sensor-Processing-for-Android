@@ -115,6 +115,11 @@ public class AndroidSpineServerMainActivity extends Activity{
 			mTargetName = "";
 		}
         
+		// Tell the AndroidBTService to start up
+		// No longer necessary because service is started automatically on binding
+		// In fact if you start it here then it won't stop at app termination
+		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
+		
         
         AndroidSpineConnector.setMainActivityInstance(instance);
         
@@ -145,12 +150,9 @@ public class AndroidSpineServerMainActivity extends Activity{
     
     @Override
 	protected void onDestroy() {
-    	super.onDestroy();
 
- //   	this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
 		Log.i(TAG, "MainActivity onDestroy");
 	    	
-    	doUnbindService();   
 
     	try {
 			SPINEFactory.killSPINEManager();
@@ -158,6 +160,10 @@ public class AndroidSpineServerMainActivity extends Activity{
 			Log.e(TAG, "Exception killing SPINE manager: " + e.toString());
 			e.printStackTrace();
 		}     	
+
+		doUnbindService();   
+		this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
+    	super.onDestroy();
     	
 	}
 
@@ -166,10 +172,6 @@ public class AndroidSpineServerMainActivity extends Activity{
 		super.onStart();
 		Log.i(TAG, "OnStart, FirstTime = " + firstTime);
 		
-		// Tell the AndroidBTService to start up
-		// No longer necessary because service is started automatically on binding
-		// In fact if you start it here then it won't stop at app termination
-		//this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
 		if (firstTime) 
 		{
@@ -209,7 +211,9 @@ public class AndroidSpineServerMainActivity extends Activity{
 
 		try {
 			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+//			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+			bindService(intent2, mConnection, 0);
+			
 			Log.i(TAG, "*****************binding SUCCESS**************************");
 			
 			mIsBound = true;
