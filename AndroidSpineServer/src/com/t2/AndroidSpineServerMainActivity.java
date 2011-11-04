@@ -118,7 +118,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 		// Tell the AndroidBTService to start up
 		// No longer necessary because service is started automatically on binding
 		// In fact if you start it here then it won't stop at app termination
-		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
+//		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
         
         AndroidSpineConnector.setMainActivityInstance(instance);
@@ -162,7 +162,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 		}     	
 
 		doUnbindService();   
-		this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
+//		this.sendBroadcast(new Intent("com.t2.biofeedback.service.STOP"));
     	super.onDestroy();
     	
 	}
@@ -211,8 +211,8 @@ public class AndroidSpineServerMainActivity extends Activity{
 
 		try {
 			Intent intent2 = new Intent("com.t2.biofeedback.IBioFeedbackService");
-//			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
-			bindService(intent2, mConnection, 0);
+			bindService(intent2, mConnection, Context.BIND_AUTO_CREATE);
+//			bindService(intent2, mConnection, 0);
 			
 			Log.i(TAG, "*****************binding SUCCESS**************************");
 			

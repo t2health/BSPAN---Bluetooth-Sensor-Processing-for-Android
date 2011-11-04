@@ -15,6 +15,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -115,20 +116,37 @@ public class AndroidMessageServer extends BroadcastReceiver {
 			SPINEManager.getLogger().log(Logger.INFO, str.toString());
 		}
 
-		Intent intent = new Intent();
-		intent.setAction(ACTION_SERVER_DATA_BROADCAST);
-
-		// TODO: Fix this - put all packet pieces in		
-		short pktType = andMsg.header.getPktType();
-		intent.putExtra(EXTRA_MESSAGE_TYPE, pktType);
+		// Send the command via handlers instead
+        try {
+            short pktType = andMsg.header.getPktType();            
+            Message msg = Message.obtain(null,MSG_SPINE_COMMAND, pktType, 0);            
+            
+            // Check to see if there is a payload, of so add it to the message
+			if (andMsg.payloadBuf.length > 0) {
+				Bundle b = new Bundle();
+				b.putByteArray("EXTRA_MESSAGE_PAYLOAD", andMsg.payloadBuf);      
+				msg.setData(b);			
+			}			
+            mService.send(msg);
+        } catch (RemoteException e) {
+	        Log.e(TAG,"Error sending SPINE command to service");
+        	
+        }		
 		
-		
-		if (andMsg.payloadBuf.length > 0) {
-			intent.putExtra(EXTRA_MESSAGE_PAYLOAD, andMsg.payloadBuf);
-		}
-		
-//		AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
-		AndroidSpineConnector.getInstance().sendBroadcast(intent);			
+//		Intent intent = new Intent();
+//		intent.setAction(ACTION_SERVER_DATA_BROADCAST);
+//
+//		// TODO: Fix this - put all packet pieces in		
+//		short pktType = andMsg.header.getPktType();
+//		intent.putExtra(EXTRA_MESSAGE_TYPE, pktType);
+//		
+//		
+//		if (andMsg.payloadBuf.length > 0) {
+//			intent.putExtra(EXTRA_MESSAGE_PAYLOAD, andMsg.payloadBuf);
+//		}
+//		
+////		AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
+//		AndroidSpineConnector.getInstance().sendBroadcast(intent);			
 	}		
 	
     /**
@@ -151,6 +169,11 @@ public class AndroidMessageServer extends BroadcastReceiver {
      * any registered clients with the new value.
      */
     static final int MSG_SET_VALUE = 3;	
+    
+    /**
+     * Command to the service to send a spine command
+     */
+    static final int MSG_SPINE_COMMAND = 8888;    
 	
 	/** Messenger for communicating with service. */
 	Messenger mService = null;
@@ -210,8 +233,8 @@ public class AndroidMessageServer extends BroadcastReceiver {
 	            mService.send(msg);
 
 	            // Give it some value as an example.
-	            msg = Message.obtain(null,MSG_SET_VALUE, this.hashCode(), 0);
-	            mService.send(msg);
+//	            msg = Message.obtain(null,MSG_SET_VALUE, this.hashCode(), 0);
+//	            mService.send(msg);
 	            
 	        } catch (RemoteException e) {
 	            // In this case the service has crashed before we could even
