@@ -2,12 +2,20 @@ package com.t2.biofeedback;
 
 import java.util.ArrayList;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.SerialBTDevice;
 
 import com.t2.biofeedback.device.SerialBTDevice.DeviceConnectionListener;
+import com.t2.biofeedback.device.Spine.SpineDevice;
+import com.t2.biofeedback.device.shimmer.ShimmerDevice;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -36,7 +44,8 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	 * The interval between succesive scans of Bluetooth devices
 	 *  Normal operation is 10000 (10 seconds)
 	 */
-	static final int DEVICE_SCAN_INTERVAL = 2000;
+//	static final int DEVICE_SCAN_INTERVAL = 2000;
+	static final int DEVICE_SCAN_INTERVAL = 10000;
 	
 	
 	/**
@@ -113,7 +122,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	 * connect/disconnect, etc.
 	 */
 	private void mangeDevices() {
-		Log.d(TAG, this.getClass().getSimpleName() + ".mangeDevicesAAAAA()");		
+		Log.d(TAG, this.getClass().getSimpleName() + ".mangeDevices()");		
 		deviceManager.manage();
 		
 		// Set the listeners for all the enabled devices.
@@ -306,6 +315,12 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
     static final int MSG_UNREGISTER_CLIENT = 2;
 
     /**
+     * Command to the service to send a spine command
+     */
+    static final int MSG_SPINE_COMMAND = 8888;
+
+    
+    /**
      * Command to service to set a new value.  This can be sent to the
      * service to supply a new value, and will be sent by the service to
      * any registered clients with the new value.
@@ -318,6 +333,9 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
     class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
+        	
+    		Log.d(TAG, this.getClass().getSimpleName() + ".handleMessage(), what = " + msg.what + ", arg1 = " + msg.arg1);		
+        	
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
                 	mServerListeners.add(msg.replyTo);
@@ -344,10 +362,180 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
                         }
                     }
                     break;
+                    
+                // Test of sending commands through this route
+                case MSG_SPINE_COMMAND:
+                	int pktType = msg.arg1;
+                	
+                	switch (pktType) {
+                	case SPINEPacketsConstants.SERVICE_DISCOVERY:
+                		Log.d(TAG, "*** NEW Received a SERVICE_DISCOVERY msg  *** message type " + pktType);
+                		performDiscoveryTasks();                		
+                	break;
+
+                	case SPINEPacketsConstants.SETUP_SENSOR:
+                		Log.d(TAG, "*** NEW Received a SETUP_SENSOR msg  *** message type " + pktType);
+                		performSetupSensor(msg);
+                	break;
+
+                	case SPINEPacketsConstants.POLL_BLUETOOTH_DEVICES:
+                		Log.d(TAG, "*** NEW Received a POLL_BLUETOOTH_DEVICES msg  *** message type " + pktType);
+                		sendDeviceList();
+                	break;
+                	}
+                	break;
+                    
+                    
                 default:
                     super.handleMessage(msg);
             }
         }
+    }
+    
+    void performDiscoveryTasks() {
+      	if (deviceManager == null) {
+			Log.e(TAG, "NEW no device manager");
+			return;
+      	}
+		BioFeedbackDevice[] enabledDevices =  deviceManager.getEnabledDevices();
+		for(BioFeedbackDevice d: enabledDevices) {
+			if(d.isBonded() && d.isConencted() ) {
+				
+				if (d instanceof SpineDevice)	{
+					// Special case for Arduino node, need to send "reset" command
+					String str = new String("Reset");
+					byte[] strBytes = str.getBytes();
+					d.write(strBytes);
+				}
+			}
+		}      	
+    }
+	/**
+	 * Sends a JSON encoded string containing the status of the bluetooth system and devices
+	 * 	name: name of paired bluetooth device
+	 *  address: BT address of paired bluetooth device
+	 *  enabled: whether or not the device is enabled by the user
+	 *  
+	 *  Note that a special name (system) is reserved for the bluetooth system in general
+	 *  (to tell whether or not bluetooth is enabled by the user
+	 * 
+	 * 
+	 * @param context
+	 */
+	private void sendDeviceList() {
+
+		boolean bluetoothEnabled = false;
+		// First see if bluetooth is enabled
+		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBluetoothAdapter == null) {
+			Log.e(TAG, "Device does not support Bluetooth");
+			return;
+		} 
+		
+	    if (mBluetoothAdapter.isEnabled()) {
+	    	bluetoothEnabled = true;
+	    }
+		
+		JSONArray jsonArray = new JSONArray();
+		try {
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("name", "system");
+			jsonObject.put("address", "");
+			jsonObject.put("enabled", bluetoothEnabled);
+			
+			jsonArray.put(jsonObject);			
+			
+		} catch (JSONException e) {
+			Log.e(TAG, e.toString());
+		}		
+		
+		if (deviceManager != null) {
+
+			BioFeedbackDevice[] bondedDevices =  deviceManager.getBondedDevices();
+			BioFeedbackDevice[] enabledDevices =  deviceManager.getEnabledDevices();
+			for(BioFeedbackDevice d: bondedDevices) {
+				// See if it's enabled
+				boolean enabled = false;
+				for(BioFeedbackDevice dEnabled: enabledDevices) {
+					if (d.getAddress().equalsIgnoreCase(dEnabled.getAddress()))
+						enabled = true;
+				}
+				
+				try {
+					JSONObject jsonObject = new JSONObject();
+					jsonObject.put("name", d.getName());
+					jsonObject.put("address", d.getAddress());
+					jsonObject.put("enabled", enabled);
+					
+					jsonArray.put(jsonObject);						
+				} catch (JSONException e) {
+					Log.e(TAG, e.toString());
+				}		
+			}			
+			Log.d(TAG, "JSON paired devices = " + jsonArray.toString() );
+
+			
+			// TOTO: we should probably change this from broadcast to use the messaging channels
+			Intent i = new Intent();
+			i.setAction("com.t2.biofeedback.service.status.BROADCAST");
+			i.putExtra(EXTRA_MESSAGE_TYPE, BroadcastMessage.Type.STATUS);
+			i.putExtra(EXTRA_MESSAGE_ID, "STATUS_PAIRED_DEVICES");
+			i.putExtra(EXTRA_TIMESTAMP, System.currentTimeMillis());
+			i.putExtra(EXTRA_ADDRESS, jsonArray.toString());
+			sendBroadcast(i);		
+			}
+		else {
+			Log.e(TAG, "NEW no device manager");			
+		}
+	}
+    
+    void performSetupSensor(Message msg) {
+      	byte[] payload = msg.getData().getByteArray("EXTRA_MESSAGE_PAYLOAD");
+      	if (payload == null)
+      		return;
+      	if (deviceManager == null) {
+			Log.e(TAG, "NEW no device manager");
+			return;
+      	}
+      	
+		byte sensor;
+		byte command;
+		byte[] btAddress = new byte[6];
+		String btAddressString;
+		
+		if (payload.length == 8) {
+			// See ShimmerNonSpineSetupSensor_codec for coding format
+			sensor = payload[0];
+			command = payload[1];
+
+			try {
+				for (int i = 0; i < 6; i++) {
+					btAddress[i] = payload[i+2];
+				}
+				btAddressString = Util.getBtStringAddress(btAddress);
+			} catch (IndexOutOfBoundsException e) {
+				Log.e(TAG, e.toString());
+				btAddressString = "";
+			}						
+			
+			BioFeedbackDevice[] enabledDevices =  deviceManager.getEnabledDevices();
+			
+			for(BioFeedbackDevice d: enabledDevices) {
+				if(d.isBonded() && d.isConencted() ) {
+					
+					if (d instanceof ShimmerDevice)	{
+						String s = d.getAddress();
+						Log.i(TAG, "Address = " + s);
+						
+						if (d.getAddress().equalsIgnoreCase(btAddressString)) {
+							ShimmerDevice dev = (ShimmerDevice)d;
+							dev.setup(sensor, command);
+							
+						}
+					}
+				}
+			}					
+		}    	
     }
 
     /**
