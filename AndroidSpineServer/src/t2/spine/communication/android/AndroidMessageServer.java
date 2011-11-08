@@ -237,6 +237,7 @@ public class AndroidMessageServer extends BroadcastReceiver {
 //	            mService.send(msg);
 	            
 	        } catch (RemoteException e) {
+		        Log.e(TAG,"Remove exception " + e.toString());
 	            // In this case the service has crashed before we could even
 	            // do anything with it; we can count on soon being
 	            // disconnected (and then reconnected if it can be restarted)

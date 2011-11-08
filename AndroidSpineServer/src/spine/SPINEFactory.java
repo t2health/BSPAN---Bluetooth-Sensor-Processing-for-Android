@@ -26,6 +26,7 @@ package spine;
 
 
 import android.content.res.Resources;
+import android.util.Log;
 
 
 /**
@@ -59,6 +60,7 @@ public class SPINEFactory {
 	public static SPINEManager createSPINEManager(String appPropertiesFile, Resources resources) throws InstantiationException {
 		if (managerInstance != null)
 		{
+			Log.d("BFDemo", "SPINEManager createSPINEManager(EXISTING), managerInstance = " + managerInstance);				
 //			Log.i("BFDemo", "	gOT HERE 2, managerInstance = " + managerInstance);			
 			
 		}
@@ -77,6 +79,8 @@ public class SPINEFactory {
 				throw new InstantiationException(APP_PROP_MISSING_MSG);
 			
 			managerInstance = new SPINEManager(MOTECOM, PLATFORM);
+			Log.d("BFDemo", "SPINEManager createSPINEManager(NEW), managerInstance = " + managerInstance);				
+			
 //			Log.i("BFDemo", "	gOT HERE 1, managerInstance = " + managerInstance);			
 			
 		}

@@ -38,48 +38,22 @@ package spine.datamodel.functions;
 
 import spine.SPINESensorConstants;
 
-public class ShimmerNonSpineSetupSensor  implements SpineObject {
+public class SpineServiceCommand  implements SpineObject {
 	
 	private static final long serialVersionUID = 1L;
 
-	public static final byte SHIMMER_COMMAND_STOPPED = 0;
-	public static final byte SHIMMER_COMMAND_RUNNING = 1;
+	public static final byte COMMAND_STOPPED = 0;
+	public static final byte COMMAND_RUNNING = 1;
 	
-	public static final byte SHIMMER_COMMAND_ENABLED = 2;
-	public static final byte SHIMMER_COMMAND_DISABLED = 3;
+	public static final byte COMMAND_ENABLED = 2;
+	public static final byte COMMAND_DISABLED = 3;
 	
-	private byte sensor = -1; // See SPINESensorConstants
 	private byte[] btAddress = new byte[6];
 	private byte[] btName = new byte[255];
 	private int samplingTime = -1;
 	private byte command = 0;   // 0 = stopped, 1 = running, 2 enabled, 3 disabled
 
 
-	/**
-	 * Sets the sensor to setup
-	 * 
-	 * @param sensor the sensor to setup
-	 * 
-	 * @see spine.SPINESensorConstants
-	 */
-	public void setSensor(byte sensor) {
-		this.sensor = sensor;
-	}
-	
-	/**
-	 * Getter method of the sensor involved in this setup request
-	 * 
-	 * @return the sensor involved in this setup request
-	 * 
-	 * @see spine.SPINESensorConstants
-	 */
-	public byte getSensor() {
-		byte sensor;
-		sensor=this.sensor;
-		return sensor;
-	}
-	
-	
 	public byte[] getBtAddress() {
 		return btAddress;
 	}
@@ -88,6 +62,65 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 		this.btAddress = btAddress;
 	}
 
+	public void setBtAddress(String strBtAddress) {
+
+		Boolean formatOk = true;
+		// First make sure the string is in proper format
+		// B1:B2:B3:B4:B6:B6
+		if (strBtAddress.length() != 17 ){
+			formatOk = false;
+		}
+		
+		if (
+				strBtAddress.charAt(2) != ':' || 
+				strBtAddress.charAt(5) != ':' || 
+				strBtAddress.charAt(8) != ':' || 
+				strBtAddress.charAt(11) != ':' || 
+				strBtAddress.charAt(14) != ':'
+				) {
+			formatOk = false;
+		}
+		try {
+			
+			int j = 0;
+			for (int i = 0; i < 6; i++) {
+				btAddress[i] = (byte) (Byte.parseByte(strBtAddress.substring(j,j+1), 16) << 4);	
+				btAddress[i] += (byte) (Byte.parseByte(strBtAddress.substring(j+1,j+2), 16));
+				j+= 3;
+				
+			}
+	
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+	}
+
+	
+	public static String stringToHex(String base)
+    {
+     StringBuffer buffer = new StringBuffer();
+     int intValue;
+     for(int x = 0; x < base.length(); x++)
+         {
+         int cursor = 0;
+         intValue = base.charAt(x);
+         String binaryChar = new String(Integer.toBinaryString(base.charAt(x)));
+         for(int i = 0; i < binaryChar.length(); i++)
+             {
+             if(binaryChar.charAt(i) == '1')
+                 {
+                 cursor += 1;
+             }
+         }
+         if((cursor % 2) > 0)
+             {
+             intValue += 128;
+         }
+         buffer.append(Integer.toHexString(intValue) + " ");
+     }
+     return buffer.toString();
+}
+	
 	public byte[] getBtName() {
 		return btName;
 	}
@@ -109,28 +142,7 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 		this.command = command;
 	}
 
-	/**
-	 * The hash code is represented by the sensor code
-	 * 
-	 * @return the sensor code as a hash-code
-	 */
-	public int hashCode() {
-		return this.sensor;
-	}
-	
-	/**
-	 * Compares this SpineSetupSensor to the specified object. 
-	 * The result is true if and only if the argument is not null and is a SpineSetupSensor object 
-	 * with the same sensorCode of this SpineSetupSensor one.
-	 *
-	 * @param aSpineSetupSensor the object to compare this SpineSetupSensor against.
-	 *	  
-	 * @return true if the two SpineSetupSensor object are equal; false otherwise.
-	 */
-	public boolean equals(Object aSpineSetupSensor) {
-		if (aSpineSetupSensor == null) return false;
-		return this.sensor == ((ShimmerNonSpineSetupSensor)aSpineSetupSensor).sensor;
-	}
+
 	
 	/**
 	 * Returns a string representation of this SpineSetupSensor object.
@@ -138,10 +150,9 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	 * @return the String representation of this SpineSetupSensor object
 	 */
 	public String toString() {
-		String s = "Sensor Setup {";
+		String s = "SpineServiceCommand {";
 		
-		s += "sensor = " + SPINESensorConstants.sensorCodeToString(sensor) + ", ";
-		s += "samplingTime = " + samplingTime + "}";
+
 		
 		return s;
 	}

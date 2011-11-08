@@ -63,6 +63,7 @@ import spine.datamodel.functions.ShimmerNonSpineSetupSensor;
 import spine.datamodel.functions.SpineCodec;
 import spine.datamodel.functions.SpineFunctionReq;
 import spine.datamodel.functions.SpineObject;
+import spine.datamodel.functions.SpineServiceCommand;
 import spine.datamodel.functions.SpineSetupFunction;
 import spine.datamodel.functions.SpineSetupSensor;
 import spine.datamodel.functions.SpineStart;
@@ -324,6 +325,8 @@ public class SPINEManager {
 		send(new Address(""+SPINEPacketsConstants.SPINE_BROADCAST), SPINEPacketsConstants.POLL_BLUETOOTH_DEVICES, null);
 	}
 	
+	public void setBluetoothDeviceEnabled(String address, Boolean enabled) {
+	}
 	
 	
 	
@@ -362,6 +365,14 @@ public class SPINEManager {
 		
 	}
 	
+	public void serviceCommand(SpineServiceCommand serviceCommand) {
+		if (serviceCommand == null)
+			throw new RuntimeException("Can't send service command: setupSensor is null");
+		
+		send(new Address("0"), SPINEPacketsConstants.SERVICE_COMMAND, serviceCommand);
+		
+	}
+	
 	
 	
 	/**
@@ -381,7 +392,7 @@ public class SPINEManager {
 		send(node.getPhysicalID(), SPINEPacketsConstants.SETUP_FUNCTION, setupFunction);
 	}
 	
-		
+
 	/**
 	 * Activates a function (or even only function sub-routines) on the given sensor.
 	 * The content of the actual request is 'function dependent' and it's embedded into the
