@@ -57,7 +57,8 @@ public class SPINEPacketsConstants {
 	public static final byte FUNCTION_REQ = 0x07;         // contains a flag to specify if enable or disable the function
 
 	public static final byte POLL_BLUETOOTH_DEVICES = 0x10;
-
+	public static final byte SERVICE_COMMAND = 0x11;
+	
 	
 	public static final String SERVICE_ADV_LABEL = "Svc Adv";
 	public static final String DATA_LABEL = "Data";

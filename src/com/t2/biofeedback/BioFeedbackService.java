@@ -47,6 +47,15 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 //	static final int DEVICE_SCAN_INTERVAL = 2000;
 	static final int DEVICE_SCAN_INTERVAL = 10000;
 	
+	public static final byte COMMAND_ENABLED = 2;
+	public static final byte COMMAND_DISABLED = 3;	
+
+	public static final int CONN_ERROR = -1;
+	public static final int CONN_IDLE = 0;
+	public static final int CONN_PAIRED = 1;
+	public static final int CONN_CONNECTING = 2;
+	public static final int CONN_CONNECTED = 3;	
+	
 	
 	/**
 	 * Broadcast message used send status messages to the Spine server
@@ -373,6 +382,11 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
                 		performDiscoveryTasks();                		
                 	break;
 
+                	case SPINEPacketsConstants.SERVICE_COMMAND:
+                		Log.d(TAG, "*** NEW Received a SERVICE_COMMAND msg  *** message type " + pktType);
+                		performServiceCommand(msg);
+                	break;
+
                 	case SPINEPacketsConstants.SETUP_SENSOR:
                 		Log.d(TAG, "*** NEW Received a SETUP_SENSOR msg  *** message type " + pktType);
                 		performSetupSensor(msg);
@@ -442,6 +456,8 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			jsonObject.put("name", "system");
 			jsonObject.put("address", "");
 			jsonObject.put("enabled", bluetoothEnabled);
+			jsonObject.put("connectionStatus", 0); // Don't care for this one
+			
 			
 			jsonArray.put(jsonObject);			
 			
@@ -451,14 +467,25 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		
 		if (deviceManager != null) {
 
+			
+			
+			int connectionStatus = CONN_IDLE; // Default
 			BioFeedbackDevice[] bondedDevices =  deviceManager.getBondedDevices();
 			BioFeedbackDevice[] enabledDevices =  deviceManager.getEnabledDevices();
 			for(BioFeedbackDevice d: bondedDevices) {
 				// See if it's enabled
 				boolean enabled = false;
 				for(BioFeedbackDevice dEnabled: enabledDevices) {
-					if (d.getAddress().equalsIgnoreCase(dEnabled.getAddress()))
+					if (d.getAddress().equalsIgnoreCase(dEnabled.getAddress())) {
 						enabled = true;
+						if(d.isConencted()) {
+							connectionStatus = CONN_CONNECTED;
+						} else if(d.isConnecting()) {
+							connectionStatus = CONN_CONNECTING;
+						} else {
+							connectionStatus = CONN_PAIRED;
+						}						
+					}
 				}
 				
 				try {
@@ -466,6 +493,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 					jsonObject.put("name", d.getName());
 					jsonObject.put("address", d.getAddress());
 					jsonObject.put("enabled", enabled);
+					jsonObject.put("connectionStatus", connectionStatus);
 					
 					jsonArray.put(jsonObject);						
 				} catch (JSONException e) {
@@ -475,7 +503,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 			Log.d(TAG, "JSON paired devices = " + jsonArray.toString() );
 
 			
-			// TOTO: we should probably change this from broadcast to use the messaging channels
+			// TOTO: we should probably change this from broadcast to use the ipc messaging channels
 			Intent i = new Intent();
 			i.setAction("com.t2.biofeedback.service.status.BROADCAST");
 			i.putExtra(EXTRA_MESSAGE_TYPE, BroadcastMessage.Type.STATUS);
@@ -503,7 +531,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		byte[] btAddress = new byte[6];
 		String btAddressString;
 		
-		if (payload.length == 8) {
+		if (payload.length == 8 + 255) {
 			// See ShimmerNonSpineSetupSensor_codec for coding format
 			sensor = payload[0];
 			command = payload[1];
@@ -536,6 +564,51 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 				}
 			}					
 		}    	
+    }    
+    void performServiceCommand(Message msg) {
+      	byte[] payload = msg.getData().getByteArray("EXTRA_MESSAGE_PAYLOAD");
+      	if (payload == null)
+      		return;
+      	if (deviceManager == null) {
+			Log.e(TAG, "NEW no device manager");
+			return;
+      	}
+      	
+		byte sensor;
+		byte command;
+		byte[] btAddress = new byte[6];
+		String btAddressString;
+		
+		if (payload.length == 7 + 255) {
+			// See ShimmerNonSpineSetupSensor_codec for coding format
+			command = payload[0];
+
+			try {
+				for (int i = 0; i < 6; i++) {
+					btAddress[i] = payload[i+1];
+				}
+				btAddressString = Util.getBtStringAddress(btAddress);
+			} catch (IndexOutOfBoundsException e) {
+				Log.e(TAG, e.toString());
+				btAddressString = "";
+			}						
+			
+			if (command == COMMAND_ENABLED) {
+				this.deviceManager.setDeviceEnabled(btAddressString, true);			
+			}
+			else {
+				if (command == COMMAND_DISABLED) {
+					this.deviceManager.setDeviceEnabled(btAddressString, false);			
+					
+				}
+				else {
+					Log.e(TAG, "performServiceCommand() Command not recognized");
+				}
+			}
+		}    
+		
+		// Now send the updated device list to the activity so it can update it's listview
+		sendDeviceList();		
     }
 
     /**

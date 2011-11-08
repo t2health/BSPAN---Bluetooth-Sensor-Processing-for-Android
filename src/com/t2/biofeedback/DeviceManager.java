@@ -175,7 +175,7 @@ public class DeviceManager {
 		{
 			// NOTE: *** 
 			// IF you add a device here, make sure and add it to getInstance() as well
-			BioFeedbackDevice d;
+			BioFeedbackDevice d = null;
 			BluetoothDevice bt = (BluetoothDevice) bit.next();
 			String name = bt.getName();
 //			if (name.equalsIgnoreCase("BH ZBH002095"))
@@ -198,10 +198,14 @@ public class DeviceManager {
 			}
 			else
 			{
-				d = new ShimmerBH(serverListeners);
+				if (name.startsWith("RN")) {
+					d = new ShimmerBH(serverListeners);
+				}
 			}
-			d.setDevice(bt.getAddress());
-			dm.availableDevices.put(d.getAddress(),d);			
+			if (d != null) {
+				d.setDevice(bt.getAddress());
+				dm.availableDevices.put(d.getAddress(),d);			
+			}
 		}
 		
 
@@ -264,6 +268,7 @@ public class DeviceManager {
 	 * @param b			True = Add devices, false = remove devices
 	 */
 	public void setDeviceEnabled(String address, boolean b) {
+		address = address.toUpperCase();
 		if(b) {
 			this.disabledAddresses.remove(address);
 			this.saveSettings();
@@ -275,6 +280,7 @@ public class DeviceManager {
 				manage();
 			}
 		}
+		
 	}
 	
 	/**
