@@ -469,12 +469,13 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 
 			
 			
-			int connectionStatus = CONN_IDLE; // Default
 			BioFeedbackDevice[] bondedDevices =  deviceManager.getBondedDevices();
 			BioFeedbackDevice[] enabledDevices =  deviceManager.getEnabledDevices();
 			for(BioFeedbackDevice d: bondedDevices) {
 				// See if it's enabled
 				boolean enabled = false;
+				int connectionStatus = CONN_IDLE; // Default
+				
 				for(BioFeedbackDevice dEnabled: enabledDevices) {
 					if (d.getAddress().equalsIgnoreCase(dEnabled.getAddress())) {
 						enabled = true;
