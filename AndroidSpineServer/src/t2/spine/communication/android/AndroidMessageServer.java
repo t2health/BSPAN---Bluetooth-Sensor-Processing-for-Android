@@ -3,6 +3,7 @@ package t2.spine.communication.android;
 import net.tinyos.message.MessageListener;
 
 import com.t2.AndroidSpineConnector;
+import com.t2.AndroidSpineServerMainActivity;
 //import com.t2.AndroidSpineServerMainActivity;
 import com.t2.Constants;
 
@@ -221,8 +222,8 @@ public class AndroidMessageServer extends BroadcastReceiver {
 	        // service through an IDL interface, so get a client-side
 	        // representation of that from the raw service object.
 	        mService = new Messenger(service);
-//	        AndroidSpineServerMainActivity.getInstance().setmService(mService);
-	        AndroidSpineConnector.getInstance().setmService(mService);
+	        AndroidSpineServerMainActivity.getInstance().setmService(mService);
+//	        AndroidSpineConnector.getInstance().setmService(mService);
 	        Log.i(TAG,"Service Connected");
 	        
 	        // We want to monitor the service for as long as we are
@@ -253,8 +254,8 @@ public class AndroidMessageServer extends BroadcastReceiver {
 	        // This is called when the connection with the service has been
 	        // unexpectedly disconnected -- that is, its process crashed.
 	        mService = null;
-//	        AndroidSpineServerMainActivity.getInstance().setmService(mService);
-	        AndroidSpineConnector.getInstance().setmService(mService);
+	        AndroidSpineServerMainActivity.getInstance().setmService(mService);
+//	        AndroidSpineConnector.getInstance().setmService(mService);
 	        
 	        Log.i(TAG,"Service Disconnected");
 	    }
@@ -267,8 +268,8 @@ public class AndroidMessageServer extends BroadcastReceiver {
 	 * 		This class doesn't know about the destroy event	 
 	 */
 	void doBindService() {
-//		AndroidSpineServerMainActivity.getInstance().doBindService(mConnection);
-		AndroidSpineConnector.getInstance().doBindService(mConnection);
+		AndroidSpineServerMainActivity.getInstance().doBindService(mConnection);
+//		AndroidSpineConnector.getInstance().doBindService(mConnection);
 		
 	}
 

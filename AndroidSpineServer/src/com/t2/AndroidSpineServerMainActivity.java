@@ -42,7 +42,6 @@ import android.util.Log;
 public class AndroidSpineServerMainActivity extends Activity{
 	private static final String TAG = Constants.TAG;
 
-    private static AndroidSpineConnector spineConnector;
     private static boolean firstTime = true;
 
 	/**
@@ -120,8 +119,6 @@ public class AndroidSpineServerMainActivity extends Activity{
 		// In fact if you start it here then it won't stop at app termination
 //		this.sendBroadcast(new Intent("com.t2.biofeedback.service.START"));
 		
-        
-        AndroidSpineConnector.setMainActivityInstance(instance);
         
         Resources resources = this.getResources();
         AssetManager assetManager = resources.getAssets();
