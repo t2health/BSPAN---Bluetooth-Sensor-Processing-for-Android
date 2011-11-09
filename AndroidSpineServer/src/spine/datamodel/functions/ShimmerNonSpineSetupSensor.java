@@ -45,8 +45,7 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	public static final byte SHIMMER_COMMAND_STOPPED = 0;
 	public static final byte SHIMMER_COMMAND_RUNNING = 1;
 	
-	public static final byte SHIMMER_COMMAND_ENABLED = 2;
-	public static final byte SHIMMER_COMMAND_DISABLED = 3;
+
 	
 	private byte sensor = -1; // See SPINESensorConstants
 	private byte[] btAddress = new byte[6];
