@@ -128,9 +128,12 @@ public class AndroidMessageServer extends BroadcastReceiver {
 				msg.setData(b);			
 			}			
             mService.send(msg);
-        } catch (RemoteException e) {
+        } 
+        catch (RemoteException e) {
 	        Log.e(TAG,"Error sending SPINE command to service");
-        	
+        }		
+        catch (NullPointerException e) {
+	        Log.e(TAG,"Error sending SPINE command to service - NULL POINTER");
         }		
 		
 //		Intent intent = new Intent();
