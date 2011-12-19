@@ -634,7 +634,7 @@ public abstract class SerialBTDevice {
 		
 		public void write(byte[] bytes) {
 			try {
-				Util.logHexByteString(TAG, "Writing to BT:", bytes);
+				Util.logHexByteString(TAG, "(" + getAddress() + ")" + "Writing to BT:", bytes);
 				
 				
 				

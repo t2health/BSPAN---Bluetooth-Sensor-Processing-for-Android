@@ -1,24 +1,12 @@
 package com.t2.biofeedback;
 
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.t2.biofeedback.BioFeedbackService.BroadcastMessage;
-import com.t2.biofeedback.device.BioFeedbackDevice;
-import com.t2.biofeedback.device.SerialBTDevice;
-import com.t2.biofeedback.device.Spine.SpineDevice;
-import com.t2.biofeedback.device.shimmer.ShimmerDevice;
 
 //import t2.spine.communication.android.AndroidMessage;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
 
 /**
