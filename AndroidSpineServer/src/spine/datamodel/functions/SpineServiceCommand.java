@@ -36,7 +36,6 @@ Boston, MA  02111-1307, USA.
 
 package spine.datamodel.functions;
 
-import spine.SPINESensorConstants;
 
 public class SpineServiceCommand  implements SpineObject {
 	

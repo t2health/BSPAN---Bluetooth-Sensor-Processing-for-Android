@@ -6,7 +6,6 @@ import spine.datamodel.functions.SpineObject;
 import spine.datamodel.functions.SpineServiceCommand;
 import spine.exceptions.MethodNotSupportedException;
 
-import spine.datamodel.functions.ShimmerNonSpineSetupSensor;
 
 
 // Payload format

@@ -2,7 +2,6 @@ package t2.spine.communication.android;
 
 import net.tinyos.message.MessageListener;
 
-import com.t2.AndroidSpineConnector;
 import com.t2.AndroidSpineServerMainActivity;
 //import com.t2.AndroidSpineServerMainActivity;
 import com.t2.Constants;

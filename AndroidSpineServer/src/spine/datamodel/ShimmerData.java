@@ -102,7 +102,7 @@ public class ShimmerData  extends Data {
 		line += this.timestamp + ", ";
 		line += this.accel[AXIS_X] + ", ";
 		line += this.gsrRange + ", ";
-		line += this.gsr + "\n";
+		line += this.gsr;
 		return line;
 	}
 
