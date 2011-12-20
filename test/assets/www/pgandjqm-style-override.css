@@ -1,0 +1,18 @@
+.ui-header .ui-title {
+	margin-right:20px;
+	margin-left:20px;
+}
+
+.ui-footer .ui-title {
+	margin-right:20px;
+	margin-left:20px;
+	white-space:normal; 
+ }
+ 
+.ui-content { 
+	padding-top: 5px; 
+	padding-bottom: 5px;
+} 
+
+
+ 
