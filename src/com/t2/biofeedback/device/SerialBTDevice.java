@@ -448,12 +448,12 @@ public abstract class SerialBTDevice {
 				
 				// Try to connect to the socket.
 				try {
-					tmpSocket.connect();
+					if (tmpSocket != null) tmpSocket.connect();
 					//threadHandler.sendEmptyMessage(MSG_CONNECTED);
 					break;
 				} catch(IOException connectException) {
 					try {
-						tmpSocket.close();
+						if (tmpSocket != null) tmpSocket.close();
 					} catch(IOException closeException) {
 					}
 				}
