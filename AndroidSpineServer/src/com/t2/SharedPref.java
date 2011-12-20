@@ -297,7 +297,7 @@ public class SharedPref {
 			// ignore
 		}
 		
-		m.update(s.getBytes(), 0, s.length());
+		if (m != null) m.update(s.getBytes(), 0, s.length());
 		String hash = new BigInteger(1, m.digest()).toString();
 		return hash;
 	}
