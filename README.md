@@ -32,6 +32,7 @@ Getting Started with BSPAN
 ==============================================
 Cloning the repo on your computer
 Instuctions for using Eclipse:
+
 1. Click Help > Eclipse Marketplace
 2. Download Egit
 3. Window > Show View > Other
