@@ -30,8 +30,9 @@ Detailed instructions can be found at [BSPAN Patching](https://gist.github.com/1
 
 Getting Started with BSPAN
 ==============================================
-Cloning the repo on your computer
-Instuctions for using Eclipse:
+Clone the repo on your computer
+
+Instructions for using Eclipse:
 
 1. Click Help > Eclipse Marketplace
 2. Download Egit
