@@ -5,7 +5,7 @@ BSPAN - Bluetooth Sensor Processing for Android
 
 BSPAN is used to process Bluetooth sensor data on Android.  We use it to connect Bluetooth biofeedback sensors to Android.
 
-Biofeedback Android Apps using BSPAN
+Biofeedback Android Apps using BSPAN:
     - [BioZen](http://t2health.org/apps/biozen)
 
 Submitting bugs
