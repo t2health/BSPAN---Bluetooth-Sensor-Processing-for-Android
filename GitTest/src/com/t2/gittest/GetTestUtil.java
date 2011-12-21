@@ -9,5 +9,8 @@ public class GetTestUtil {
 	void newRoutine1() {
 		
 	}
+	void newRoutine2() {
+		
+	}
 	
 }
