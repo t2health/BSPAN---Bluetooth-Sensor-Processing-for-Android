@@ -26,7 +26,7 @@ Submitting patches
 To contribute code and bug fixes to BSPAN: fork this project on Github, make changes to the code in your fork, 
 and then send a "pull request" to notify the team of updates that are ready to be reviewed for inclusion.
 
-Detailed instructions can be found at [BSPAN Patching](https://gist.github.com/1294035)
+Detailed instructions can be found at [BSPAN Patching](https://gist.github.com/1507418)
 
 Getting Started with BSPAN
 ==============================================
