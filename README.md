@@ -49,4 +49,5 @@ License
 Copyright 2011 The National Center for Telehealth and Technology
 
 BSPAN is Licensed under the EPLv1: [http://www.opensource.org/licenses/EPL-1.0](http://www.opensource.org/licenses/EPL-1.0)
+
 SPINE is Licensed under the GPLv3: [http://opensource.org/licenses/LGPL-2.1](http://opensource.org/licenses/LGPL-2.1)
