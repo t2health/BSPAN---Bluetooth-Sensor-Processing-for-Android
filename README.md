@@ -6,8 +6,7 @@ BSPAN - Bluetooth Sensor Processing for Android
 BSPAN is used to process Bluetooth sensor data on Android.  We use it to connect Bluetooth biofeedback sensors to Android.
 
 Biofeedback Android Apps using BSPAN
-
-[BioZen](http://t2health.org/apps/biozen)
+    - [BioZen](http://t2health.org/apps/biozen)
 
 Submitting bugs
 ===============
@@ -33,12 +32,12 @@ Getting Started with BSPAN
 ==============================================
 Cloning the repo on your computer
 Instuctions for using Eclipse:
-1.Click Help > Eclipse Marketplace
-2.Download Egit
-3.Window > Show View > Other
-4.Open Git Highlight Git Repositories
-5.Click OK
-6.Copy our Git url git://github.com/t2health/BSPAN---Bluetooth-Sensor-Processing-for-Android.git
-7.Right click in the Git Repositories view in Eclipse
-8.Click Paste Repository Path or URI and follow the steps
-9.Right click on the project and Import it into your workspace.
+1. Click Help > Eclipse Marketplace
+2. Download Egit
+3. Window > Show View > Other
+4. Open Git Highlight Git Repositories
+5. Click OK
+6. Copy our Git url git://github.com/t2health/BSPAN---Bluetooth-Sensor-Processing-for-Android.git
+7. Right click in the Git Repositories view in Eclipse
+8. Click Paste Repository Path or URI and follow the steps
+9. Right click on the project and Import it into your workspace.
