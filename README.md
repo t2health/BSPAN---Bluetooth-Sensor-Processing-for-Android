@@ -43,3 +43,10 @@ Instructions for using Eclipse:
 7. Right click in the Git Repositories view in Eclipse
 8. Click Paste Repository Path or URI and follow the steps
 9. Right click on the project and Import it into your workspace.
+
+License
+==============================================
+Copyright 2011 The National Center for Telehealth and Technology
+
+BSPAN is Licensed under the EPLv1: [http://www.opensource.org/licenses/EPL-1.0](http://www.opensource.org/licenses/EPL-1.0)
+SPINE is Licensed under the GPLv3: [http://opensource.org/licenses/LGPL-2.1](http://opensource.org/licenses/LGPL-2.1)
