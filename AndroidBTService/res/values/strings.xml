@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">BioFeedback Devices Service</string>
+	<string name="app_desc">This is where you can manage all your BioFeedback devices. All supported and paired devices will appear in a list below. To pair a new device, click the &quot;Bluetooth Settings&quot; button.</string>
+	
+	<string name="bluetooth_settings">System Bluetooth Settings</string>
+	
+	<string name="enabled">Enabled</string>
+	<string name="disabled">Disabled</string>
+	<string name="not_paired">Not Paired</string>
+    <string name="paired">Paired</string>
+    <string name="paired_disabled">Paired but disabled.</string>
+    <string name="paired_connected">Paired and connected.</string>
+    <string name="paired_not_connected">Paired but not connected.</string>
+    <string name="paired_connecting">Paired and attempting to connect.</string>
+    <string name="about_button_text">About</string>
+</resources>
