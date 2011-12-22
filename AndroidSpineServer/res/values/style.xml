@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="VASSeekBar">
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:progressDrawable">@drawable/progress_bar_horizontal</item>
+        <item name="android:indeterminateDrawable">@drawable/progress_bar_horizontal</item>
+        <item name="android:minHeight">50dip</item>
+        <item name="android:maxHeight">50dip</item>
+        <item name="android:thumb">@drawable/seek_thumb</item>
+        <item name="android:thumbOffset">0dip</item>
+        <item name="android:focusable">true</item>
+	</style>
+	
+	<style name="TextAppearance.WindowTitle" parent="@android:style/TextAppearance.Medium">
+		<item name="android:textColor">#FFFFFFFF</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:gravity">center</item>
+	</style>
+	
+    <style name="Widget.ListView" parent="@android:style/Widget.ListView">
+    	<item name="android:cacheColorHint">#00000000</item>
+    </style>
+    
+    <style name="WindowTitleBackground" parent="@android:style/WindowTitleBackground">
+    	<item name="android:layout_margin">0dip</item>
+    	<item name="android:background">@drawable/title_background</item>
+    </style>
+    
+    <style name="Widget.TextView.ListSeparator" parent="@android:style/Widget.TextView.ListSeparator.White">
+    	<item name="android:layout_width">fill_parent</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	<item name="android:textAppearance">@android:style/TextAppearance.Medium</item>
+    	<!-- <item name="android:textSize">20sp</item>
+        <item name="android:gravity">center_vertical</item> -->
+    </style>
+    
+    <style name="TextAppearance.Small" parent="@android:style/TextAppearance.Small">
+    	<item name="android:textColor">?android:textColorPrimary</item>
+    </style>
+    
+    <style name="divider">
+    	<item name="android:layout_height">2dip</item>
+    	<item name="android:layout_marginTop">10dip</item>
+    	<item name="android:layout_marginBottom">10dip</item>
+    	<item name="android:background">@android:drawable/divider_horizontal_bright</item>
+    </style>
+</resources>

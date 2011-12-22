@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- <color name="primary_text_dark">#FF000000</color>
+	<color name="secondary_text_dark">#FF5a5a5a</color>
+	<color name="tertiary_text_dark">#FF5a5a5a</color>
+	<color name="primary_text_light">#FF000000</color>
+	<color name="secondary_text_light">#FF000000</color>
+	<color name="tertiary_text_light">#FF000000</color>
+	<color name="primary_text_dark_disable_only">#FF5a5a5a</color>
+	<color name="primary_text_light_disable_only">#FF5a5a5a</color>
+	<color name="primary_text_dark_nodisable">#FF000000</color>
+	<color name="secondary_text_dark_nodisable">#FF000000</color>
+	<color name="primary_text_light_nodisable">#FF000000</color>
+	<color name="secondary_text_light_nodisable">#FF000000</color>
+	<color name="hint_foreground_dark">#FF000000</color>
+	<color name="hint_foreground_light">#FF000000</color>
+	<color name="search_url_text">#FF000000</color>
+	 -->
+	<color name="chart_gradient_start">#FF356aa2</color>
+	<color name="chart_gradient_center">#FF80b6ec</color>
+	<color name="chart_gradient_end">#FF356aa2</color>
+	<color name="chart_text">#FFFFFFFF</color>
+	<color name="ColorBlack">#FF000000</color>
+	<color name="ColorCoolGrey">#ff667484</color>
+</resources>

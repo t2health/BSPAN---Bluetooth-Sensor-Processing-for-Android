@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biozen">BioZen</string>
+    <string name="app_name">BioZen</string>
+
+<!-- Connection Dialog Box -->
+	<string name="connecting...">Connecting...</string>
+	<string name="connect_to_device">Connect to</string>
+	
+	
+<!-- Brain Waves -->
+	<string name="delta">Delta</string>
+	<string name="theta">Theta</string>
+	<string name="alpha">Alpha</string>
+	<string name="beta">Beta</string>
+	<string name="gamma">Gamma</string>
+
+
+<!-- Set a reminder -->
+	<string name="create_a_reminder">Create a Reminder</string>
+	<string name="new_reminder">New Reminder</string>
+	<string name="remind">Remind</string>
+	<string name="set_time">Set Time</string>
+	<string name="repeat_reminder">Repeat reminder</string>
+	<string name="sound">Sound</string>
+	<string name="vibrate">Vibrate</string>
+	<string-array name="am_pm">
+		<item>AM</item>
+		<item>PM</item>
+	</string-array>
+	<string name="repeats">Repeats</string>
+	<string-array name="daily_weekly">
+		<item>Daily</item>
+		<item>Weekly</item>
+	</string-array>
+	<string name="every">Every</string>
+	<string name="weeks">Weeks</string>
+	<string name="on">On</string>
+	<string-array name="weekdays">
+		<item>Monday</item>
+		<item>Tuesday</item>
+		<item>Wednesday</item>
+		<item>Thursday</item>
+		<item>Friday</item>
+		<item>Saturday</item>
+		<item>Sunday</item>
+	</string-array>
+	
+<!-- Misc -->
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
+	<string name="back">Back</string>
+	<string name="next">Next</string>
+	<string name="close">Close</string>
+	<string name="save">Save</string>
+	<string name="delete">Delete</string>
+	<string name="notes...">Notes...</string>
+	<string name="notes">Notes</string>
+	<string name="do_not_show_again">Do not show this again.</string>
+	<string name="session_length">Session Length</string>
+	<string name="reScale">Re-Scale inputs</string>
+	<string name="saveRawWave">Save raw wave to file:</string>
+	<string name="screenToExit">Press anywhere on the screen to continue.</string> 
+	<string name="allowComments">Allow comments at start of session:</string> 
+    
+</resources>
