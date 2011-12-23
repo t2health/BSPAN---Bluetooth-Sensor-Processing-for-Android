@@ -1,0 +1,72 @@
+/*****************************************************************
+SPINE - Signal Processing In-Node Environment is a framework that 
+allows dynamic on node configuration for feature extraction and a 
+OtA protocol for the management for WSN
+
+Copyright (C) 2007 Telecom Italia S.p.A. 
+ 
+GNU Lesser General Public License
+ 
+This library is free software; you can redistribute
+modify it under the terms of the sub-license (below).
+
+*****************************************************************/
+
+/*****************************************************************
+BSPAN - BlueTooth Sensor Processing for Android is a framework 
+that extends the SPINE framework to work on Android and the 
+Android Bluetooth communication services.
+
+Copyright (C) 2011 The National Center for Telehealth and 
+Technology
+
+Eclipse Public License 1.0 (EPL-1.0)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the Eclipse Public License as
+published by the Free Software Foundation, version 1.0 of the 
+License.
+
+The Eclipse Public License is a reciprocal license, under 
+Section 3. REQUIREMENTS iv) states that source code for the 
+Program is available from such Contributor, and informs licensees 
+how to obtain it in a reasonable manner on or through a medium 
+customarily used for software exchange.
+
+Post your updates and modifications to our GitHub or email to 
+t2@tee2.org.
+
+This library is distributed WITHOUT ANY WARRANTY; without 
+the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+PARTICULAR PURPOSE.  See the Eclipse Public License 1.0 (EPL-1.0)
+for more details.
+ 
+You should have received a copy of the Eclipse Public License
+along with this library; if not, 
+visit http://www.opensource.org/licenses/EPL-1.0
+
+*****************************************************************/
+
+
+-Instructions for Adding a new sensor to the Android Spine architecture
+	Example based on adding "ShimmerDevice"
+	Assuming that this is a static device (one that doesn't report it's address to the spine server in discovery)
+	Service:
+		-Replicate functionality in one of the other devices (i.e. Neurosky Mindset)
+			-Add new package in service for Shimmer - com.t2.biofeedback.shimmer
+			-Add new files: StreamParser.java, ShimmerDevice.java, ShimmerBH.java, DataListener.java
+			-In ShimmerDevice.Java, update source ID  (See SOURCE_ID_HIGH, and SOURCE_ID_LOW)
+		-Update ShimmerDevice to handle incoming bluetooth byte stream, parse into messages
+		 and send updates to listeners (mServerListeners.get(i).send(msg1);)
+		-Add ShimmerBH to DeviceManager based on adapter name (d = new ShimmerBH(mServerListeners);)
+
+
+	Server:
+		-New file: spine.datamodel.ShimmerData (for device data format definition)
+		-New file: spine.payload.codec.android.ShimmerSpineData (Codec for decoding newly created data format)
+		-File SpineFunctionsConostants.java
+			Add function type: SHIMMER = 0x0B; (This should match the definition in ShimmerDevice.java
+			Add appropriate entries in functionCodeToString(), and functionCodeByString(), functionalityCodeToString()
+		-Update com.t2.Constants.java to add a reserved address to match ID_HIGH, and SOURCE_ID_LOW added in the service
+		-Update activity that will use this sensor
+		  -Add shimmerNode to SpineManager activeNodes (Since the sensor doesn't automatically report on discovery)

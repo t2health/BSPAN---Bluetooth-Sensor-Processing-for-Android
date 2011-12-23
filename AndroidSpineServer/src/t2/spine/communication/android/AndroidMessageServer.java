@@ -135,21 +135,6 @@ public class AndroidMessageServer extends BroadcastReceiver {
         catch (NullPointerException e) {
 	        Log.e(TAG,"Error sending SPINE command to service - NULL POINTER");
         }		
-		
-//		Intent intent = new Intent();
-//		intent.setAction(ACTION_SERVER_DATA_BROADCAST);
-//
-//		// TODO: Fix this - put all packet pieces in		
-//		short pktType = andMsg.header.getPktType();
-//		intent.putExtra(EXTRA_MESSAGE_TYPE, pktType);
-//		
-//		
-//		if (andMsg.payloadBuf.length > 0) {
-//			intent.putExtra(EXTRA_MESSAGE_PAYLOAD, andMsg.payloadBuf);
-//		}
-//		
-////		AndroidSpineServerMainActivity.getInstance().sendBroadcast(intent);			
-//		AndroidSpineConnector.getInstance().sendBroadcast(intent);			
 	}		
 	
     /**
