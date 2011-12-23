@@ -1,1 +1,8 @@
+com.t2.biofeedback
+com.t2.biofeedback.activity
 com.t2.biofeedback.device
+com.t2.biofeedback.device.Mobi
+com.t2.biofeedback.device.Spine
+com.t2.biofeedback.device.neurosky
+com.t2.biofeedback.device.shimmer
+com.t2.biofeedback.device.zephyr
