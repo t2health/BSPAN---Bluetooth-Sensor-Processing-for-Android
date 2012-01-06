@@ -219,21 +219,17 @@ public class BTServiceManager extends Activity implements OnClickListener {
 	
 	@Override
 	public void onClick(View v) {
-		switch(v.getId()) {
-		case R.id.bluetoothSettingsButton:
+		int id = v.getId();
+		if (id == R.id.bluetoothSettingsButton) {
 			this.startBluetoothSettings();
-			break;
-		case R.id.about:
+		} else if (id == R.id.about) {
 			String content = "National Center for Telehealth and Technology (T2)\n\n";
 			content += "Spine Bluetooth Service\n";
 			content += "Version " + mVersionName;
-			
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-			
 			alert.setTitle("About");
-			alert.setMessage(content);	
-			alert.show();	
-			break;
+			alert.setMessage(content);
+			alert.show();
 		}
 	}
 	
