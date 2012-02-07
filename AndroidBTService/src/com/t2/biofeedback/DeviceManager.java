@@ -237,6 +237,10 @@ public class DeviceManager {
 			{
 				d = new NeuroskyBH(serverListeners);
 			}
+			else if (name.startsWith("Brain")) 
+			{
+				d = new NeuroskyBH(serverListeners);
+			}
 			else if (name.startsWith("NeXus")) 
 			{
 				d = new MobiBH(serverListeners);
