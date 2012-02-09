@@ -59,11 +59,14 @@ import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
 import spine.SPINEListener;
 import spine.SPINEManager;
+import spine.SPINESensorConstants;
 import spine.datamodel.Address;
 import spine.datamodel.Data;
 import spine.datamodel.MindsetData;
 import spine.datamodel.Node;
 import spine.datamodel.ServiceMessage;
+import spine.datamodel.ShimmerData;
+import spine.datamodel.functions.ShimmerNonSpineSetupSensor;
 
 import com.t2.Constants;
 import com.t2.R;
@@ -82,7 +85,7 @@ import android.widget.Toast;
 
 /**
  * This is a trivial example activity to show how to connect an Android application to the Spine server
- *   Note that only the NeuroSky Mindset device is implemented in this example
+ *   Note that only the NeuroSky Mindset and Shimmer devices are implemented in this example
  *   
  * @author scott.coleman
  *
@@ -108,7 +111,6 @@ public class AndroidSpineExampleActivity extends Activity
 	 */
 	private SpineReceiver mCommandReceiver;        
     
-	
 	/**
 	 * Mindset data - storage for incoming mindset data
 	 */
@@ -117,9 +119,30 @@ public class AndroidSpineExampleActivity extends Activity
     /**
      * Text view to display incoming attention data
      */
-    private TextView mTextViewData;
+    private TextView mTextViewDataMindset;
 	
+    /**
+     * Text view to display incoming attention data
+     */
+    private TextView mTextViewDataShimmer;
 	
+	/**
+	 * Spine setup command used to send commands to shimmer node
+	 */
+	public ShimmerNonSpineSetupSensor mShimmerSetupCommand = null;
+	
+	/**
+	 * Node object for shimmer device as returned by spine
+	 */
+	public Node mShimmerNode = null;
+	
+	/**
+	 * Node object for mindset device as returned by spine
+	 */
+	public Node mMindsetNode = null;
+
+    
+    
 	// Some files for dealing with log writing
 	private BufferedWriter mLogWriter = null;
 	private boolean mLoggingEnabled = true;
@@ -132,11 +155,13 @@ public class AndroidSpineExampleActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d(TAG, this.getClass().getSimpleName() + ".onCreate()");         
 		instance = this;
         setContentView(R.layout.main);
         
         // Set up member variables to UI Elements
-        mTextViewData = (TextView) findViewById(R.id.textViewData);
+        mTextViewDataMindset = (TextView) findViewById(R.id.textViewData);
+        mTextViewDataShimmer = (TextView) findViewById(R.id.textViewDataShimmer);
         
         // ----------------------------------------------------
 		// Initialize SPINE by passing the fileName with the configuration properties
@@ -172,21 +197,44 @@ public class AndroidSpineExampleActivity extends Activity
 			Log.e(TAG, "Exception creating MindsetData: " + e1.toString());
 		}
 		
+		
+		
+		
 		// Since Mindset is a static node we have to manually put it in the active node list
 		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
-		Node mindsetNode = null;
-		mindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
-		mSpineManager.getActiveNodes().add(mindsetNode);
+		Node MindsetNode = null;
+		MindsetNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_MINDSET));
+		mSpineManager.getActiveNodes().add(MindsetNode);
+		
+		// Since Shimmer is a static node we have to manually put it in the active node list
+		mShimmerNode = null;
+		mShimmerNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_SHIMMER));
+		mSpineManager.getActiveNodes().add(mShimmerNode);
+		
+		mShimmerSetupCommand = new ShimmerNonSpineSetupSensor();
+		mShimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_GSR_SENSOR);
+		
+		// We're hardcoding the BT address of the shimmer node here. In a real application
+		// we would want to investigate the device list returned to us by the service
+		// (See onStatusReceived() - if(bfs.messageId.equals("STATUS_PAIRED_DEVICES"))
+		// and get the device address from that.
+		byte[] SHIMMER_NODE_BT_ADDRESS = new byte[] {0x00, 0x06, 0x66, 0x43, (byte) 0xA6, (byte) 0xA1};
+		mShimmerSetupCommand.setBtAddress(SHIMMER_NODE_BT_ADDRESS);						
+		
+		
     }
     
 	@Override
 	protected void onStart() {
 		super.onStart();
+        Log.d(TAG, this.getClass().getSimpleName() + ".onStart()");         
+		
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+        Log.d(TAG, this.getClass().getSimpleName() + ".onResume()");         
 		openLogFile();
 		mSpineManager.discoveryWsn();			
 	}
@@ -194,17 +242,26 @@ public class AndroidSpineExampleActivity extends Activity
 	@Override
 	protected void onPause() {
 		super.onPause();
+
+        Log.d(TAG, this.getClass().getSimpleName() + ".onPause()");         
+		// Tell the Shimmer device to stop sending data
+		mShimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_STOPPED);
+		mSpineManager.setup(mShimmerNode, mShimmerSetupCommand);
+
 		closeLogFile();
 	}
 
 	@Override
 	protected void onStop() {
+        Log.d(TAG, this.getClass().getSimpleName() + ".onStop()");         
+
 		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+        Log.d(TAG, this.getClass().getSimpleName() + ".onDestroy()");         
 		
 		mSpineManager.removeListener(this);	
     	this.unregisterReceiver(this.mCommandReceiver);
@@ -244,11 +301,11 @@ public class AndroidSpineExampleActivity extends Activity
 						
 						Log.i(TAG, ", " + mCurrentMindsetData.getLogDataLine());
 						int delta = mCurrentMindsetData.getFeatureValue(MindsetData.DELTA_ID);
-						mTextViewData.setText("Delta = " + delta);  		
+						mTextViewDataMindset.setText("Mindset: Delta = " + delta);  		
 						
 			        	if (mLogWriter != null) {
 			        		try {
-								mLogWriter.write("Delta = " + delta + "\n");
+								mLogWriter.write("Mindset: Delta = " + delta + "\n");
 							} catch (IOException e) {
 								Log.e(TAG, "Exception writing to file: " + e.toString());
 							}
@@ -268,6 +325,21 @@ public class AndroidSpineExampleActivity extends Activity
 					
 					break;
 				} // End case SPINEFunctionConstants.MINDSET:
+				
+				case SPINEFunctionConstants.SHIMMER: {
+					Node source = data.getNode();
+					ShimmerData shimmerData = (ShimmerData) data;
+					mTextViewDataShimmer.setText("GSR = " + shimmerData.gsr);  		
+
+					Log.i(TAG, "Received Shimmer Data, GSR = " + shimmerData.gsr);
+		        	if (mLogWriter != null) {
+		        		try {
+							mLogWriter.write("Shimmer: GSR = " + shimmerData.gsr + "\n");
+						} catch (IOException e) {
+							Log.e(TAG, "Exception writing to file: " + e.toString());
+						}
+		        	}						
+				} // End case SPINEFunctionConstants.SHIMMER:
 			}
 		}
 	}
@@ -301,6 +373,11 @@ public class AndroidSpineExampleActivity extends Activity
 		else if(bfs.messageId.equals("CONN_ANY_CONNECTED")) {
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
 			Toast.makeText (getApplicationContext(), name + " Connected", Toast.LENGTH_SHORT).show ();
+
+			// Tell the Shimmer device to start sending data
+			mShimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_RUNNING);
+			mSpineManager.setup(mShimmerNode, mShimmerSetupCommand);
+			
 		} 
 		else if(bfs.messageId.equals("CONN_CONNECTION_LOST")) {
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
@@ -312,7 +389,6 @@ public class AndroidSpineExampleActivity extends Activity
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
 			Log.i(TAG, this.getClass().getSimpleName() + bfs.address );
 		}        
-        
 	}
 	
 	void openLogFile() {

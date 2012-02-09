@@ -23,7 +23,7 @@ public class StartupActivity extends Activity {
 		
 		// We must tell AndroidSpineServerMainActivity how to get back to us
 		// when it's finished initializing
-		bundle.putString("TARGET_NAME","com.t2.AndroidSpineServerMainActivity.MAIN");
+		bundle.putString("TARGET_NAME","com.t2.AndroidSpineExampleActivity.MAIN");
 		intent2.putExtras(bundle);	
 		
 		// Now we start the activity.
