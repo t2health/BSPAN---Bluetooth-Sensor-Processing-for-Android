@@ -8,21 +8,21 @@ BSPAN is used to process Bluetooth sensor data on Android.  We use it to connect
 Biofeedback Android Apps using BSPAN:
     - [BioZen](http://www.t2health.org/apps/biozen)
 
-Sensors
+Sensors Supported
 ==============
-NeuroSky
-	-[MindSet](http://neurosky.com/Products/MindSet.aspx)
-	-[MindBand](http://neurosky.com/Products/MindBand.aspx)
-	-[BrainAthlete](http://neurosky.com/Products/BrainAthlete.aspx)
+NeuroSky:
+	- [MindSet](http://neurosky.com/Products/MindSet.aspx)
+	- [MindBand](http://neurosky.com/Products/MindBand.aspx)
+	- [BrainAthlete](http://neurosky.com/Products/BrainAthlete.aspx)
 	
 Zephyr
-	-[BioHarness](http://www.zephyr-technology.com/bioharness-bt)
+	- [BioHarness](http://www.zephyr-technology.com/bioharness-bt)
 	
 [Shimmer](http://www.shimmer-research.com/)
-	-GSR
-	-Accelerometer
-	-Timestamp
-	-Range
+	- GSR
+	- Accelerometer
+	- Timestamp
+	- Range
 
 Submitting bugs
 ===============
