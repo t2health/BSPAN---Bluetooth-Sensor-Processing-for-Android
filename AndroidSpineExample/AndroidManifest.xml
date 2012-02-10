@@ -39,8 +39,7 @@
 	   		<intent-filter>
 	        	<action android:name="com.t2.biofeedback.IBioFeedbackService"/>			
 	        </intent-filter>       
-		</service>
-        
+		</service>        
 
     </application>
 </manifest>
