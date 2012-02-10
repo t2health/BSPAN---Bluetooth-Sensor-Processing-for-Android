@@ -179,7 +179,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	 * connect/disconnect, etc.
 	 */
 	private void mangeDevices() {
-		Log.d(TAG, this.getClass().getSimpleName() + ".manageDevicesxBioZen()");		
+		Log.d(TAG, this.getClass().getSimpleName() + ".manageDevices()");		
 		deviceManager.manage();
 		
 		// Set the listeners for all the enabled devices.
