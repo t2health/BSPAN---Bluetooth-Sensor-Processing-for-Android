@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.t2"
-    android:versionCode="3"
-    android:versionName="1.6.3"
+    android:versionCode="4"
+    android:versionName="1.6.4"
 	android:screenOrientation="portrait" 
 		>
 
@@ -69,13 +69,9 @@
 				<action android:name="com.t2.biofeedback.server.data.BROADCAST"></action>
 			</intent-filter>
 		</receiver>
-    
-		<service	
-			android:name="com.t2.biofeedback.BioFeedbackService">
-	   		<intent-filter>
-	        	<action android:name="com.t2.biofeedback.IBioFeedbackService"/>			
-	        </intent-filter>       
-		</service>
 
+    	
     </application>
+    		
+    
 </manifest>
