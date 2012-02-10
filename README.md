@@ -11,18 +11,18 @@ Biofeedback Android Apps using BSPAN:
 Sensors Supported
 ==============
 NeuroSky:
-	1. [MindSet](http://neurosky.com/Products/MindSet.aspx)
-	2. [MindBand](http://neurosky.com/Products/MindBand.aspx)
-	3. [BrainAthlete](http://neurosky.com/Products/BrainAthlete.aspx)
+1. [MindSet](http://neurosky.com/Products/MindSet.aspx)
+2. [MindBand](http://neurosky.com/Products/MindBand.aspx)
+3. [BrainAthlete](http://neurosky.com/Products/BrainAthlete.aspx)
 	
 Zephyr:
-	1. [BioHarness](http://www.zephyr-technology.com/bioharness-bt)
+1. [BioHarness](http://www.zephyr-technology.com/bioharness-bt)
 	
 [Shimmer](http://www.shimmer-research.com/):
-	1. GSR
-	2. Accelerometer
-	3. Timestamp
-	4. Range
+1. GSR
+2. Accelerometer
+3. Timestamp
+4. Range
 
 Submitting bugs
 ===============
