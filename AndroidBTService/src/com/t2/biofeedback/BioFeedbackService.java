@@ -602,9 +602,9 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 					
 					if (d instanceof ShimmerDevice)	{
 						String s = d.getAddress();
-						Log.i(TAG, "Address = " + s);
 						
 						if (d.getAddress().equalsIgnoreCase(btAddressString)) {
+							Log.i(TAG, "Address = " + s);
 							ShimmerDevice dev = (ShimmerDevice)d;
 							dev.setup(sensor, command);
 							

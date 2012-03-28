@@ -58,7 +58,63 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	public static final byte SHIMMER_COMMAND_STOPPED = 0;
 	public static final byte SHIMMER_COMMAND_RUNNING = 1;
 	
+	// NOTE IF ANY OF THESE CONSTANTS CHANGE THEN THE TABLE AT mCommandTableTranslation MUST CHANGE AS WELL!
+	public static final byte SHIMMER_COMMAND_RUNNING_1000HZ_40K = 0 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_500HZ_40K = 1 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_250HZ_40K = 2 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_200HZ_40K = 3 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_166HZ_40K = 4 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_125HZ_40K = 5 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_100HZ_40K = 6 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_40K = 7 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_40K = 8 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_40K = 9 + 2 ;	
 
+	public static final byte SHIMMER_COMMAND_RUNNING_1000HZ_287K = 10 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_500HZ_287K = 11 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_250HZ_287K = 12 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_200HZ_287K = 13 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_166HZ_287K = 14 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_125HZ_287K = 15 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_100HZ_287K = 16 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_287K = 17 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_287K = 18 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_287K = 19 + 2;	
+
+	public static final byte SHIMMER_COMMAND_RUNNING_1000HZ_1M = 20 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_500HZ_1M = 21 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_250HZ_1M = 22 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_200HZ_1M = 23 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_166HZ_1M = 24 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_125HZ_1M = 25 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_100HZ_1M = 26 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_1M = 27 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_1M = 28 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_1M = 29 + 2;	
+
+	public static final byte SHIMMER_COMMAND_RUNNING_1000HZ_3M3 = 30 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_500HZ_3M3 = 31 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_250HZ_3M3 = 32 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_200HZ_3M3 = 33 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_166HZ_3M3 = 34 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_125HZ_3M3 = 35 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_100HZ_3M3 = 36 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_3M3 = 37 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_3M3 = 38 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_3M3 = 39 + 2;	
+
+	public static final byte SHIMMER_COMMAND_RUNNING_1000HZ_AUTORANGE = 40 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_500HZ_AUTORANGE = 41 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_250HZ_AUTORANGE = 42 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_200HZ_AUTORANGE = 43 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_166HZ_AUTORANGE = 44 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_125HZ_AUTORANGE = 45 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_100HZ_AUTORANGE = 46 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_AUTORANGE = 47 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_AUTORANGE = 48 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_AUTORANGE = 49 + 2;
+	
+	
 	
 	private byte sensor = -1; // See SPINESensorConstants
 	private byte[] btAddress = new byte[6];

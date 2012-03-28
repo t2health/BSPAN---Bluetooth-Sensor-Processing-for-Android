@@ -119,7 +119,7 @@ public class ShimmerData  extends Data {
 	public int timestamp;
 	public int gsr;
 	public int emg;
-	public int heartrate;
+	public int ecg;
 	public int vUnreg;
 	public int vReg;
 	public int gsrRange;

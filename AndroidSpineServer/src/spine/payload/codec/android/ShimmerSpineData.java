@@ -49,6 +49,8 @@ visit http://www.opensource.org/licenses/EPL-1.0
 
 package spine.payload.codec.android;
 
+
+import spine.SPINESensorConstants;
 import spine.datamodel.Node;
 import spine.datamodel.ShimmerData;
 import spine.datamodel.functions.SpineCodec;
@@ -106,11 +108,21 @@ public class ShimmerSpineData extends SpineCodec {
 		pldIndex += 2;
 
 		
-		// We need to treat gsr special since in it's top 2 bits it has
-		// the gsr range coded into it (For Auto range only)
-		data.gsr = ( payload[pldIndex] & 0xFF)| ((payload[pldIndex + 1] & 0x3F) << 8);
-		data.gsrRange = ((payload[pldIndex + 1] & 0xC0) >> 6);
-//		data.gsr = convertTwoBytesToInt(payload, pldIndex);
+		switch (sensorCode) {
+		case SPINESensorConstants.SHIMMER_GSR_SENSOR:
+			// We need to treat gsr special since in it's top 2 bits it has
+			// the gsr range coded into it (For Auto range only)
+			data.gsr = ( payload[pldIndex] & 0xFF)| ((payload[pldIndex + 1] & 0x3F) << 8);
+			data.gsrRange = ((payload[pldIndex + 1] & 0xC0) >> 6);
+			break;
+		case SPINESensorConstants.SHIMMER_ECG_SENSOR:
+			data.ecg = convertTwoBytesToInt(payload, pldIndex);
+			break;
+		case SPINESensorConstants.SHIMMER_EMG_SENSOR:
+			data.emg = convertTwoBytesToInt(payload, pldIndex);
+			break;
+		}		
+		
 
 		// set data.node, data.functionCode and data.timestamp
 		data.baseInit(node, payload);
