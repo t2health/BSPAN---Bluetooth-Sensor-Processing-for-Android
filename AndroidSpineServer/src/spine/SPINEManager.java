@@ -61,6 +61,8 @@ import java.util.Vector;
 import com.tilab.gal.LocalNodeAdapter;
 import com.tilab.gal.WSNConnection;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.util.Log;
 
 
 import spine.SPINEListener;
@@ -87,6 +89,7 @@ import spine.exceptions.MethodNotSupportedException;
 
 
 public class SPINEManager {
+	private static final String TAG = "BFDemo";
 	
 	/** package scoped as they are used by EventDispatcher **/
 	static final byte DISC_COMPL_EVT_COD = 100;
@@ -306,10 +309,29 @@ public class SPINEManager {
 	 */
 	public void discoveryWsn() {
 		discoveryCompleted = false;
+		
 		send(new Address(""+SPINEPacketsConstants.SPINE_BROADCAST), SPINEPacketsConstants.SERVICE_DISCOVERY, null);
 		
-		if(this.discoveryTimeout > 0)
-			new DiscoveryTimer(this.discoveryTimeout).start();
+		
+		if(this.discoveryTimeout > 0) {
+			   Handler handler = new Handler(); 
+			    handler.postDelayed(new Runnable() { 
+			         public void run() { 
+			 			// if no nodes has been discovered, it's the symptom of some radio connection problem;
+			 			// the SPINEManager notifies the SPINEListener of that situation by issuing an appropriate service message
+			 			if (activeNodes.size()==0) {
+			 				ServiceErrorMessage serviceErrorMessage=new ServiceErrorMessage();
+			 				serviceErrorMessage.setNode(baseStation);
+			 				serviceErrorMessage.setMessageDetail(SPINEServiceMessageConstants.CONNECTION_FAIL);
+			 				eventDispatcher.notifyListeners(SPINEPacketsConstants.SVC_MSG,serviceErrorMessage);
+			 			}		
+			 			discoveryCompleted = true;			
+			 			eventDispatcher.notifyListeners(DISC_COMPL_EVT_COD, activeNodes);			        	 
+			             
+			         } 
+			    }, this.discoveryTimeout); 		
+		}
+		
 	}
 	
 
@@ -325,12 +347,9 @@ public class SPINEManager {
 	 * @param discoveryTimeout the timeout for the discovery procedure
 	 */
 	public void discoveryWsn(long discoveryTimeout) {
-		discoveryCompleted = false;
 		this.discoveryTimeout = discoveryTimeout;
-		send(new Address(""+SPINEPacketsConstants.SPINE_BROADCAST), SPINEPacketsConstants.SERVICE_DISCOVERY, null);
 		
-		if(this.discoveryTimeout > 0)
-			new DiscoveryTimer(this.discoveryTimeout).start();
+		discoveryWsn();		
 	}
 	
 	public void pollBluetoothDevices() {
@@ -664,39 +683,6 @@ public class SPINEManager {
 	public static byte getMyGroupID() {
 		return MY_GROUP_ID;
 	}
-	
-	/*
-	 * implementation of the discovery timer procedure can be simply seen as a 
-	 * Thread that, after a certain sleep interval, declares the discovery procedure completed 
-	 * (by setting a global boolean flag) and notifies the SPINEListeners of such event 
-	 */
-	private class DiscoveryTimer extends Thread {
-		
-		private long delay = 0;
-		
-		private DiscoveryTimer(long delay) {
-			this.delay = delay;
-		}
-		
-		public void run () {
-			try {
-				discoveryCompleted = false;
-				sleep(delay);
-			} catch (InterruptedException e) {}
-			
-			// if no nodes has been discovered, it's the symptom of some radio connection problem;
-			// the SPINEManager notifies the SPINEListener of that situation by issuing an appropriate service message
-			if (activeNodes.size()==0) {
-				ServiceErrorMessage serviceErrorMessage=new ServiceErrorMessage();
-				serviceErrorMessage.setNode(baseStation);
-				serviceErrorMessage.setMessageDetail(SPINEServiceMessageConstants.CONNECTION_FAIL);
-				eventDispatcher.notifyListeners(SPINEPacketsConstants.SVC_MSG,serviceErrorMessage);
-			}		
-			discoveryCompleted = true;			
-			eventDispatcher.notifyListeners(DISC_COMPL_EVT_COD, activeNodes);
-		}
-	}	
-	
 	
 	private static void exit(String msg) {
 		if (l.isLoggable(Logger.SEVERE)) {
