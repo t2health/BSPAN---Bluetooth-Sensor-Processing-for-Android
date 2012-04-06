@@ -399,9 +399,9 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
                 	Log.d(TAG, this.getClass().getSimpleName() + " MSG_REGISTER_CLIENT - Adding client data listener: " + msg.replyTo + ", len = " + mServerListeners.size()); 
                     break;
                 case MSG_UNREGISTER_CLIENT:
-//                	mServerListeners.clear();
-                	mServerListeners.remove(msg.replyTo);
-                	Log.d(TAG, this.getClass().getSimpleName() + " MSG_UNREGISTER_CLIENT - Removing client data listener: " + msg.replyTo + ", len = " + mServerListeners.size()); 
+                	mServerListeners.clear();
+//                	mServerListeners.remove(msg.replyTo);
+                	Log.d(TAG, this.getClass().getSimpleName() + " MSG_UNREGISTER_CLIENT - Removing ALL data listenes:  , len = " + mServerListeners.size()); 
                     break;
 
                 // This is not currently used (except by example). 

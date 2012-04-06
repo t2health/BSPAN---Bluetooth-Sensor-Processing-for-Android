@@ -116,7 +116,10 @@ public class ShimmerSpineData extends SpineCodec {
 			data.gsrRange = ((payload[pldIndex + 1] & 0xC0) >> 6);
 			break;
 		case SPINESensorConstants.SHIMMER_ECG_SENSOR:
-			data.ecg = convertTwoBytesToInt(payload, pldIndex);
+//			data.ecg = convertTwoBytesToInt(payload, pldIndex);
+			data.ecgLaLL = convertTwoBytesToInt(payload, pldIndex);
+			pldIndex += 2;			
+			data.ecgRaLL = convertTwoBytesToInt(payload, pldIndex);
 			break;
 		case SPINESensorConstants.SHIMMER_EMG_SENSOR:
 			data.emg = convertTwoBytesToInt(payload, pldIndex);

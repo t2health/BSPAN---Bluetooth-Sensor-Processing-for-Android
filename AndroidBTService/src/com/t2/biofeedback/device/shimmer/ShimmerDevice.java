@@ -88,7 +88,8 @@ import com.t2.biofeedback.device.BioFeedbackDevice;
  *  14 -15		    Accel X		
  *  16 -17		    Accel Y		
  *  18 -19		    Accel Z		
- *  20 -21		    GSR (or HR, or EMG) depending on which daughter board is installed
+ *  20 -21		    GSR (or EMG, or ECG_LALL) depending on which daughter board is installed/configured
+ *  22 - 23			ECG_RALL (Only if ecg is configured
  *  		
  * 
  * @author scott.coleman
@@ -241,8 +242,14 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	private static final int SHIMMER_PREMSG_SIZE  = 2;   	// 	2 bytes in front of every payload, 
 															// SHIMMER_FUNCT_CODE, 
 															// SHIMMER_SENSOR_CODE, 
+
+	private static final int ECG_SENSOR_MSG_SIZE = 13;		
 	private static final int SENSOR_MSG_SIZE = 11;		
-	private static final int SHIMMER_MSG_SIZE = SENSOR_MSG_SIZE + SHIMMER_PREMSG_SIZE;		
+	
+	private static final int MAX_SENSOR_MSG_SIZE = 13;		
+	private static final int MAX_SHIMMER_MSG_SIZE = MAX_SENSOR_MSG_SIZE + SHIMMER_PREMSG_SIZE;		
+	
+	private int mSensorMsgSize = SENSOR_MSG_SIZE;		// default to 11 bytes but may change to 11 if ecg
 	
 	private int state = STATE_OFF;
 	
@@ -325,8 +332,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 	 * Message formatted according to the Shimmer Boilerplate specification
 	 */
 	byte[] mShimmerMessage;	
-	byte[] mSensorBuffer = new byte[SENSOR_MSG_SIZE];
-	byte[] mBuildBuffer = new byte[SENSOR_MSG_SIZE];
+	byte[] mSensorBuffer = new byte[MAX_SENSOR_MSG_SIZE];
 	int mSensorBufferIndex = 0;
 	
 	private int mMessageIndex = 0;
@@ -428,6 +434,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 				shimmerSensorCode = sensor;
 				break;
 			case SPINESensorConstants.SHIMMER_ECG_SENSOR:
+				mSensorMsgSize = ECG_SENSOR_MSG_SIZE;			// We only need to set it here, everywhere else it defaults				
 				this.write(setSensorsCommand_ECG);
 				shimmerSensorCode = sensor;
 				break;
@@ -477,7 +484,7 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 			
 		case STATE_SET_GSRRANGE:
 			if (code == ShimmerMessage.ACKCOMMANDPROCESSED) {
-				Log.i(TAG, "Telling Shimmer to start streaming");
+				Log.i(TAG, "Telling Shimmer to start streaming V2.4");
 				this.write(new byte[] {ShimmerMessage.STARTSTREAMINGCOMMAND});
 				mSensorBufferIndex = 0;				
 				state = STATE_STREAMING;
@@ -493,19 +500,25 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 			
 			// If starting a new packet make sure it starts out with a 00 (DATAPACKET)
 			if (mSensorBufferIndex == 0) {
-				if (code != ShimmerMessage.DATAPACKET)
+				if (code != ShimmerMessage.DATAPACKET) {
+					Log.e(TAG, "Sync Error");
 					break;
+				}
 			}
 			
 			try {
 				for (int rawIndex = 0; rawIndex < bytes.length; rawIndex++) {
+					
+					
 					mSensorBuffer[mSensorBufferIndex++] = bytes[rawIndex];
-					if (mSensorBufferIndex >= SENSOR_MSG_SIZE) {
+					
+					if (mSensorBufferIndex >= mSensorMsgSize) {
 
-						startMessage(SHIMMER_MSG_SIZE + SPINE_HEADER_SIZE);				
-						for (int i = 0; i < SENSOR_MSG_SIZE; i++) {
+						startMessage(mSensorMsgSize + SHIMMER_PREMSG_SIZE + SPINE_HEADER_SIZE);				
+						for (int i = 0; i < mSensorMsgSize; i++) {
 							mShimmerMessage[mMessageIndex++] = mSensorBuffer[i];
-						}	
+						}
+
 						// Now we have a message we need to send it to the server via the server listener(s)
 	//					Util.logHexByteString(TAG, "Complete Packet:", mSensorBuffer);
 						mSensorBufferIndex = 0;

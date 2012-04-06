@@ -114,10 +114,10 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 					ZephyrMessage m = new ZephyrMessage(
 							0xA4,
 							new byte[] {
-								(byte) 0,
-								(byte) 0,
-								(byte) 0x10,		// 10 sec			
-								(byte) 0x27,
+								(byte) 0,			// Link timeout LSB
+								(byte) 0,			// Link Timeout MSB
+								(byte) 0x10,		// LifeSign LSB 10 sec			
+								(byte) 0x27,		// Lifesign MSB 
 //								(byte) 0x38,		// 1 sec			
 //								(byte) 0x03,
 							},
@@ -134,7 +134,7 @@ public abstract class ZephyrDevice extends BioFeedbackDevice {
 				        	 ZephyrMessage m = new ZephyrMessage(
 										0x14,
 										new byte[] {
-											0x01
+											0x01		// 1 = send at 1Hz, 0 = don't send
 										},
 										ZephyrMessage.ETX
 								);

@@ -51,6 +51,7 @@ package com.t2.biofeedback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -222,43 +223,59 @@ public class DeviceManager {
 		Iterator bit = deviceBondedDevices.iterator();
 		while(bit.hasNext())
 		{
-			// NOTE: *** 
-			// IF you add a device here, make sure and add it to getInstance() as well
-			BioFeedbackDevice d = null;
 			BluetoothDevice bt = (BluetoothDevice) bit.next();
-			String name = bt.getName();
-//			if (name.equalsIgnoreCase("BH ZBH002095"))
-			if (name.startsWith("BH ZB"))
-			{
-				d = new ZephyrBH(serverListeners);
-				
-			}
-			else if (name.equalsIgnoreCase("MINDSET")) 
-			{
-				d = new NeuroskyBH(serverListeners);
-			}
-			else if (name.startsWith("Brain")) 
-			{
-				d = new NeuroskyBH(serverListeners);
-			}
-			else if (name.startsWith("NeXus")) 
-			{
-				d = new MobiBH(serverListeners);
-			}
-			else if (name.equalsIgnoreCase("RN42-897A"))
-			{
-				d = new SpineBH(serverListeners);
-			}
-			else
-			{
-				if (name.startsWith("RN")) {
-					d = new ShimmerBH(serverListeners);
+
+			boolean deviceExists = false;
+			// First check the availableDevices list to see it it's already there if do then
+			// do nothing.
+			Collection devices = dm.availableDevices.values();
+			for (Object dev : devices) {
+				BioFeedbackDevice device = (BioFeedbackDevice) dev;
+				if (device.getDevice().getName().equalsIgnoreCase(bt.getName())) {
+					deviceExists = true;
 				}
 			}
-			if (d != null) {
-				d.setDevice(bt.getAddress());
-				dm.availableDevices.put(d.getAddress(),d);			
+			
+			if (!deviceExists) {
+				BioFeedbackDevice d = null;
+				String name = bt.getName();
+//				if (name.equalsIgnoreCase("BH ZBH002095"))
+				if (name.startsWith("BH ZB"))
+				{
+					d = new ZephyrBH(serverListeners);
+					
+				}
+				else if (name.equalsIgnoreCase("MINDSET")) 
+				{
+					d = new NeuroskyBH(serverListeners);
+				}
+				else if (name.startsWith("Brain")) 
+				{
+					d = new NeuroskyBH(serverListeners);
+				}
+				else if (name.startsWith("NeXus")) 
+				{
+					d = new MobiBH(serverListeners);
+				}
+				else if (name.equalsIgnoreCase("RN42-897A"))
+				{
+					d = new SpineBH(serverListeners);
+				}
+				else
+				{
+					if (name.startsWith("RN")) {
+						d = new ShimmerBH(serverListeners);
+					}
+				}
+				if (d != null) {
+					d.setDevice(bt.getAddress());
+					
+					Log.d(TAG, "Adding device " + name + " to available devices");
+					dm.availableDevices.put(d.getAddress(),d);			
+					
+				}				
 			}
+
 		}
 		
 
@@ -423,7 +440,7 @@ public class DeviceManager {
 	{
 		for(String address: this.availableDevices.keySet()) {
 			BioFeedbackDevice d = this.availableDevices.get(address);
-			Log.i(TAG, "Updating device listeners: " + d.getAddress());
+			Log.i(TAG, "Updating device listeners for device: " + d.getAddress());
 			d.setServerListeners(mServerListeners);
 		}		
 	}
@@ -433,7 +450,8 @@ public class DeviceManager {
 	 * 	Note: Any device that is bonded is also considered "enabled" 
 	 */
 	public void manage() {
-
+		updateAvailableDevices(this, mServerListeners);				
+		
 		for(String address: this.availableDevices.keySet()) {
 			BioFeedbackDevice d = this.availableDevices.get(address);
 			if(d.isBonded()) {
