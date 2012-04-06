@@ -282,7 +282,7 @@ public class AndroidSpineServerMainActivity extends Activity{
 	            try {
 	                Message msg = Message.obtain(null,MSG_UNREGISTER_CLIENT);
 	    			Log.i(TAG, "*****************UN- binding SUCCESS**************************");
-	    			// msg.replyTo = mMessenger; We don't care about reply to because we're shutting down
+	    			//msg.replyTo = mMessenger; 
 	                mService.send(msg);
 	            } catch (RemoteException e) {
 	                // There is nothing special we need to do if the service
