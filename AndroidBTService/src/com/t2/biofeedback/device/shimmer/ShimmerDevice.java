@@ -499,9 +499,10 @@ public abstract class ShimmerDevice extends BioFeedbackDevice{
 //			}
 			
 			// If starting a new packet make sure it starts out with a 00 (DATAPACKET)
+			// We should really be buffering the shimmer data more robustly for for now we'll live with a few sync errors
 			if (mSensorBufferIndex == 0) {
 				if (code != ShimmerMessage.DATAPACKET) {
-					Log.e(TAG, "Sync Error");
+//					Log.e(TAG, "Sync Error");
 					break;
 				}
 			}
