@@ -298,6 +298,7 @@ public class MindsetData  extends Data {
 		
 		return line;
 	}
+	
 	public String getLogDataLine(int execode, boolean saveRawWave) {
 		String line = "";							// Comment
 		line += this.poorSignalStrength + ", "; 
