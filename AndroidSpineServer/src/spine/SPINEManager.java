@@ -50,27 +50,12 @@ visit http://www.opensource.org/licenses/EPL-1.0
 package spine;
 
 import jade.util.Logger;
-//import 	java.util.logging.Logger;
 
 import java.io.InterruptedIOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
 import java.util.Vector;
 
-import com.tilab.gal.LocalNodeAdapter;
-import com.tilab.gal.WSNConnection;
-import android.content.res.Resources;
-import android.os.Handler;
-import android.util.Log;
-
-
-import spine.SPINEListener;
-
-import spine.SPINEServiceMessageConstants;
-
-import spine.SPINEPacketsConstants;
-import spine.SPINESensorConstants;
 import spine.datamodel.Address;
 import spine.datamodel.Node;
 import spine.datamodel.functions.ShimmerNonSpineSetupSensor;
@@ -83,6 +68,11 @@ import spine.datamodel.functions.SpineSetupSensor;
 import spine.datamodel.functions.SpineStart;
 import spine.datamodel.serviceMessages.ServiceErrorMessage;
 import spine.exceptions.MethodNotSupportedException;
+import android.content.res.Resources;
+import android.os.Handler;
+
+import com.tilab.gal.LocalNodeAdapter;
+import com.tilab.gal.WSNConnection;
 
 
 
