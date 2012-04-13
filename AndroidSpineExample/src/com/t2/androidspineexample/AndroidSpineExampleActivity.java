@@ -49,11 +49,17 @@ visit http://www.opensource.org/licenses/EPL-1.0
 
 package com.t2.androidspineexample;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Vector;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 import spine.SPINEFactory;
 import spine.SPINEFunctionConstants;
@@ -73,12 +79,15 @@ import com.t2.R;
 import com.t2.SpineReceiver;
 import com.t2.SpineReceiver.BioFeedbackStatus;
 import com.t2.SpineReceiver.OnBioFeedbackMessageRecievedListener;
+import com.t2.biofeedback.device.shimmer.ShimmerDevice;
+
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,10 +104,17 @@ public class AndroidSpineExampleActivity extends Activity
 	
 	private static final String TAG = "BFDemo";
 
+	// ****** THESE MUST BE CHANGED TO CORRESPOND TO YOUR SHIMMER DEVICES! ******
+	// This mapping must be set so we can correspond specific Shimmer devices to specific parameters
+	private static final String GSR_SENSOR_NAME = "RN42-A6A1";
+	private static final String ECG_SENSOR_NAME = "RN42-A774";
+	private static final String EMG_SENSOR_NAME = "RN42-1111";
+	
+	
 	/**
 	 * Static instance of this activity
 	 */
-	private static AndroidSpineExampleActivity instance;
+	private static AndroidSpineExampleActivity mInstance;
 	
     /**
      * The Spine manager contains the bulk of the Spine server. 
@@ -122,14 +138,19 @@ public class AndroidSpineExampleActivity extends Activity
     private TextView mTextViewDataMindset;
 	
     /**
-     * Text view to display incoming attention data
+     * Text view to display incoming attention Shimmmer ecg data
      */
-    private TextView mTextViewDataShimmer;
+    private TextView mTextViewDataShimmerEcg;
 	
-	/**
-	 * Spine setup command used to send commands to shimmer node
-	 */
-	public ShimmerNonSpineSetupSensor mShimmerSetupCommand = null;
+    /**
+     * Text view to display incoming attention Shimmer gsr data
+     */
+    private TextView mTextViewDataShimmerGsr;
+	
+    /**
+     * Text view to display incoming attention Shimmer emg data
+     */
+    private TextView mTextViewDataShimmerEmg;
 	
 	/**
 	 * Node object for shimmer device as returned by spine
@@ -141,27 +162,40 @@ public class AndroidSpineExampleActivity extends Activity
 	 */
 	public Node mMindsetNode = null;
 
+	/**
+	 * List of all currently PAIRED BioSensors
+	 */
+	private ArrayList<BioSensor> mBioSensors = new ArrayList<BioSensor>();	    
     
-    
-	// Some files for dealing with log writing
-	private BufferedWriter mLogWriter = null;
-	private boolean mLoggingEnabled = true;
-	File mLogFile;
-	String mLogFileName = "";
-	private String mSessionName = "sessionData";
+    /**
+     * Whether or not the device has bluetooth enabled
+     */
+    private Boolean mBluetoothEnabled = false;
 	
+	/**
+	 * Class to help in saving received data to file
+	 */
+	private LogWriter mLogWriter;	
+    
+	/**
+	 * The configured GSR resistance range
+	 */
+	private int mConfiguredGSRRange = ShimmerDevice.GSR_RANGE_HW_RES_3M3;
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, this.getClass().getSimpleName() + ".onCreate()");         
-		instance = this;
+		mInstance = this;
         setContentView(R.layout.main);
         
         // Set up member variables to UI Elements
         mTextViewDataMindset = (TextView) findViewById(R.id.textViewData);
-        mTextViewDataShimmer = (TextView) findViewById(R.id.textViewDataShimmer);
+        mTextViewDataShimmerEcg = (TextView) findViewById(R.id.textViewDataShimmerEcg);
+        mTextViewDataShimmerGsr = (TextView) findViewById(R.id.textViewDataShimmerGsr);
+        mTextViewDataShimmerEmg = (TextView) findViewById(R.id.textViewDataShimmerEmg);
         
         // ----------------------------------------------------
 		// Initialize SPINE by passing the fileName with the configuration properties
@@ -197,9 +231,6 @@ public class AndroidSpineExampleActivity extends Activity
 			Log.e(TAG, "Exception creating MindsetData: " + e1.toString());
 		}
 		
-		
-		
-		
 		// Since Mindset is a static node we have to manually put it in the active node list
 		// Note that the sensor id 0xfff1 (-15) is a reserved id for this particular sensor
 		Node MindsetNode = null;
@@ -207,35 +238,29 @@ public class AndroidSpineExampleActivity extends Activity
 		mSpineManager.getActiveNodes().add(MindsetNode);
 		
 		// Since Shimmer is a static node we have to manually put it in the active node list
-		mShimmerNode = null;
 		mShimmerNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_SHIMMER));
 		mSpineManager.getActiveNodes().add(mShimmerNode);
-		
-		mShimmerSetupCommand = new ShimmerNonSpineSetupSensor();
-		mShimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_GSR_SENSOR);
-		
-		// We're hardcoding the BT address of the shimmer node here. In a real application
-		// we would want to investigate the device list returned to us by the service
-		// (See onStatusReceived() - if(bfs.messageId.equals("STATUS_PAIRED_DEVICES"))
-		// and get the device address from that.
-		byte[] SHIMMER_NODE_BT_ADDRESS = new byte[] {0x00, 0x06, 0x66, 0x43, (byte) 0xA6, (byte) 0xA1};
-		mShimmerSetupCommand.setBtAddress(SHIMMER_NODE_BT_ADDRESS);						
-		
-		
     }
     
 	@Override
 	protected void onStart() {
 		super.onStart();
         Log.d(TAG, this.getClass().getSimpleName() + ".onStart()");         
-		
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
         Log.d(TAG, this.getClass().getSimpleName() + ".onResume()");         
-		openLogFile();
+
+		mLogWriter = new LogWriter(this);
+
+		// Create a log file name from the date/time
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
+		String currentDateTimeString = sdf.format(new Date());
+		String logFileName = "_" + currentDateTimeString + ".log";			
+		mLogWriter.open(logFileName);
+		
 		mSpineManager.discoveryWsn();			
 	}
     
@@ -244,11 +269,8 @@ public class AndroidSpineExampleActivity extends Activity
 		super.onPause();
 
         Log.d(TAG, this.getClass().getSimpleName() + ".onPause()");         
-		// Tell the Shimmer device to stop sending data
-		mShimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_STOPPED);
-		mSpineManager.setup(mShimmerNode, mShimmerSetupCommand);
-
-		closeLogFile();
+        StopBioSensors();
+		mLogWriter.close();
 	}
 
 	@Override
@@ -265,7 +287,6 @@ public class AndroidSpineExampleActivity extends Activity
 		
 		mSpineManager.removeListener(this);	
     	this.unregisterReceiver(this.mCommandReceiver);
-		
 	}
 
 	@Override
@@ -301,15 +322,9 @@ public class AndroidSpineExampleActivity extends Activity
 						
 						Log.i(TAG, ", " + mCurrentMindsetData.getLogDataLine());
 						int delta = mCurrentMindsetData.getFeatureValue(MindsetData.DELTA_ID);
-						mTextViewDataMindset.setText("Mindset: Delta = " + delta);  		
+						mTextViewDataMindset.setText("Mindset: Delta = " + delta);  	
 						
-			        	if (mLogWriter != null) {
-			        		try {
-								mLogWriter.write("Mindset: Delta = " + delta + "\n");
-							} catch (IOException e) {
-								Log.e(TAG, "Exception writing to file: " + e.toString());
-							}
-			        	}						
+						mLogWriter.write("Mindset: Delta = " + delta);
 					}
 
 					if (mindsetData.exeCode == Constants.EXECODE_POOR_SIG_QUALITY) {
@@ -329,16 +344,46 @@ public class AndroidSpineExampleActivity extends Activity
 				case SPINEFunctionConstants.SHIMMER: {
 					Node source = data.getNode();
 					ShimmerData shimmerData = (ShimmerData) data;
-					mTextViewDataShimmer.setText("GSR = " + shimmerData.gsr);  		
+					
+					switch (shimmerData.sensorCode) {
+						case SPINESensorConstants.SHIMMER_GSR_SENSOR:
+							int resistance = Util.GsrResistance(shimmerData.gsr, shimmerData.gsrRange, mConfiguredGSRRange); 
+							String verboseLogLine = String.format("sensor:%-5d gsrADC= %-5d, range= %d, resistance= %d", 
+									shimmerData.sensorCode, shimmerData.gsr, shimmerData.gsrRange,
+									resistance);
+							Log.d(TAG,verboseLogLine );		
 
-					Log.i(TAG, "Received Shimmer Data, GSR = " + shimmerData.gsr);
-		        	if (mLogWriter != null) {
-		        		try {
-							mLogWriter.write("Shimmer: GSR = " + shimmerData.gsr + "\n");
-						} catch (IOException e) {
-							Log.e(TAG, "Exception writing to file: " + e.toString());
+							mTextViewDataShimmerGsr.setText(verboseLogLine);  		
+							mLogWriter.write("Shimmer: GSR = " + resistance);
+							
+							
+							break;
+
+						case SPINESensorConstants.SHIMMER_EMG_SENSOR:
+							verboseLogLine = String.format("sensor:%-5d emgADC= %04x", 
+									shimmerData.sensorCode,
+									shimmerData.emg);
+							Log.d(TAG,verboseLogLine );
+						
+							mTextViewDataShimmerEmg.setText(verboseLogLine);  		
+							mLogWriter.write("Shimmer: EMG = " + shimmerData.emg);
+							
+							break;
+
+						case SPINESensorConstants.SHIMMER_ECG_SENSOR:
+							int ecgLa_Ra = shimmerData.ecgLaLL - shimmerData.ecgRaLL;
+							verboseLogLine = String.format("sensor:%-5d ECGLaLL= %5d ,ECGRaLL= %5d ,ECGLaRa= %5d", 
+										shimmerData.sensorCode,
+										shimmerData.ecgLaLL,
+										shimmerData.ecgRaLL,
+										ecgLa_Ra);
+							Log.d(TAG,verboseLogLine );
+							mTextViewDataShimmerEcg.setText("ECG = " + ecgLa_Ra);  		
+							mLogWriter.write("Shimmer: ECG = " + ecgLa_Ra);
+							
+							
+						break;
 						}
-		        	}						
 				} // End case SPINEFunctionConstants.SHIMMER:
 			}
 		}
@@ -374,10 +419,7 @@ public class AndroidSpineExampleActivity extends Activity
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
 			Toast.makeText (getApplicationContext(), name + " Connected", Toast.LENGTH_SHORT).show ();
 
-			// Tell the Shimmer device to start sending data
-			mShimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_RUNNING);
-			mSpineManager.setup(mShimmerNode, mShimmerSetupCommand);
-			
+			startBioSensors();			
 		} 
 		else if(bfs.messageId.equals("CONN_CONNECTION_LOST")) {
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
@@ -388,40 +430,119 @@ public class AndroidSpineExampleActivity extends Activity
 			// bfs.address contains a json arrary containing status of all BT Devices
 			Log.i(TAG, this.getClass().getSimpleName() + " Received command : " + bfs.messageId + " to "  + name );
 			Log.i(TAG, this.getClass().getSimpleName() + bfs.address );
+			
+			populateBioSensors(bfs.address);
+			validateBioSensors();
+			startBioSensors();
 		}        
 	}
 	
-	void openLogFile() {
-		if (mLoggingEnabled) {
+	/**
+	 * Receives a json string containing data about all of the paired sensors
+	 * the adds a new BioSensor for each one to the mBioSensors collection
+	 * 
+	 * @param jsonString String containing info on all paired devices
+	 */
+	private void populateBioSensors(String jsonString) {
+		
+		Log.d(TAG, this.getClass().getSimpleName() + " populateBioSensors");
+		// Now clear it out and populate it. The only difference is that
+		// if a sensor previously existed, then 
+		mBioSensors.clear();
+		try {
+			JSONArray jsonArray = new JSONArray(jsonString);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONObject jsonObject = jsonArray.getJSONObject(i);
+				Boolean enabled = jsonObject.getBoolean("enabled");
+				String name = jsonObject.getString("name"); 
+				String address = jsonObject.getString("address"); 
+				int connectionStatus = jsonObject.getInt("connectionStatus");					
+				
+				if (name.equalsIgnoreCase("system")) {
+					mBluetoothEnabled = enabled;
+				}
+				else {
+					
+					Log.d(TAG, "Adding sensor " + name + ", " + address + (enabled ? ", enabled":", disabled") + " : " + Util.connectionStatusToString(connectionStatus));
+					BioSensor bioSensor = new BioSensor(name, address, enabled);
+					bioSensor.mConnectionStatus = connectionStatus;	
+					mBioSensors.add(bioSensor);
+				}
+			}			
+		} catch (JSONException e) {
+		   	Log.e(TAG, e.toString());
+		}
+	}	
+	
+	/**
+	 * Validates sensors, makes sure that bluetooth is on and each sensor has a parameter associated with it
+	 */
+	void validateBioSensors() {
+		
+		// First make sure that bluetooth is enabled
+		if (!mBluetoothEnabled) {
+			AlertDialog.Builder alert1 = new AlertDialog.Builder(this);
 
-    		try {
-    		    File root = Environment.getExternalStorageDirectory();
-    		    if (root.canWrite()){
+			alert1.setMessage("Bluetooth is not enabled on your device.");
 
-    		    	mLogFile = new File(root, mSessionName);
-    				mLogFileName = mLogFile.getAbsolutePath();
-    		        
-    		        FileWriter gpxwriter = new FileWriter(mLogFile, true); // open for append
-    		        mLogWriter = new BufferedWriter(gpxwriter);
-    				Log.i(TAG, this.getClass().getSimpleName() + "Writing data to log file: " + mLogFileName );
-    		    } 
-    		    else {
-        		    Log.e(TAG, "Could not write file " );
-    		    }
-    		} catch (IOException e) {
-    		    Log.e(TAG, "Could not write file " + e.getMessage());
-    		}
+			alert1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+				}
+				});
+			alert1.show();		
+		}
+		String badSensorName = null;
+	}	
+	
+	/**
+	 * Sends startup command to every shimmer device
+	 */
+	void startBioSensors() {
+		for (BioSensor  sensor : mBioSensors) {
+			Log.d(TAG, "Sending Start command to sensor " + sensor.mBTName + " (" + sensor.mBTAddress + ")");
+			
+			ShimmerNonSpineSetupSensor shimmerSetupCommand = new ShimmerNonSpineSetupSensor();
+			
+			if (sensor.mBTName.equalsIgnoreCase(GSR_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_GSR_SENSOR);
+			} 
+			else if (sensor.mBTName.equalsIgnoreCase(ECG_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_ECG_SENSOR);
+			}
+			else if (sensor.mBTName.equalsIgnoreCase(EMG_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_EMG_SENSOR);
+			}
+			
+			shimmerSetupCommand.setBtAddress(Util.AsciiBTAddressToBytes(sensor.mBTAddress));
+			
+			shimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_RUNNING_4HZ_AUTORANGE);	
+			mConfiguredGSRRange = Util.getGsrRangeFromShimmerCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_RUNNING_4HZ_AUTORANGE);			
+			mSpineManager.setup(mShimmerNode, shimmerSetupCommand);				
 		}
 	}
-	
-	void closeLogFile() {
-    	try {
-        	if (mLogWriter != null)
-        		mLogWriter.close();
-        		mLogWriter = null;
-        	
-		} catch (IOException e) {
-			Log.e(TAG, "Exeption closing file " + e.toString());
-		}        	
+
+	/**
+	 * Sends stop command to every shimmer device
+	 */
+	void StopBioSensors() {
+		for (BioSensor  sensor : mBioSensors) {
+			Log.d(TAG, "Sending Stop command to sensor " + sensor.mBTName + " (" + sensor.mBTAddress + ")");
+			ShimmerNonSpineSetupSensor shimmerSetupCommand = new ShimmerNonSpineSetupSensor();
+			
+			if (sensor.mBTName.equalsIgnoreCase(GSR_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_GSR_SENSOR);
+			} 
+			else if (sensor.mBTName.equalsIgnoreCase(ECG_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_ECG_SENSOR);
+			}
+			else if (sensor.mBTName.equalsIgnoreCase(EMG_SENSOR_NAME)) {
+				shimmerSetupCommand.setSensor(SPINESensorConstants.SHIMMER_EMG_SENSOR);
+			}
+			
+			shimmerSetupCommand.setBtAddress(Util.AsciiBTAddressToBytes(sensor.mBTAddress));
+			
+			shimmerSetupCommand.setCommand(ShimmerNonSpineSetupSensor.SHIMMER_COMMAND_STOPPED	);				
+			mSpineManager.setup(mShimmerNode, shimmerSetupCommand);				
+		}		
 	}
 }

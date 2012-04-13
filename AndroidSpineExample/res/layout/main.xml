@@ -9,5 +9,15 @@
     android:layout_height="wrap_content" android:text="Mindset: No data received" android:id="@+id/textViewData"/>
 <TextView  
     android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" android:text="Shimmer: No data received" android:id="@+id/textViewDataShimmer"/>
+    android:layout_height="wrap_content" android:text="ShimmerEcg: No data received" android:id="@+id/textViewDataShimmerEcg"/>
+
+<TextView  
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" android:text="ShimmerGsr: No data received" android:id="@+id/textViewDataShimmerGsr"/>
+
+<TextView  
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" android:text="ShimmerEmg: No data received" android:id="@+id/textViewDataShimmerEmg"/>
+
+
 </LinearLayout>
