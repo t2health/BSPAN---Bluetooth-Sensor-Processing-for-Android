@@ -272,14 +272,14 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		return i;
 	}
 	
-	@Override
+
 	public void onDeviceConnecting(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, "CONN_CONNECTING", null)
 		);
 	}
 
-	@Override
+
 	public void onDeviceConnected(SerialBTDevice d) {
 		int i = 1;
 		i++;
@@ -294,7 +294,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-	@Override
+
 	public void onDeviceClosed(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_CLOSE, null)
@@ -307,14 +307,14 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-	@Override
+
 	public void onBeforeDeviceClosed(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_BEFORE_CLOSE, null)
 		);
 	}
 
-	@Override
+
 	public void onDeviceConnectionLost(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_CONNECTION_LOST, null)
