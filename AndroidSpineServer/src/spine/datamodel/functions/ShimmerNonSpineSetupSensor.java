@@ -113,6 +113,9 @@ public class ShimmerNonSpineSetupSensor  implements SpineObject {
 	public static final byte SHIMMER_COMMAND_RUNNING_50HZ_AUTORANGE = 47 + 2;	
 	public static final byte SHIMMER_COMMAND_RUNNING_10HZ_AUTORANGE = 48 + 2;	
 	public static final byte SHIMMER_COMMAND_RUNNING_4HZ_AUTORANGE = 49 + 2;
+	public static final byte SHIMMER_COMMAND_RUNNING_32HZ_AUTORANGE = 50 + 2;	
+	public static final byte SHIMMER_COMMAND_RUNNING_64HZ_AUTORANGE = 51 + 2;	
+	
 	
 	
 	
