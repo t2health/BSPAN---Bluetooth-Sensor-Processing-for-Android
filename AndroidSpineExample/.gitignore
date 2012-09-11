@@ -5,3 +5,5 @@
 *.ear
 AndroidBTService_src/
 AndroidSpineServerLib_src/
+/gen
+/bin
