@@ -56,6 +56,13 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
 
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.chart.PointStyle;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.model.XYSeries;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+import org.achartengine.renderer.XYSeriesRenderer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,8 +94,11 @@ import android.content.DialogInterface;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -106,9 +116,15 @@ public class AndroidSpineExampleActivity extends Activity
 
 	// ****** THESE MUST BE CHANGED TO CORRESPOND TO YOUR SHIMMER DEVICES! ******
 	// This mapping must be set so we can correspond specific Shimmer devices to specific parameters
-	private static final String GSR_SENSOR_NAME = "RN42-A6A1";
+//	private static final String GSR_SENSOR_NAME = "RN42-A6A1";
+	private static final String GSR_SENSOR_NAME = "RN42-B819";
 	private static final String ECG_SENSOR_NAME = "RN42-A774";
 	private static final String EMG_SENSOR_NAME = "RN42-1111";
+	
+	// Charting stuff
+	private final static int SPINE_CHART_SIZE = 20;
+	private int mSpineChartX = 0;
+	public XYSeries mSeries;		
 	
 	
 	/**
@@ -181,7 +197,14 @@ public class AndroidSpineExampleActivity extends Activity
 	 * The configured GSR resistance range
 	 */
 	private int mConfiguredGSRRange = ShimmerDevice.GSR_RANGE_HW_RES_3M3;
-
+	
+	/**
+	 * Chart view for parameter
+	 */
+	private GraphicalView mDeviceChartView;	
+	
+	
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -240,6 +263,14 @@ public class AndroidSpineExampleActivity extends Activity
 		// Since Shimmer is a static node we have to manually put it in the active node list
 		mShimmerNode = new Node(new Address("" + Constants.RESERVED_ADDRESS_SHIMMER));
 		mSpineManager.getActiveNodes().add(mShimmerNode);
+		
+		// Set up graph(s)
+		mSeries = new XYSeries("parameter");		
+		generateChart();		
+		
+		
+		
+		
     }
     
 	@Override
@@ -355,6 +386,19 @@ public class AndroidSpineExampleActivity extends Activity
 
 							mTextViewDataShimmerGsr.setText(verboseLogLine);  		
 							mLogWriter.write("Shimmer: GSR = " + resistance);
+							
+							mSeries.add(mSpineChartX, resistance);	
+//							mSeries.add(mSpineChartX, shimmerData.gsr);	
+//							series.add(mSpineChartX, 50);	
+							if (mSeries.getItemCount() > SPINE_CHART_SIZE) {
+								mSeries.remove(0);
+							}							
+							mSpineChartX++;
+							
+							if (mDeviceChartView != null) {
+					            mDeviceChartView.repaint();
+					        }							
+							
 							
 							
 							break;
@@ -545,4 +589,45 @@ public class AndroidSpineExampleActivity extends Activity
 			mSpineManager.setup(mShimmerNode, shimmerSetupCommand);				
 		}		
 	}
+	
+	private void generateChart() {
+        // Set up chart
+    	XYMultipleSeriesDataset deviceDataset = new XYMultipleSeriesDataset();
+    	XYMultipleSeriesRenderer deviceRenderer = new XYMultipleSeriesRenderer();        
+
+        LinearLayout layout = (LinearLayout) findViewById(R.id.deviceChart);    	
+    	if (mDeviceChartView != null) {
+    		layout.removeView(mDeviceChartView);
+    	}
+       	if (true) {
+          mDeviceChartView = ChartFactory.getLineChartView(this, deviceDataset, deviceRenderer);
+          mDeviceChartView.setBackgroundColor(Color.BLACK);
+          layout.addView(mDeviceChartView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        }    
+    	
+        deviceRenderer.setShowLabels(false);
+        deviceRenderer.setMargins(new int[] {0,5,5,0});
+        deviceRenderer.setShowAxes(true);
+        deviceRenderer.setShowLegend(false);
+        
+        deviceRenderer.setZoomEnabled(false, false);
+        deviceRenderer.setPanEnabled(false, false);
+        deviceRenderer.setYAxisMin(0);
+//        deviceRenderer.setYAxisMax(1000);
+
+        // This is set rather arbitrarily based on observed resistance values in the log
+        deviceRenderer.setYAxisMax(8000000);
+        
+        deviceDataset.addSeries(mSeries);
+        
+        
+		XYSeriesRenderer seriesRenderer = new XYSeriesRenderer();
+		seriesRenderer.setColor(Color.WHITE);
+		seriesRenderer.setPointStyle(PointStyle.CIRCLE);
+		
+		deviceRenderer.addSeriesRenderer(seriesRenderer);        
+	}
+	
+	
+	
 }

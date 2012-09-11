@@ -19,5 +19,14 @@
     android:layout_width="fill_parent" 
     android:layout_height="wrap_content" android:text="ShimmerEmg: No data received" android:id="@+id/textViewDataShimmerEmg"/>
 
+    <LinearLayout 
+        android:id="@+id/deviceChart" 
+        android:layout_height="300dip" 
+        android:orientation="horizontal" 
+        android:gravity="right" 
+        android:layout_width="fill_parent">
+    </LinearLayout>
+
+
 
 </LinearLayout>
