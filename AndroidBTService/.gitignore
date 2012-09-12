@@ -3,3 +3,5 @@
 *.jar
 *.war
 *.ear
+/gen
+/bin
