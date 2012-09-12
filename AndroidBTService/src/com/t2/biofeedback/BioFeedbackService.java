@@ -141,6 +141,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	public static final String ACTION_SERVER_DATA_BROADCAST = "com.t2.biofeedback.server.data.BROADCAST";
 	public static final String ACTION_SERVICE_START = "com.t2.biofeedback.service.START";
 	public static final String ACTION_SERVICE_STOP = "com.t2.biofeedback.service.STOP";
+	public static final String ACTION_SERVICE_BTNAMES = "com.t2.biofeedback.service.BTNAMES";
 	
 	public static final String EXTRA_ADDRESS = "address";
 	public static final String EXTRA_NAME = "name";
@@ -179,7 +180,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 	 * connect/disconnect, etc.
 	 */
 	private void mangeDevices() {
-		Log.d(TAG, this.getClass().getSimpleName() + ".manageDevices()");		
+		Log.d(TAG, this.getClass().getSimpleName() + ".manageDevices() V2.3.1");		
 		deviceManager.manage();
 		
 		// Set the listeners for all the enabled devices.
@@ -272,14 +273,14 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		return i;
 	}
 	
-
+	@Override
 	public void onDeviceConnecting(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, "CONN_CONNECTING", null)
 		);
 	}
 
-
+	@Override
 	public void onDeviceConnected(SerialBTDevice d) {
 		int i = 1;
 		i++;
@@ -294,7 +295,7 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-
+	@Override
 	public void onDeviceClosed(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_CLOSE, null)
@@ -307,14 +308,14 @@ public class BioFeedbackService extends Service implements DeviceConnectionListe
 		}
 	}
 
-
+	@Override
 	public void onBeforeDeviceClosed(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_BEFORE_CLOSE, null)
 		);
 	}
 
-
+	@Override
 	public void onDeviceConnectionLost(SerialBTDevice d) {
 		this.sendBroadcast(
 				getStatusBroadcastIntent(d, BroadcastMessage.Type.STATUS, BroadcastMessage.Id.CONN_CONNECTION_LOST, null)

@@ -65,12 +65,15 @@ import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+
 import com.t2.biofeedback.device.BioFeedbackDevice;
 import com.t2.biofeedback.device.Mobi.MobiBH;
 import com.t2.biofeedback.device.Spine.SpineBH;
 import com.t2.biofeedback.device.neurosky.NeuroskyBH;
 import com.t2.biofeedback.device.shimmer.ShimmerBH;
 import com.t2.biofeedback.device.zephyr.ZephyrBH;
+
+
 
 /**
  * This is the main interface used by the service to the actual Bluetooth 
@@ -85,8 +88,15 @@ import com.t2.biofeedback.device.zephyr.ZephyrBH;
  * @author scott.coleman
  *
  */
-public class DeviceManager {
+public class DeviceManager{
 	private static final String TAG = Constants.TAG;
+	
+	private static String zephyrName = "";
+	private static String neuroskyName = "";
+	private static String shimmerName = "";
+	private static String mobiName = "";
+	private static String spineName = "";
+	
 	
 	/**
 	 * All devices which have been explicitly disabled by the user (Bonded or not)
@@ -110,9 +120,9 @@ public class DeviceManager {
 	private HashMap<String,BioFeedbackDevice> bondedDevices = new HashMap<String,BioFeedbackDevice>(); 
 
 
-	private Context context;
+	Context context;
 
-	private SharedPreferences sharedPref;
+	private static SharedPreferences sharedPref;
 
 	/**
 	 * Static instance of this class
@@ -123,6 +133,7 @@ public class DeviceManager {
 	 * List of server listeners (used to transmit messages to the Spine server) 
 	 */
 	ArrayList<Messenger> mServerListeners;	
+	
 	
 	// This array is used only when "Display option B" (see below) is chosen
 	public static final BioFeedbackDevice[] devices = new BioFeedbackDevice[] {
@@ -137,6 +148,7 @@ public class DeviceManager {
 
 	public void update() {
 		try {
+			setupBTNames();
 			updateAvailableDevices(this, mServerListeners);				
 			manage();		
 		} catch (Exception e) {
@@ -149,11 +161,12 @@ public class DeviceManager {
 		Log.d(TAG, this.getClass().getSimpleName() + ".DeviceManager()");
 		this.mServerListeners = serverListeners;
 		this.context = c;
-		this.sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
-		
+		sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
+
 		this.loadSettings();
 		
 		try {
+			setupBTNames();
 			updateAvailableDevices(this, serverListeners);				
 			manage();		
 		} catch (Exception e) {
@@ -217,6 +230,7 @@ public class DeviceManager {
 		
 	
 	static void updateAvailableDevices(DeviceManager dm, ArrayList<Messenger> serverListeners) {
+
 		// Display option A
 		// Use this block if you want to list all bonded BT devices regardless of their BT Address
 		Set deviceBondedDevices = BluetoothAdapter.getDefaultAdapter().getBondedDevices();	
@@ -239,32 +253,56 @@ public class DeviceManager {
 			if (!deviceExists) {
 				BioFeedbackDevice d = null;
 				String name = bt.getName();
-//				if (name.equalsIgnoreCase("BH ZBH002095"))
-				if (name.startsWith("BH ZB"))
-				{
+				
+	    		// First check for specifically designated names specified by user
+				if (zephyrName.contains(name)) {
 					d = new ZephyrBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Zephyr Device");
+				}
+				else if (neuroskyName.contains(name)) {
+					d = new NeuroskyBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Neurosky Device");
+				}
+				else if (mobiName.contains(name)) {
+					d = new MobiBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Mobi Device");
+				}
+				else if (shimmerName.contains(name)) {
+					d = new ShimmerBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Shimmer Device");
+				}
+				else if (spineName.contains(name)) {
+					d = new SpineBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Spine Device");
+				}
+				
+				
+//				if (name.equalsIgnoreCase("BH ZBH002095"))
+				else if (name.startsWith("BH")) {
+					d = new ZephyrBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Zephyr Device");
 					
 				}
-				else if (name.equalsIgnoreCase("MINDSET")) 
-				{
+				else if (name.startsWith("M") || name.startsWith("m"))  { // Mindset
 					d = new NeuroskyBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Neurosky Device");
 				}
-				else if (name.startsWith("Brain")) 
-				{
+				else if (name.startsWith("Brain")) {
 					d = new NeuroskyBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Neurosky Device");
 				}
-				else if (name.startsWith("NeXus")) 
-				{
+				else if (name.startsWith("NeXus")) {
 					d = new MobiBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Mobi Device");
 				}
-				else if (name.equalsIgnoreCase("RN42-897A"))
-				{
+				else if (name.equalsIgnoreCase("RN42-897A")) {
 					d = new SpineBH(serverListeners);
+					Log.d(TAG, name + ": Assigned as a Spine Device");
 				}
-				else
-				{
+				else {
 					if (name.startsWith("RN")) {
 						d = new ShimmerBH(serverListeners);
+						Log.d(TAG, name + ": Assigned as a Shimmer Device");
 					}
 				}
 				if (d != null) {
@@ -275,7 +313,6 @@ public class DeviceManager {
 					
 				}				
 			}
-
 		}
 		
 
@@ -290,6 +327,31 @@ public class DeviceManager {
 //						d
 //				);
 //			}		
+	}
+	
+	/**
+	 * Sets up static names from special shared preference file for sensors
+	 * 
+	 *  This is in case the user wants to map a device with an odd name to a specific type of sensor
+	 */
+	void setupBTNames() {
+		Log.d(TAG, this.getClass().getSimpleName() + ".setupBTNames()");
+
+		Context otherAppsContext;
+    	try {
+    		otherAppsContext = context.createPackageContext("com.t2",0);
+            SharedPreferences myPrefs = otherAppsContext.getSharedPreferences("com.t2.compassionMeditation.BTNAMES", Context.MODE_WORLD_READABLE);
+            SharedPreferences.Editor prefsEditor = myPrefs.edit();
+            shimmerName = myPrefs.getString("shimmer_sensor", "");			
+            zephyrName = myPrefs.getString("zephyr_sensor", "");			
+            neuroskyName = myPrefs.getString("neurosky_sensor", "");			
+            mobiName = myPrefs.getString("mobi_sensor", "");			
+            spineName = myPrefs.getString("spine_sensor", "");			
+    	} 
+    	catch (Exception e) {
+    		Log.e(TAG, e.toString());
+    	}  				
+		
 	}
 	
 
@@ -450,6 +512,7 @@ public class DeviceManager {
 	 * 	Note: Any device that is bonded is also considered "enabled" 
 	 */
 	public void manage() {
+		setupBTNames();
 		updateAvailableDevices(this, mServerListeners);				
 		
 		for(String address: this.availableDevices.keySet()) {
@@ -475,4 +538,5 @@ public class DeviceManager {
 			}
 		}
 	}
+
 }
