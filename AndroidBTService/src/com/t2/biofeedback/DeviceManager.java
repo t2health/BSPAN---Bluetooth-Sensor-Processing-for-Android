@@ -252,26 +252,26 @@ public class DeviceManager{
 			
 			if (!deviceExists) {
 				BioFeedbackDevice d = null;
-				String name = bt.getName();
+				String name = bt.getName().toUpperCase();
 				
 	    		// First check for specifically designated names specified by user
-				if (zephyrName.contains(name)) {
+				if (zephyrName.toUpperCase().contains(name)) {
 					d = new ZephyrBH(serverListeners);
 					Log.d(TAG, name + ": Assigned as a Zephyr Device");
 				}
-				else if (neuroskyName.contains(name)) {
+				else if (neuroskyName.toUpperCase().contains(name)) {
 					d = new NeuroskyBH(serverListeners);
 					Log.d(TAG, name + ": Assigned as a Neurosky Device");
 				}
-				else if (mobiName.contains(name)) {
+				else if (mobiName.toUpperCase().contains(name)) {
 					d = new MobiBH(serverListeners);
 					Log.d(TAG, name + ": Assigned as a Mobi Device");
 				}
-				else if (shimmerName.contains(name)) {
+				else if (shimmerName.toUpperCase().contains(name)) {
 					d = new ShimmerBH(serverListeners);
 					Log.d(TAG, name + ": Assigned as a Shimmer Device");
 				}
-				else if (spineName.contains(name)) {
+				else if (spineName.toUpperCase().contains(name)) {
 					d = new SpineBH(serverListeners);
 					Log.d(TAG, name + ": Assigned as a Spine Device");
 				}
@@ -339,14 +339,22 @@ public class DeviceManager{
 
 		Context otherAppsContext;
     	try {
-    		otherAppsContext = context.createPackageContext("com.t2",0);
-            SharedPreferences myPrefs = otherAppsContext.getSharedPreferences("com.t2.compassionMeditation.BTNAMES", Context.MODE_WORLD_READABLE);
+    		
+    		
+//    		otherAppsContext = context.createPackageContext("com.t2",0);
+//            SharedPreferences myPrefs = otherAppsContext.getSharedPreferences("com.t2.compassionMeditation.BTNAMES", Context.MODE_WORLD_READABLE);
+            String APP_SHARED_PREFS = "com.t2.compassionMeditation.BTNAMES";         
+            SharedPreferences myPrefs = context.getSharedPreferences(APP_SHARED_PREFS, Context.MODE_WORLD_READABLE);
+
+            
             SharedPreferences.Editor prefsEditor = myPrefs.edit();
             shimmerName = myPrefs.getString("shimmer_sensor", "");			
             zephyrName = myPrefs.getString("zephyr_sensor", "");			
             neuroskyName = myPrefs.getString("neurosky_sensor", "");			
             mobiName = myPrefs.getString("mobi_sensor", "");			
-            spineName = myPrefs.getString("spine_sensor", "");			
+            spineName = myPrefs.getString("spine_sensor", "");	
+ //           spineName += ",RN42-8B36";
+            
     	} 
     	catch (Exception e) {
     		Log.e(TAG, e.toString());
