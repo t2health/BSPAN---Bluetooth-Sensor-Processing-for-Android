@@ -5,3 +5,6 @@
 *.ear
 /gen
 /bin
+*.bin
+*.gen
+
