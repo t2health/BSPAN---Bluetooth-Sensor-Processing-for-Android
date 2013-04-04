@@ -3,4 +3,6 @@
 *.jar
 *.war
 *.ear
+*.gin
+*.gen
 AndroidBTService_src/
